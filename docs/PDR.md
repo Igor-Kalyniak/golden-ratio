@@ -1,6 +1,6 @@
 # PRD — Apartment Module & Golden Ratio Calculator
 
-Last updated: 2026-06-28
+Last updated: 2026-06-29
 
 This document is the **single source of truth** for what the product does and
 what constraints govern it. Every requirement has a stable ID. Specs, tests,
@@ -8,7 +8,9 @@ PRs, and recordings reference these IDs to keep traceability intact.
 
 Refer to [docs/PRODUCT-BRIEF.md](PRODUCT-BRIEF.md) for narrative context, and to
 [docs/superpowers/specs/2026-06-27-apartment-module-calculator-design.md](superpowers/specs/2026-06-27-apartment-module-calculator-design.md)
-for the originating design spec.
+for the originating design spec. The 2D/3D mode toggle, module visualizer, and
+golden-ratio logo are specified in
+[docs/superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md](superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md).
 
 ## Goals & success metrics
 
@@ -32,7 +34,7 @@ This is a keyless, analytics-free, client-side tool (BC-PRIVACY-01, see below), 
 
 ### Non-goals (outcomes we are explicitly not pursuing)
 
-- **Not a CAD or drawing tool** — it outputs numbers the architect applies elsewhere, never geometry or drawings.
+- **Not a CAD or drawing tool** — it outputs numbers and a **read-only** module visualization the architect applies elsewhere. The 2D/3D visualizer (FR-VIZ2D-*, FR-VIZ3D-*) draws rooms to scale to convey the module's size; it never lets the user edit geometry, lay out a floor plan, or export drawings.
 - **Not a building-code authority** — walkway ratings and module advice are guidance, not certification or compliance sign-off.
 - **Not a collaboration or storage platform** — no projects, sharing, or history.
 - **Not a general units/area calculator** — it does one job (module-based proportioning), not arbitrary measurement.
@@ -135,6 +137,50 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | FR-I18N-02  | All user-facing strings resolve through `t()`; two flat JSON dictionaries live in `locales/en.json` and `locales/ua.json` | proposed |
 | FR-I18N-03  | Calculation labels (¼M, ½M, M, etc.) are locale-independent and not translated                                          | proposed |
 
+### Calculation mode (capability `mode-toggle`)
+
+| ID          | Description                                                                                                              | Status   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| FR-MODE-01  | A segmented 2D ⇄ 3D toggle in the input column switches calculation mode; default is 3D                                  | proposed |
+| FR-MODE-02  | In 2D mode, height fields (ceiling, opening) are hidden and the module is suggested from room dimensions (FR-MODULE2D-01) | proposed |
+| FR-MODE-03  | In 3D mode, inputs are ceiling, optional opening, and per-room length/width; module is suggested from heights (FR-MODULE-01) | proposed |
+| FR-MODE-04  | Switching modes preserves shared state (rooms, names, length/width, selected module); only height fields and the active visualizer change | proposed |
+| FR-MODE-05  | Mode is in-memory state only — never persisted (BC-PRIVACY-01)                                                          | proposed |
+
+### 2D module (capability `module-2d`)
+
+| ID            | Description                                                                                                              | Status   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| FR-MODULE2D-01 | `suggestModule2D(rooms)` returns `{ rawGcd, suggested, alternatives, residual }`; `rawGcd` is the GCD over every room's length and width (single room → `gcd(length, width)`), `suggested` is it snapped to nearest `STANDARD_MODULES` | proposed |
+| FR-MODULE2D-02 | The active module in 2D mode is the user-selected value (defaulting to `suggested`), never the raw GCD; it drives golden split, grid fit, and the 2D visualizer | proposed |
+
+### 2D module visualizer (capability `viz-2d`)
+
+| ID          | Description                                                                                                              | Status   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| FR-VIZ2D-01 | A width-responsive `viewBox` SVG draws each room as a plan rectangle (length × width) to scale, laid out in a simple row/wrap (not a floor plan) | proposed |
+| FR-VIZ2D-02 | A faint M × M module grid tiles each room; the signed grid remainder renders as a thin partial strip at the far edge     | proposed |
+| FR-VIZ2D-03 | Exactly one module cell is highlighted in the accent color to convey the module's size relative to the whole room       | proposed |
+| FR-VIZ2D-04 | Grid lines animate in and the highlighted cell pulses; on input change, rects/grid tween to new dimensions               | proposed |
+| FR-VIZ2D-05 | `prefers-reduced-motion` is honored — animations snap rather than play                                                  | proposed |
+
+### 3D module visualizer (capability `viz-3d`)
+
+| ID          | Description                                                                                                              | Status   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| FR-VIZ3D-01 | A `@react-three/fiber` canvas draws one box per room (length × width × ceiling height) to scale, arranged along an axis for scale comparison | proposed |
+| FR-VIZ3D-02 | The opening height, when provided, renders as a marked band/plane on a wall face; omitted when blank                     | proposed |
+| FR-VIZ3D-03 | Exactly one module unit (M × M × M cube) is highlighted in the accent color within the room volume                       | proposed |
+| FR-VIZ3D-04 | OrbitControls allow rotate/zoom/pan; gentle auto-rotate, highlight float/pulse, and room fade-in on mount                | proposed |
+| FR-VIZ3D-05 | `prefers-reduced-motion` disables auto-rotate and pulsing; a loading state shows while the Three.js chunk loads          | proposed |
+| FR-VIZ3D-06 | When WebGL is unavailable, a graceful message shows and the view falls back to the 2D visualizer                         | proposed |
+
+### Branding (capability `brand`)
+
+| ID          | Description                                                                                                              | Status   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| FR-LOGO-01  | A golden-ratio SVG logo (nested φ:1 rectangles + golden-spiral arc, `currentColor`, transparent ground) sits left of the title in the header and scales to a favicon; no raster assets, no new deps | proposed |
+
 ## Requirement prioritization (MoSCoW)
 
 The MVP is deliberately tight, so most requirements are **Must**. The split below
@@ -147,6 +193,13 @@ cut under time pressure without producing an incoherent product.
 | **Should** | FR-SHELL-03 (language toggle UI), FR-MODULE-05 (impractical-module warnings), FR-VERT-04 (off-grid opening marker), FR-VERT-06 (label condensing at high band counts), FR-GOLD-04 (snap-offset / "approximate fit" flag), FR-GRID-05 (quality badge), FR-WALK-04 (furniture presets) | These deliver the "honest about approximation" promise and polish; the tool computes correctly without them but is less legible. |
 | **Could** | `oppositeDepth` opposite-wall accounting in FR-WALK-02, per-room editable furniture depths | Useful refinements that can wait for a second iteration. |
 | **Won't (v1)** | Everything in *Out of scope* below | Deferred by explicit decision. |
+
+The 2D/3D visualization feature (the second iteration) prioritizes as follows:
+
+| Priority | Requirements | Rationale |
+| -------- | ------------ | --------- |
+| **Must** | FR-MODE-01/02/03/04/05, FR-MODULE2D-01/02, FR-VIZ2D-01/02/03, FR-VIZ3D-01/02/03, FR-LOGO-01 | The toggle, the 2D module derivation, both visualizers with the highlighted module, and the logo are the feature. |
+| **Should** | FR-VIZ2D-04/05 (2D animation + reduced-motion), FR-VIZ3D-04/05/06 (orbit/animation, reduced-motion, WebGL fallback) | Motion and graceful degradation make it trustworthy and accessible; the static highlight already conveys the core idea. |
 
 > Note: i18n (FR-I18N-*) is **Must** because the product is bilingual UA/EN by
 > definition (TC-I18N-01); only the toggle's UI placement is downgradable.
@@ -163,6 +216,9 @@ cut under time pressure without producing an incoherent product.
 | NFR-A11Y-02   | Color palette meets WCAG AA contrast in both light and dark themes; quality/rating badges never rely on color alone   | proposed |
 | NFR-RESP-01   | Vertical band SVG and the form/results layout are fully responsive and legible from mobile to desktop                 | proposed |
 | NFR-OBS-01    | Console is silent at runtime (no warnings, no errors) on a healthy session                                            | proposed |
+| NFR-BUNDLE-01 | The Three.js / `@react-three/fiber` code is lazy-loaded (`next/dynamic`, `ssr: false`); the 2D path and first paint carry no 3D dependency | proposed |
+| NFR-PERF-03   | 2D recompute/redraw stays within the < 16 ms budget (NFR-PERF-02); the 3D view targets a smooth interactive frame rate and is capped/guarded at high room counts | proposed |
+| NFR-A11Y-03   | The mode toggle is keyboard-operable with a clear selected state; the visualizer is supplementary, so numeric results remain the accessible source of truth; `prefers-reduced-motion` is respected | proposed |
 
 ## Technical constraints
 
@@ -175,13 +231,14 @@ cut under time pressure without producing an incoherent product.
 | TC-ARCH-01    | `Calculator` owns `ApartmentInput` state; results flow down as props from pure functions in `calculations.ts`         | accepted |
 | TC-I18N-01    | Bilingual UA/EN via a React context + JSON dictionaries; no heavy i18n library                                        | accepted |
 | TC-DATA-01    | No server actions, no database, no routing, no API endpoints — all computation is local and synchronous               | accepted |
+| TC-STACK-04   | 3D rendering uses `@react-three/fiber` + `@react-three/drei`, the only permitted heavy dependency, and must be lazy-loaded (NFR-BUNDLE-01); 2D rendering stays pure SVG with no extra dependency | accepted |
 
 ## Business / UX constraints
 
 | ID            | Description                                                                                                            | Status   |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
 | BC-USER-01    | Target user is an architect / interior designer in the initial proportioning phase; the app outputs numbers they apply in their own CAD tools | accepted |
-| BC-VALUE-01   | Core value is replacing manual GCD / golden-ratio math with instant reactive calculation; output is data-dense, minimal visuals | accepted |
+| BC-VALUE-01   | Core value is replacing manual GCD / golden-ratio math with instant reactive calculation; output is numbers-first and data-dense, supported by a purposeful **read-only** module visualization (FR-VIZ2D-*, FR-VIZ3D-*) — never decorative chrome and never an editable drawing surface | accepted |
 | BC-MODULE-01  | The module is surfaced as a user-selected value with a suggestion and alternatives — never a single brittle silently-derived number | accepted |
 | BC-WALK-01    | Walkway comfort is an absolute human dimension expressed in fixed mm thresholds and must never scale with the module M | accepted |
 | BC-SCOPE-01   | v1 ships no export, no persistence, no floor-plan editor, no accounts                                                  | accepted |
@@ -223,6 +280,11 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 | Walkway clearance below 600 mm | Rated `tight` against fixed mm threshold, independent of module | FR-WALK-03 |
 | User removes rooms down to one | Last room cannot be removed; results still render | FR-ROOM-02, FR-SHELL-04 |
 | Any apartment or room field invalid | Results panel hidden; offending field shows localized inline error | FR-SHELL-04, FR-APT-04 |
+| 2D mode selected | Height fields hidden; module suggested from room dimensions; vertical bands hidden | FR-MODE-02, FR-MODULE2D-01 |
+| 3D mode, opening height left blank | No opening marker drawn; all other results render | FR-MODE-03, FR-VIZ3D-02 |
+| `prefers-reduced-motion` set | Visualizer animations snap; 3D auto-rotate and pulse disabled | FR-VIZ2D-05, FR-VIZ3D-05 |
+| WebGL unavailable in 3D mode | Graceful message; automatic fallback to the 2D visualizer | FR-VIZ3D-06 |
+| Switching 2D ↔ 3D | Shared room state preserved; height fields reappear with defaults | FR-MODE-04 |
 
 ## Dependencies & risks
 
@@ -243,6 +305,9 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 | Walkway ratings mistaken for code compliance | M | H | Stated non-goal; phrase as guidance in `recommendation` text (FR-WALK-01) |
 | No telemetry means no post-launch signal on adoption or quality | H | M | Validate via pre-launch usability sessions; revisit privacy stance only if a real need emerges |
 | Golden-ratio ½M snap misleads when offset is large | M | M | Surface `snapOffset` and "approximate fit" flag (FR-GOLD-04) |
+| Three.js bundle weight degrades load/perf | M | M | Lazy-load the 3D chunk; keep 2D pure-SVG; first paint carries no 3D dep (NFR-BUNDLE-01, TC-STACK-04) |
+| WebGL unsupported / disabled on a user's device | L | M | Detect and fall back to the 2D visualizer with a message (FR-VIZ3D-06) |
+| Visualizer pulls the product toward becoming a CAD/floor-plan editor (scope creep) | M | H | Read-only by constraint; rooms shown for scale only, no layout/adjacency/export (BC-VALUE-01, non-goals) |
 
 ## Open questions
 
@@ -257,3 +322,4 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 | ------- | ---------- | ------ | ------- |
 | 1.0     | 2026-06-28 | PM     | Initial PRD derived from the design spec |
 | 1.1     | 2026-06-28 | PM     | Added goals & success metrics, non-goals, MoSCoW prioritization, assumptions, edge-case catalog, dependencies & risks, open questions |
+| 1.2     | 2026-06-29 | PM     | Added 2D/3D mode toggle, 2D module engine, 2D/3D module visualizers, and golden-ratio logo (FR-MODE-*, FR-MODULE2D-*, FR-VIZ2D-*, FR-VIZ3D-*, FR-LOGO-*); added NFR-BUNDLE-01, NFR-PERF-03, NFR-A11Y-03, TC-STACK-04; reworded the "not a CAD tool" non-goal and BC-VALUE-01 to permit read-only visualization |

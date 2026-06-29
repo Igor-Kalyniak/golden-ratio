@@ -18,8 +18,17 @@ and walkway recommendations.
 Everything is computed client-side as pure math. There are no accounts, no
 database, no server round-trips, and no export. The architect reads the numbers
 on screen and applies them in their own CAD tools. The interface is bilingual
-(Ukrainian and English) and deliberately data-dense: numeric tables plus one SVG
+(Ukrainian and English) and deliberately data-dense: numeric tables plus an SVG
 vertical-band diagram, not decoration.
+
+A **2D ⇄ 3D mode toggle** lets the architect work in plan (length × width) or in
+volume (adding ceiling and optional opening height), and a **read-only module
+visualizer** draws each room to scale and highlights one module unit in color, so
+the module's size relative to the whole room is *seen*, not just read. A
+**golden-ratio logo** — built from the φ:1 rectangle subdivision and the golden
+spiral — anchors the header. The visualizer is a comprehension aid layered on the
+numbers; it never edits geometry and nothing is exported, so the tool stays
+numbers-first and is still not a CAD editor.
 
 ## Who it is for
 
@@ -126,6 +135,13 @@ impractical-module warnings; the variable-count vertical-band SVG with off-grid
 opening marker and top remainder; the per-room golden-ratio split, grid-fit
 quality, and walkway checks; and the bilingual UA/EN toggle — all client-side,
 all synchronous.
+
+**Second iteration (specced, additive):** the golden-ratio logo; the 2D ⇄ 3D mode
+toggle with a 2D module derived from room dimensions; the 2D SVG plan visualizer
+and the lazy-loaded 3D (`@react-three/fiber`) visualizer, each highlighting one
+module unit against the room. All read-only — no floor-plan layout, no export of
+the visualization, no persistence of mode or camera. See
+[docs/PDR.md](PDR.md) (FR-MODE-*, FR-MODULE2D-*, FR-VIZ2D-*, FR-VIZ3D-*, FR-LOGO-*).
 
 **Future (deferred):** the PRD's out-of-scope list, none of which is built —
 export (PDF, CSV, image); persistence or saved projects; an interactive
