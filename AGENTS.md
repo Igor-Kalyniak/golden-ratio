@@ -38,10 +38,12 @@ npm run lint     # run ESLint
 Before planning or implementing features, read the docs in **`docs/`**:
 
 - **[docs/PDR.md](docs/PDR.md)** — numbered requirements (`FR-*`, `NFR-*`, `TC-*`, `BC-*`); the traceable source of truth for what to build and how to verify it.
+- **[docs/CAPABILITIES.md](docs/CAPABILITIES.md)** — the capability plan: splits `PDR.md` into capabilities (one per OpenSpec change) and fixes the implementation order. Read it when deciding what to build next and which requirement IDs a change owns.
 - **[docs/PRODUCT-BRIEF.md](docs/PRODUCT-BRIEF.md)** — business narrative, audience, and UX intent behind the requirements.
+- **[docs/DESIGN.md](docs/DESIGN.md)** — the design source of truth: tokens, typography, layout, components, states, motion, accessibility, the worked example, EN/UA strings, and reference calculation logic, distilled from the frozen Claude Design export in [docs/design/export/](docs/design/export/).
 - **[docs/superpowers/specs/](docs/superpowers/specs/)** — originating design specs, including the [2D/3D mode + module visualizer + logo spec](docs/superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md).
 
-When scope is unclear, resolve it against `PDR.md` first. Use the product brief for tone, priorities, and "why," not as a substitute for requirement IDs.
+When **behavioural or requirement** scope is unclear, resolve it against `PDR.md` first; when **visual** scope is unclear, resolve it against `DESIGN.md`. Use the product brief for tone, priorities, and "why," not as a substitute for requirement IDs.
 
 ## Session handoff
 
@@ -62,5 +64,16 @@ Do not duplicate full specs here; link to `PDR.md` / `PRODUCT-BRIEF.md` and reco
 Detailed, task-specific guidance lives in `.agents/skills/`. Load the relevant skill before working in its area:
 
 - **`nextjs-frontend`** — all framework guidance for this app: the read-docs-first rule, Server vs Client Components, data fetching, Cache Components, Server Actions, routing conventions, streaming, Route Handlers, error handling, and performance. Apply it whenever writing, reviewing, or refactoring code under `app/`. See [.agents/skills/nextjs-frontend/SKILL.md](.agents/skills/nextjs-frontend/SKILL.md).
+
+### Design skills
+
+The design source of truth ([docs/DESIGN.md](docs/DESIGN.md)) is also extracted into four
+task-scoped skills (agentskills.io standard). Load the relevant one when its area is in scope;
+they cross-link each other and trace back to `DESIGN.md` sections and `PDR.md` requirement IDs.
+
+- **`design-tokens`** — the visual foundation applied everywhere: design principles, Inter/JetBrains-Mono typography (the mono-for-numbers rule), OKLCH light/dark color tokens, motion keyframes, and accessibility. Load when styling, picking a token/color, setting type, or adding animation. Maps to `DESIGN.md` §1–3, §8–9. See [.agents/skills/design-tokens/SKILL.md](.agents/skills/design-tokens/SKILL.md).
+- **`design-layout-components`** — the structural build spec: page shell & header, 2D/3D mode toggle, input column + validation, the four results sections, the read-only visualizer, and the logo. Load when building or reviewing any page section or component. Maps to `DESIGN.md` §4–7. See [.agents/skills/design-layout-components/SKILL.md](.agents/skills/design-layout-components/SKILL.md).
+- **`calculation-logic`** — the canonical pure-math algorithms for `lib/calculations.ts`: GCD module suggestion, snapping, golden split, grid fit, walkway ratings, bands, validation bounds, warnings, and the worked-example numbers. Load when implementing or reviewing any derived value. Maps to `DESIGN.md` §10, §12–13. See [.agents/skills/calculation-logic/SKILL.md](.agents/skills/calculation-logic/SKILL.md).
+- **`i18n-strings`** — bilingual UA⇄EN: the live language pill, canonical EN/UA dictionary keys, and the never-translate rule for calculation labels. Load when adding user-facing strings or wiring dictionaries. Maps to `DESIGN.md` §11. See [.agents/skills/i18n-strings/SKILL.md](.agents/skills/i18n-strings/SKILL.md).
 
 Browse [.agents/skills/](.agents/skills/) for the full catalog of available skills.

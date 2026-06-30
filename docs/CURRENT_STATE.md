@@ -6,10 +6,14 @@
 
 ## Handoff
 
-- **Last updated:** 2026-06-29T00:00:00+03:00
-- **Last action:** Brainstormed and specced the 2D/3D mode toggle, read-only module
-  visualizer (2D SVG + lazy 3D `@react-three/fiber`), and the golden-ratio logo;
-  wrote the design spec and threaded the requirements through PDR, brief, and DESIGN.
+- **Last updated:** 2026-06-30T12:30:00+03:00
+- **Last action:** Aligned typography naming to the canonical **Inter + JetBrains Mono**
+  across docs and skills — fixed `docs/CAPABILITIES.md`, `docs/PDR.md` (`TC-STACK-03`), and
+  the `nextjs-frontend` skill (each had a stale "Geist"); added `docs/CAPABILITIES.md` to the
+  AGENTS.md docs index; renamed stale `capability-plan.md` references to `CAPABILITIES.md`.
+  (Prior: split `docs/PDR.md` into 16 OpenSpec capability changes with a fixed implementation
+  order — see [docs/CAPABILITIES.md](CAPABILITIES.md): capability→change map, ordered build
+  sequence, dependency graph, per-change cards, constraint coverage.)
 - **Status:**
   - Done — design spec
     [2026-06-29-2d-3d-mode-and-logo-design.md](superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md);
@@ -17,9 +21,10 @@
     NFR-PERF-03, NFR-A11Y-03, TC-STACK-04), PRODUCT-BRIEF, DESIGN, and AGENTS updated.
   - In progress — none; awaiting user review of the spec before planning.
   - Blocked — none.
-- **Next steps:** On spec approval, run the writing-plans skill to produce the
-  implementation plan; then build `ModeToggle`, `suggestModule2D`, `viz.ts`,
-  `ModuleVisualizer2D`, the lazy `ModuleVisualizer3D`, and the `Logo` component.
+- **Next steps:** Start change **1 `calculation-engine`** from
+  [docs/CAPABILITIES.md](CAPABILITIES.md) — scaffold it with `openspec new change
+  calculation-engine` (or `/opsx:propose`), then proceed in the documented order. Epic A
+  (changes 1–11) ships the core calculator before Epic B (mode toggle + visualizers + logo).
 - **Notes:** Decisions — additive (not a pivot); 3D via `@react-three/fiber`
   lazy-loaded; 2D module = GCD across all room dims snapped; one shared module across
   rooms; default mode 3D; mode/camera not persisted (BC-PRIVACY-01). The "not a CAD
@@ -32,7 +37,7 @@
 3. `docs/PDR.md` — canonical FR/NFR/TC/BC requirements.
 4. `docs/PRODUCT-BRIEF.md` — product narrative.
 4a. `docs/superpowers/specs/` — design specs (apartment calculator; 2D/3D mode + logo).
-5. `docs/mvp-capability-plan.md` — change sequence and scope.
+5. `docs/CAPABILITIES.md` — OpenSpec change sequence and order.
 6. `openspec/project.md` + `openspec/specs/` — accepted behavior.
 7. `docs/adr/` — architecture decisions.
 8. `docs/qa/` — QA proof pack and recordings.

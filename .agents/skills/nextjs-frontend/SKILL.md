@@ -106,5 +106,5 @@ Key references under `node_modules/next/dist/docs/01-app/`:
 
 - Keep Client Component bundles small — push interactivity to leaf components.
 - Use `<Image>` from `next/image` with `priority` for above-the-fold images.
-- Use `next/font` for self-hosted fonts (already set up with Geist).
+- Use `next/font` to self-host fonts — Inter + JetBrains Mono per the `design-tokens` skill (`TC-STACK-03`).
 - Prefer `<Link>` from `next/link` for client-side navigation.

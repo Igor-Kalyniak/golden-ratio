@@ -1,210 +1,348 @@
-# Claude Design — prompt for the Golden Ratio Calculator
+# DESIGN.md — Design source of truth
 
-Paste the block below into a new project at **[claude.ai/design](https://claude.ai/design)**.
-It is a self-contained design brief; the design agent will render a working React
-prototype from it. Calculation logic does **not** need to be real in the prototype —
-the worked numbers are pre-computed and given inline so the screen renders correct,
-trustworthy values. Sources: [PDR.md](PDR.md), [PRODUCT-BRIEF.md](PRODUCT-BRIEF.md),
-[design spec](superpowers/specs/2026-06-27-apartment-module-calculator-design.md).
+The authoritative design spec for the **Apartment Module & Golden Ratio Calculator**.
+It distills the rendered Claude Design export into a buildable system: tokens,
+typography, layout, components, states, motion, accessibility, the worked example, and
+the EN/UA strings. When visual scope is unclear, resolve it here; when behavioural or
+requirement scope is unclear, resolve it against [PDR.md](PDR.md).
 
----
+- **Frozen reference export:** [design/export/](design/export/) — the raw
+  `prototype.dc.html` + `support.js` + screenshots from [claude.ai/design](https://claude.ai/design).
+  Read the `<script type="text/x-dc">` block in the prototype for exact values.
+- **Originating specs:** [superpowers/specs/2026-06-27-apartment-module-calculator-design.md](superpowers/specs/2026-06-27-apartment-module-calculator-design.md),
+  [superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md](superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md).
+- **Requirements:** [PDR.md](PDR.md) (`FR-*`, `NFR-*`, `TC-*`, `BC-*`). **Why:** [PRODUCT-BRIEF.md](PRODUCT-BRIEF.md).
 
-## THE PROMPT
-
-> Design a single-page web app: **"Apartment Module & Golden Ratio Calculator"** — a
-> proportional-planning tool for architects and interior designers. It is data-dense,
-> calm, and professional: numbers first, decoration last. Think "precise engineering
-> instrument," not "marketing landing page."
->
-> ### Who it's for & the feeling
-> The user is a mid-career architect ("Maria") who works in **millimetres**, knows
-> standard modules and the golden ratio cold, and is **skeptical of black boxes** — she
-> will not trust a number she can't trace back to its inputs. The emotional target is
-> **confidence and control**: every derived value shows its origin, and the key
-> decision (the module) is a *suggestion she can override*, never an opaque verdict.
-> Honesty about approximation is a feature — snapped values, residuals, off-grid
-> markers, and leftover heights are surfaced, not hidden.
-
-> ### Layout & shell
-> - **Single page, two columns on wide screens:** a left **input column** and a right
->   **live results panel**. On narrow/mobile screens they **stack vertically** (input on
->   top, results below).
-> - A **language toggle (UA ↔ EN)** sits in the **top-right corner**, rendered as a small
->   "UA / EN" pill button. Flipping it switches every UI label live. Show the prototype
->   in **EN** but include the toggle prominently.
-> - The **results panel only appears once** the apartment fields and at least one room
->   are valid. Show it populated (valid state) by default.
-> - There is **no submit button** — everything is reactive; results recompute on every
->   keystroke. Convey this with a subtle "updates live" affordance, not a button.
->
-> ### Visual system
-> - **Light background (white / near-white), subtle hairline borders, generous
->   whitespace.** Full **dark-mode** variant too (show both if the tool supports it).
-> - **Two typefaces:** a clean sans (Geist Sans / Inter-like) for UI labels and prose;
->   a **monospace (Geist Mono / JetBrains Mono)** for **every numeric / dimension value**
->   (heights, mm figures, module counts, remainders). This mono-for-numbers rule is the
->   signature of the whole interface — apply it everywhere a measurement appears.
-> - One restrained accent color for interactive elements and the highlighted opening
->   line. **Quality and rating badges must never rely on color alone** — pair each with a
->   text label and/or icon (accessibility requirement).
-> - Units are always **mm**. Keep it austere and instrument-like.
-
-> ### Left column — INPUTS
-> **Apartment fields (top):**
-> - **Ceiling height (mm)** — integer, default **2800**, valid 2000–5000.
-> - **Opening height (mm)** — integer, default **2100**, valid 1800 up to the ceiling
->   height.
-> - **Module (mm)** — a **dropdown** of standard modules `[100, 150, 200, 300, 350, 600,
->   700]`, defaulting to the *suggested* value (700 here) but user-overridable. Mark the
->   suggested option subtly (e.g. "700 — suggested").
-> - **Inline validation:** an invalid field gets a **red border** and a short localized
->   **error message directly below it**. Every input has a visible label and a clear focus
->   ring. Show one field in an error state somewhere as a demonstration (e.g. opening
->   height "must be ≤ ceiling height").
->
-> **Room list (below apartment fields):**
-> - Starts with **one room**; an **"Add room"** button appends more. Each room can be
->   removed **except the last** (the remove control on the final remaining room is
->   disabled/hidden).
-> - **Per room:** a **name** (default "Room 1"), a **length (mm)** and a **width (mm)**,
->   both valid 500–15000. Lay each room out as a compact row/card with name on top and
->   length × width side by side.
-> - Show **2–3 rooms** populated in the prototype (data below) so the results panel is rich.
-
-> ### Right column — RESULTS PANEL
-> Four stacked sections, in this order:
->
-> **1. Module Summary**
-> - The active module shown **large and prominent**, monospace: **`M = 700 mm`**.
-> - A **"suggested from heights"** hint line showing the derivation: `GCD(2800, 2100) =
->   700 → snapped to 700` with **residual 0 mm** and **alternatives: 600, 350**. (The
->   suggestion is traceable — this hint is what earns Maria's trust.)
-> - A **ruler table** listing the module multiples with size and a typical-use note:
->   | Label | Size | Typical use |
->   |---|---|---|
->   | ¼M | 175 mm | trim, reveals, small offsets |
->   | ½M | 350 mm | sills, steps, counter depth |
->   | M | 700 mm | base planning unit, door width |
->   | 1.5M | 1050 mm | corridor width |
->   | 2M | 1400 mm | window band, furniture runs |
->   | 3M | 2100 mm | door/opening height |
->   | 4M | 2800 mm | ceiling height |
-> - A **warning banner** appears only when the module is impractical: > 1000 mm
->   ("module may be impractically large, check ½M") or < 100 mm ("inputs may need
->   revision"). At M=700 **no banner shows** — but design the banner style and note when
->   it appears.
->
-> **2. Vertical Band Diagram (SVG)**
-> - A **width-responsive SVG** (viewBox-based, scales down on mobile — no fixed pixel
->   size) showing **N stacked horizontal bands** where **N = round(ceiling / module)**.
->   For the defaults that's **4 bands** of 700 mm each (0–700, 700–1400, 1400–2100,
->   2100–2800). The count is **variable** — design it so it would also stay legible at
->   **2 bands or 50+ bands** (at high counts, condense/group the labels).
-> - **mm labels run up the left edge** (0, 700, 1400, 2100, 2800); **band names on the
->   right** (e.g. "base / plinth", "work zone", "door-head zone", "upper / ceiling").
-> - The **opening line (2100 mm) is highlighted** with a dashed marker. Here it lands
->   exactly on a band boundary (aligned). **Also show the off-grid variant**: when the
->   opening does *not* sit on a boundary, the dashed marker floats at its true height
->   with an "off-grid" tag — design this honest state too.
-> - Any **leftover height above the last full module** (`topRemainder`) is drawn as a
->   shorter **partial band** at the top. At M=700 the remainder is 0; show how a partial
->   band would render (e.g. with a ceiling of 2900 → a 100 mm sliver on top).
-
-> **3. Per-Room Results — one card per room**
-> Each card has a **header** (room name + "length × width mm") and three result blocks:
-> - **Golden-ratio split** of the room's **longer wall**: show the **exact** values
->   (`larger = length × 0.618`, `smaller = length × 0.382`), the **values snapped to the
->   nearest ½M grid line**, and the **snap offset**. When the offset exceeds ¼M, flag the
->   card **"approximate fit"**; otherwise it reads as a clean fit.
-> - **Grid fit:** show it as **modules × modules** with the **signed remainder** for each
->   dimension (so the UI can say "round up" vs "round down"), and a **quality badge** —
->   **`exact`** (green), **`close`** (amber), or **`poor`** (red) — each badge carrying a
->   text label, not color alone.
-> - **Walkway estimates:** for common furniture, show available clearance and a rating
->   against **fixed ergonomic thresholds** (these never scale with the module):
->   **≥ 900 mm comfortable · ≥ 600 mm acceptable · < 600 mm tight.** Show rows for a
->   **wardrobe/kitchen (600 mm depth)** and a **sofa/bed-center (900 mm depth)**. Render a
->   short plain-language recommendation per row (it's guidance, not code compliance).
->
-> **4. (toggle, already placed top-right) Language UA ↔ EN** switches all UI strings
-> live; **calculation labels (¼M, ½M, M, …) stay identical in both languages** and are
-> never translated.
-
-> ### Logo (top-left)
-> - A small **golden-ratio mark** sits left of the title: **nested golden rectangles**
->   subdivided φ:1 with the **golden-spiral arc** sweeping through them. Single accent
->   color (use `currentColor` so it inverts in dark mode), transparent background, pure
->   SVG. It should read cleanly at favicon size too.
->
-> ### Calculation-mode toggle
-> - A **segmented "2D / 3D" control** in the input column, near the top of the apartment
->   fields. **Default to 3D** in the prototype.
-> - **3D mode** shows ceiling height, **optional** opening height, and per-room
->   length/width — and the full results (module summary, vertical bands, per-room cards,
->   3D visualizer).
-> - **2D mode** **hides the height fields** (ceiling, opening) and the **vertical-band
->   diagram**; the module is now suggested from the **room dimensions**
->   (`GCD(length, width)` snapped to a standard module). Everything else — module summary,
->   golden split, grid fit, walkway, and the 2D visualizer — still shows. Render both
->   states if possible (3D primary).
->
-> ### Module Visualizer (new results section, above or beside the per-room cards)
-> A **read-only** drawing that shows the module's size relative to each room — it is a
-> comprehension aid, never an editable floor plan (no walls, no adjacency, no export).
-> - **2D variant (SVG):** each room drawn as a **plan rectangle to scale** (length ×
->   width), in a simple row/wrap. A **faint M × M grid** tiles each room, the **signed
->   remainder** shows as a thin partial strip at the far edge, and **exactly one module
->   cell is highlighted in the accent color**. Suggest a subtle "grid draws in + cell
->   pulses" animation (respecting reduced-motion).
-> - **3D variant:** each room as a **box to scale** (length × width × ceiling height),
->   arranged along an axis for comparison, with the **opening height** marked as a band on
->   a wall face (omit when blank) and **one M × M × M module cube highlighted in the accent
->   color**. Orbit/rotate/zoom; gentle auto-rotate and a floating/pulsing highlight.
-> - Show a **"3D unavailable → 2D fallback"** note for the WebGL-off case.
->
-> ### Worked example data — render these exact numbers
-> Apartment: **ceiling 2800 mm, opening 2100 mm, module M = 700 mm** (suggested; alts
-> 600, 350; residual 0). Use **three rooms** so all badge states are visible:
->
-> **Room 1 — "Living room", 4200 × 3500 mm**
-> - Golden split (longer wall 4200): exact larger **2595.6**, smaller **1604.4**; snapped
->   **2450 / 1750**; offset **145.6 mm** → clean fit (within ¼M).
-> - Grid fit: **6 × 5 modules**, remainders **0 / 0** → badge **`exact`**.
-> - Walkway: width 3500 − 600 wardrobe = **2900 mm → comfortable**; 3500 − 900 sofa =
->   **2600 mm → comfortable**.
->
-> **Room 2 — "Kitchen", 3800 × 2500 mm**
-> - Golden split (3800): exact **2348.4 / 1451.6**; snapped **2450 / 1350**; offset
->   **101.6 mm** → clean fit.
-> - Grid fit: **5 × 4 modules**, remainders **−300 / +300** (both > ¼M=175) → badge
->   **`poor`**; annotate "round down on length, round up on width".
-> - Walkway: 2500 − 600 = **1900 mm → comfortable**.
->
-> **Room 3 — "Bathroom", 2150 × 1500 mm** (demonstrates the tighter states)
-> - Golden split (2150): exact **1328.7 / 821.3**; snapped **1400 / 750**; offset
->   **71.3 mm** → clean fit.
-> - Grid fit: **3 × 2 modules**, remainders **+50 / +100** (both ≤ ¼M) → badge **`close`**.
-> - Walkway: 1500 − 900 sofa = **600 mm → acceptable**; 1500 − 600 wardrobe − 600
->   opposite wall = **300 mm → tight**. (Shows `acceptable` and `tight` ratings.)
->
-> So across the three cards every state appears: grid `exact` / `close` / `poor`, and
-> walkway `comfortable` / `acceptable` / `tight`.
->
-> ### Quality bar
-> - **Accessibility:** every input labelled, visible focus styles, validation messages
->   tied to their fields, WCAG-AA contrast in both themes, badges legible without color.
-> - **Responsive:** the two-column layout and the band SVG must read cleanly from mobile
->   to desktop.
-> - **Tone:** professional, dense, calm — a precise instrument an architect trusts. Show
->   it in **both light and dark mode** if possible, populated with the data above.
+> The prior version of this file was the *prompt* used to generate the design. That
+> prompt is preserved as [design/PROMPT.md](design/PROMPT.md). This file is now the
+> design that came back, made canonical.
 
 ---
 
-## After you have a design you like
+## 1. Design principles
 
-Bring the generated React/JSX back into this repo and I'll wire it up for real:
-the calculation logic (`lib/calculations.ts` pure functions), the `'use client'`
-boundary at `Calculator.tsx`, and the UA/EN dictionaries — all traceable to the
-`FR-*` IDs in [PDR.md](PDR.md). The prototype's job is the *look and the states*;
-the math and i18n plumbing are the build step.
+A **precise engineering instrument**, not a marketing page. Numbers first, decoration
+last. The user (architect "Maria") is skeptical of black boxes — **every derived value
+shows its origin**, and the module is a *suggestion she can override*, never a verdict.
+Approximation is surfaced honestly: residuals, snap offsets, off-grid markers, signed
+remainders, and leftover heights are shown, not hidden. Calm, dense, austere, in mm.
 
+---
+
+## 2. Typography
+
+- **Sans (UI labels, prose):** `Inter`, weights 400/500/600/700 →
+  `'Inter', system-ui, -apple-system, sans-serif`.
+- **Mono (every numeric / dimension value):** `JetBrains Mono`, weights 400/500/600/700 →
+  `'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace`.
+- **Mono-for-numbers is the signature rule:** apply mono to *every* measurement — heights,
+  mm figures, module counts, multiples, remainders, offsets, ranges, the `M = 700` hero.
+- Body sets `font-feature-settings: "tnum" 1, "cv01" 1` (tabular numerals so columns align).
+- Both load from Google Fonts in the prototype; in the Next build, self-host via `next/font`.
+
+---
+
+## 3. Color tokens
+
+CSS custom properties, copied verbatim from the export. The accent and status colors are
+**OKLCH** so they stay perceptually even across light/dark. The build should expose these
+as CSS variables (or Tailwind theme tokens) and switch on `html[data-theme]`.
+
+### Light (`:root`)
+
+```css
+--sans:'Inter',system-ui,-apple-system,sans-serif;
+--mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+--bg:#fbfbfa; --panel:#ffffff; --panel2:#f6f6f4; --inset:#f1f1ee;
+--fg:#1a1a18; --fg2:#3a3a36; --muted:#73736c; --faint:#9a9a91;
+--line:rgba(20,20,16,.10); --line2:rgba(20,20,16,.18); --field:#ffffff;
+--accent:oklch(0.55 0.13 248); --accent-fg:#ffffff; --accent-bg:oklch(0.95 0.03 248); --accent-line:oklch(0.80 0.07 248);
+--good:oklch(0.52 0.12 150); --good-bg:oklch(0.95 0.04 150);
+--warn:oklch(0.58 0.11 70);  --warn-bg:oklch(0.95 0.05 75);
+--bad:oklch(0.52 0.17 28);   --bad-bg:oklch(0.95 0.04 28);
+--err:oklch(0.52 0.17 28);   --err-bg:oklch(0.96 0.03 28);
+```
+
+### Dark (`html[data-theme="dark"]`)
+
+```css
+--bg:#0e0e0d; --panel:#161614; --panel2:#1c1c1a; --inset:#222220;
+--fg:#ededea; --fg2:#cfcfc9; --muted:#a0a097; --faint:#6f6f67;
+--line:rgba(255,255,250,.12); --line2:rgba(255,255,250,.22); --field:#1b1b19;
+--accent:oklch(0.74 0.13 248); --accent-fg:#0e0e0d; --accent-bg:oklch(0.30 0.06 248); --accent-line:oklch(0.45 0.09 248);
+--good:oklch(0.74 0.13 150); --good-bg:oklch(0.30 0.06 150);
+--warn:oklch(0.78 0.12 75);  --warn-bg:oklch(0.32 0.06 75);
+--bad:oklch(0.70 0.16 28);   --bad-bg:oklch(0.32 0.07 28);
+--err:oklch(0.70 0.16 28);   --err-bg:oklch(0.30 0.06 28);
+```
+
+### Semantics
+
+| Token | Meaning |
+|---|---|
+| `--bg` / `--panel` / `--panel2` / `--inset` | page → card → card-header / sunken fill (deepest) |
+| `--fg` / `--fg2` / `--muted` / `--faint` | primary → secondary text → labels → hints/units |
+| `--line` / `--line2` | hairline border → stronger border (inputs, dividers) |
+| `--field` | input background |
+| `--accent` (+ `-fg`/`-bg`/`-line`) | interactive, snapped values, highlighted module, opening line |
+| `--good` / `--warn` / `--bad` | grid `exact` / `close` / `poor`; walkway `comfortable` / `acceptable` / `tight` |
+| `--err` | invalid field border + inline error text |
+
+**Never color-only:** every quality/rating badge pairs the color with a text label and an
+icon (`✓` exact·comfortable, `≈` close·approximate, `✕`/⚠ poor·tight). Default theme is **light**.
+
+---
+
+## 4. Layout & shell
+
+- **Single page.** Sticky **header**, then a CSS grid:
+  `grid-template-columns: minmax(320px,400px) 1fr` — left **input column** (sticky,
+  `top:67px`), right **results column**. `max-width:1400px; margin:0 auto`.
+- **Responsive:** below the two-column breakpoint the columns **stack vertically**
+  (inputs on top, results below). The header wraps. The band SVG and visualizer are
+  `viewBox`-based and scale down — no fixed pixel widths.
+- **No submit button** — everything is reactive; results recompute on every keystroke.
+  A `livedot`-animated "updates live" pill in the header conveys this.
+- The **results column only renders** once apartment fields are valid **and** at least
+  one room is valid (`showResults`). Otherwise a dashed empty-state card shows
+  `s.fillToSee`. `aria-live="polite"` on the results section.
+
+### Header (left → right)
+
+1. **Logo** (accent `currentColor`) + **title** (`s.title`, 15px/600) and **subtitle**
+   (`s.subtitle`, 11.5px muted).
+2. **"updates live" pill** — 6px `--good` dot, `livedot` pulse, `s.live` label.
+3. **Theme toggle** — 34×30 button, `☾` (light) / `☀` (dark); sets `html[data-theme]`.
+4. **Language pill** — `EN | UA` segmented, mono, accent fill on the active side.
+
+---
+
+## 5. Input column
+
+### 5.1 Mode toggle (`2D | 3D`)
+Segmented control top-right of the inputs header. **Default `3D`.** Drives `showHeights`:
+- **3D** — show ceiling + opening fields and the vertical band diagram; module suggested
+  from heights (`GCD(ceiling, opening)`).
+- **2D** — **hide** the height fields and the band diagram; module suggested from room
+  dimensions (`GCD` across all valid rooms' length & width, snapped). Everything else
+  (module summary, golden split, grid fit, walkway, visualizer) still shows.
+
+### 5.2 Apartment card
+White panel, 12px radius. Fields stack with 14px gaps:
+- **Ceiling height (mm)** — number, default `2800`, valid `2000–5000`. Range hint
+  (`2000–5000`) sits right-aligned in the label, mono/faint. `mm` suffix chip.
+- **Opening height (mm)** — number, default `2100`, valid `1800–ceiling`. (3D only.)
+- **Module (mm)** — `<select>` over `[100,150,200,300,350,600,700]`; the suggested value
+  is labelled `"700 — suggested"`. User-overridable; label carries an accent `override` tag.
+- Inputs: `--field` bg, `--line2` border, mono 15px value, focus ring `outline:2px solid var(--accent)`.
+
+### 5.3 Room list
+- Header row: `Rooms <count>` + accent **`+ Add room`** button (`--accent-bg`/`--accent-line`).
+- Each room is a panel card: a `R1`/`R2`… mono tag, an inline-editable **name**
+  (default `Room N`, underline-on-focus), then **Length** and **Width** in an
+  `auto-fit minmax(118px,1fr)` grid, both valid `500–15000` mm, `mm` suffix.
+- **Remove (`×`)** per card, **disabled on the last remaining room** (opacity .3,
+  `not-allowed`). `addRoom` appends `{name:'Room N', length:3000, width:2400}`.
+
+### 5.4 Validation (`FR` — inline)
+Invalid field → border switches to `--err`; a `role="alert"` message renders directly
+below it with a bold `!` glyph. Messages: `errCeiling`, `errOpening`, `errDim` (see §11).
+`aria-invalid` is set on the input. Every input has a visible `<label>` and focus ring.
+
+---
+
+## 6. Results column
+
+Four stacked sections, 22px gap.
+
+### 6.1 Module Summary
+- Two-pane card. Left pane (`--panel2`): label `active module` + hero
+  **`M = {value}`** in mono 34px, `mm` underneath.
+- Right pane — the **traceability hint** that earns trust:
+  `GCD(2800, 2100) = 700 → snapped to 700`, then `residual 0 mm` (good chip) and
+  `alternatives` chips (`600`, `350`). In 2D the line reads `GCD(rooms) → snapped …`
+  with the `suggested from room dimensions` label.
+- **Warning banner** (`--warn-bg`, `role="alert"`) only when `M > 1000` (`warnLarge`) or
+  `M < 100` (`warnSmall`). At M=700 no banner.
+- **Module ruler** table — 3 cols `Label | Size | Typical use`, rows ¼M…4M computed as
+  `round(M × k)` for `k ∈ {0.25,0.5,1,1.5,2,3,4}`. Labels (`¼M`,`½M`,`M`,…) are mono accent
+  and **never translated**; the "typical use" prose is localized.
+
+### 6.2 Vertical Band Diagram (3D mode only)
+- Width-responsive `viewBox="0 0 360 470"` SVG, `max-width:520px`.
+- `N = floor(ceiling / module)` full bands bottom-to-top, mm marks up the left edge
+  (`0,700,…`), band names on the right (`base / plinth`, `work zone`, `door-head zone`,
+  `upper / ceiling`). Alternating bands use `--inset` / `--panel2`.
+- **Opening line** highlighted: dashed `--accent` rule + dot at the true height, tagged
+  `on grid` when `opening % module === 0`, else `off-grid`.
+- **Top remainder** (`ceiling − N·module > 0`) renders as a shorter **partial band**
+  (`--accent-bg`, dashed) tagged `partial · {span} mm`. At M=700 the remainder is 0.
+- Dense counts (>16 marks) thin the labels (`i % 4` + last). Designed to stay legible
+  from ~2 to 50+ bands.
+
+### 6.3 Per-room cards (one per valid room)
+Header: room name + `length × width mm` (mono) + a **fit badge** —
+`clean fit` (good, ✓) or `approximate fit` (warn, ≈) when the golden snap offset > ¼M.
+Three blocks:
+- **Golden split** of the longer wall: `exact (.618/.382)`, `snapped (½M)` in accent, and
+  `snap offset` colored by fit. `snappedLarger = round(exact/½M)·½M`, `snappedSmaller = longer − snappedLarger`.
+- **Grid fit:** `nL × nW` modules (mono 19px) + signed `remainder L/W`, with a **quality
+  badge** `exact` (good ✓) / `close` (warn ≈) / `poor` (bad ✕). Annotation in warn italic:
+  `round up/down on length/width` (round **down** when remainder > 0).
+- **Walkway clearance:** rows for `wardrobe/kitchen (600)`, `sofa/bed centre (900)`, and
+  `between facing 600 units (1200)`; clearance = `width − depth`. **Fixed ergonomic
+  thresholds** (never scale with module): `≥900 comfortable · ≥600 acceptable · <600 tight`.
+  Each row shows a 3-bar meter (filled by rating) + a colored text rating.
+
+### 6.4 Module Visualizer (read-only)
+Header: `Module visualizer {mode}` + a `1 module` swatch + the note
+`Read-only — comprehension aid, to scale. Not a floor plan.` It never edits geometry,
+has no walls/adjacency/export.
+- **2D (`mode==='2d'`):** each room a scaled plan rectangle (`--inset`), faint M×M grid,
+  signed-remainder strip (`--warn-bg`) on the far edge, **one module cell highlighted**
+  `--accent` with `cellpulse`. Caption: `name · dims · nL×nW`.
+- **3D (`mode==='3d'`):** each room a box to scale (`L×W×ceiling`), arranged along an axis,
+  opening shown as an **accent band** on a wall (omitted when blank), **one M×M×M cube
+  highlighted** `--accent` with `cellpulse`. Auto-rotate (`spin3d`), drag-to-orbit.
+  Footer note + `webgl` fallback line: *"3D unavailable on this device — showing 2D plan."*
+
+> **Build note:** the prototype fakes 3D with CSS `transform-style: preserve-3d` + manual
+> pointer math (see screenshots in `design/export/screenshots/`). **Production 3D uses
+> `@react-three/fiber` + `@react-three/drei`, lazy-loaded via `next/dynamic({ ssr:false })`**
+> (`TC-STACK-04`, `NFR-BUNDLE-01`), with a real WebGL-unavailable fallback to the 2D
+> visualizer (`FR-VIZ3D-06`) and `prefers-reduced-motion` honored.
+
+---
+
+## 7. Logo
+
+A golden-ratio mark: nested golden rectangles subdivided φ:1 with the golden-spiral arc
+sweeping through them. Single accent color via `currentColor` (inverts in dark mode),
+transparent background, pure SVG, readable at favicon size. Verbatim from the export:
+
+```html
+<svg width="40" height="26" viewBox="0 0 110 70" fill="none" aria-hidden="true">
+  <rect x="1" y="1" width="108" height="68" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+  <line x1="68" y1="1"  x2="68"  y2="69" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+  <line x1="68" y1="43" x2="110" y2="43" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+  <line x1="93" y1="43" x2="93"  y2="69" stroke="currentColor" stroke-width="1.1" opacity=".4"/>
+  <line x1="68" y1="59" x2="93"  y2="59" stroke="currentColor" stroke-width="1.1" opacity=".4"/>
+  <path d="M1 1 A67 67 0 0 1 68 69"    stroke="currentColor" stroke-width="1.8" fill="none"/>
+  <path d="M68 69 A42 42 0 0 1 110 43" stroke="currentColor" stroke-width="1.8" fill="none"/>
+  <path d="M110 43 A26 26 0 0 1 93 69" stroke="currentColor" stroke-width="1.8" fill="none" opacity=".8"/>
+</svg>
+```
+
+---
+
+## 8. Motion
+
+Keyframes from the export; all suppressed under reduced-motion:
+
+```css
+@keyframes livedot  {0%,100%{opacity:1}50%{opacity:.25}}            /* "updates live" dot */
+@keyframes griddraw {from{stroke-dashoffset:240}to{stroke-dashoffset:0}} /* 2D grid draw-in */
+@keyframes cellpulse{0%,100%{opacity:.85}50%{opacity:.45}}         /* highlighted module cell/cube */
+@keyframes spin3d   {from{transform:rotateX(-22deg) rotateY(0deg)}to{transform:rotateX(-22deg) rotateY(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+```
+
+`griddraw` accompanies the 2D visualizer ("grid draws in + cell pulses"); `spin3d` is the
+gentle 3D auto-rotate (paused on drag). Motion is decorative — nothing depends on it.
+
+---
+
+## 9. Accessibility
+
+- Every input has a visible `<label>`; validation messages use `role="alert"` and are tied
+  to their field; invalid fields set `aria-invalid`.
+- Visible focus styles everywhere (`outline:2px solid var(--accent)`).
+- **WCAG-AA contrast in both themes.** Badges legible **without color** (label + icon).
+- Results region is `aria-live="polite"`. Decorative SVG bits use `aria-hidden`; meaningful
+  SVGs use `role="img"` + `aria-label`. `prefers-reduced-motion` disables all animation.
+
+---
+
+## 10. Worked example (render these exact numbers)
+
+Apartment: **ceiling 2800, opening 2100, M = 700** (suggested; alts `600, 350`; residual 0).
+Three rooms so every badge state appears.
+
+| Room | Dims | Golden (exact → snapped, offset) | Grid | Badge | Walkway |
+|---|---|---|---|---|---|
+| **Living room** | 4200 × 3500 | 2595.6 / 1604.4 → 2450 / 1750, off 145.6 | 6 × 5, rem 0 / 0 | **exact** | 2900 comf · 2600 comf |
+| **Kitchen** | 3800 × 2500 | 2348.4 / 1451.6 → 2450 / 1350, off 101.6 | 5 × 4, rem −300 / +300 | **poor** | 1900 comf |
+| **Bathroom** | 2150 × 1500 | 1328.7 / 821.3 → 1400 / 750, off 71.3 | 3 × 2, rem +50 / +100 | **close** | 600 acceptable · 300 tight |
+
+Across the three: grid `exact / close / poor`; walkway `comfortable / acceptable / tight`.
+Default state: 3D mode, light theme, EN, all three rooms valid (results populated).
+
+---
+
+## 11. Internationalization (UA ⇄ EN)
+
+The language pill swaps **every UI string** live. **Calculation labels (`¼M`, `½M`, `M`,
+`1.5M`, `2M`, `3M`, `4M`) are never translated.** The full EN/UA dictionaries live in the
+export (`STR` object, `prototype.dc.html` lines ~392–459) and are the canonical strings to
+port into the build's dictionaries. Key entries:
+
+| Key | EN | UA |
+|---|---|---|
+| `title` | Apartment Module & Golden Ratio | Модуль квартири та золотий перетин |
+| `subtitle` | Proportional planning instrument · all values in mm | Інструмент пропорційного планування · усі значення в мм |
+| `live` | updates live | оновлюється наживо |
+| `ceiling` / `opening` / `module` | Ceiling height / Opening height / Module | Висота стелі / Висота прорізу / Модуль |
+| `errCeiling` | Must be an integer between 2000 and 5000 mm. | Ціле число від 2000 до 5000 мм. |
+| `errOpening` | Must be ≥ 1800 mm and ≤ ceiling height. | Має бути ≥ 1800 мм та ≤ висоти стелі. |
+| `errDim` | Must be between 500 and 15000 mm. | Має бути від 500 до 15000 мм. |
+| `suggestedFrom` / `suggestedFromRooms` | suggested from heights / from room dimensions | рекомендовано з висот / з розмірів кімнат |
+| grid quality | exact / close / poor | точно / близько / погано |
+| walkway rating | comfortable / acceptable / tight | комфортно / прийнятно / тісно |
+| `vizNote` | Read-only — comprehension aid, to scale. Not a floor plan. | Лише для перегляду — допоміжна схема в масштабі. Не план поверху. |
+| `webgl` | 3D unavailable on this device — showing 2D plan instead. | 3D недоступне — показано 2D-план. |
+
+---
+
+## 12. Reference calculation logic
+
+The prototype's pure helpers are the canonical algorithms for the build's
+`lib/calculations.ts`. Verbatim from the export (`prototype.dc.html`):
+
+```js
+gcd(a,b){ a=Math.abs(Math.round(a)); b=Math.abs(Math.round(b)); while(b){ [a,b]=[b,a%b]; } return a; }
+nearestStd(v){ return STD.reduce((p,c)=> Math.abs(c-v)<Math.abs(p-v)?c:p, STD[0]); } // STD=[100,150,200,300,350,600,700]
+snap(v,step){ return Math.round(v/step)*step; }
+
+// module suggestion: 3D → gcd(ceiling, opening); 2D → gcd folded across all valid rooms' L&W
+//   snapped = nearestStd(g);  residual = |g − snapped|;  alts = two nearest other STD values
+
+// per room, given module M:
+//   longer = max(L,W);  largerExact = longer*0.618;  smallerExact = longer*0.382
+//   snappedLarger = snap(largerExact, M/2);  snappedSmaller = longer − snappedLarger
+//   offset = |largerExact − snappedLarger|;  approx-fit when offset > M/4
+//   nL = round(L/M), nW = round(W/M);  remL = L − nL*M, remW = W − nW*M  (signed)
+//   quality: max|rem| === 0 → exact;  ≤ M/4 → close;  else poor
+//   walkway clearance = dim − depth for depths {600, 900, 1200};
+//     ≥900 comfortable · ≥600 acceptable · <600 tight   (FIXED — never scale with M)
+
+// vertical bands (3D): full = floor(ceiling/M), rem = ceiling − full*M (partial band if >0)
+```
+
+Validation bounds: ceiling `2000–5000`, opening `1800–ceiling`, room L/W `500–15000`, all
+integers (mm). Warnings: `M > 1000` → `warnLarge`; `M < 100` → `warnSmall`.
+
+---
+
+## 13. Build mapping & deviations
+
+- **Port, don't copy markup.** The export is Claude Design `x-dc`, not React. Rebuild as
+  Next.js Client Components behind a `'use client'` boundary at `Calculator.tsx`; lift the
+  helpers above into pure `lib/calculations.ts`; wire EN/UA dictionaries — all traceable to
+  `FR-*` in [PDR.md](PDR.md).
+- **3D is the one heavy dependency.** The prototype's CSS-transform 3D is a *look* reference
+  only; ship `@react-three/fiber` + `@react-three/drei`, lazy via `next/dynamic({ssr:false})`,
+  with a 2D fallback (`TC-STACK-04`, `NFR-BUNDLE-01`, `FR-VIZ3D-06`).
+- **Fonts:** the brief said "Geist / Geist Mono (or Inter / JetBrains)"; the export chose
+  **Inter + JetBrains Mono** — that is now canonical. Self-host with `next/font`.
+- **Walkway third row:** the export adds a `between facing 600 units (1200)` row beyond the
+  brief's wardrobe/sofa pair — keep it.

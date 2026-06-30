@@ -226,7 +226,7 @@ The 2D/3D visualization feature (the second iteration) prioritizes as follows:
 | ------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
 | TC-STACK-01   | Next.js 16 App Router; TypeScript strict; React 19                                                                     | accepted |
 | TC-STACK-02   | Tailwind CSS 4 utility classes only; no custom CSS beyond `globals.css`                                                | accepted |
-| TC-STACK-03   | Geist Sans for UI text, Geist Mono for numeric/dimension values; dark mode via Tailwind `dark:` variants              | accepted |
+| TC-STACK-03   | Inter for UI text, JetBrains Mono for numeric/dimension values; dark mode via Tailwind `dark:` variants               | accepted |
 | TC-CLIENT-01  | Single `'use client'` boundary at `Calculator.tsx`; `page.tsx` stays a Server Component                                | accepted |
 | TC-ARCH-01    | `Calculator` owns `ApartmentInput` state; results flow down as props from pure functions in `calculations.ts`         | accepted |
 | TC-I18N-01    | Bilingual UA/EN via a React context + JSON dictionaries; no heavy i18n library                                        | accepted |
