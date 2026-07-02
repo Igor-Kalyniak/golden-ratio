@@ -13,8 +13,10 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: the Next.js app is scaffolded (`app/layout.tsx`, `page.tsx`, `globals.css`)
-> but still default boilerplate; there is no `lib/`, no `locales/`, no test runner yet.
-> `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
+> but still default boilerplate; there is no `lib/`, no `locales/`, and no test runner
+> *wired* yet — though the runner is now **decided**: Node `node:test` + `tsx`
+> ([ADR-0001](adr/0001-test-runner.md)), added to `package.json` when change 1 is
+> implemented. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
 > `TC-STACK-01` is `accepted`; everything below is `proposed`.
 
 ---
@@ -175,14 +177,24 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   `NFR-TEST-01`, `NFR-PERF-01`, `NFR-PERF-02`.
 - **Delivers:** `lib/calculations.ts` — `STANDARD_MODULES`, shared types, validation
   bounds, snapping helpers, `suggestModule`, `computeVerticalBands`,
-  `computeGoldenSplit`, `computeRoomGrid`, `computeWalkways`; plus a test runner and the
-  unit suite (normal, boundary, edge cases: coprime heights, variable band counts,
-  off-grid openings, 1 mm-short dimensions, snap residuals).
+  `computeGoldenSplit`, `computeRoomGrid`, `computeWalkways`; plus the test runner
+  (Node `node:test` + `tsx`, [ADR-0001](adr/0001-test-runner.md)) and the unit suite
+  (normal, boundary, edge cases: coprime heights, variable band counts, off-grid openings,
+  1 mm-short dimensions, snap residuals).
+- **Decisions baked in (from design-explore):**
+  - **Test runner** — Node `node:test` + `tsx`, no heavier test framework
+    ([ADR-0001](adr/0001-test-runner.md)). Add the `test` script here.
+  - **`STANDARD_MODULES` is one swappable constant** and every snap goes through a single
+    helper; `residual` is always returned and always surfaced so a poor suggestion is
+    visible, never silent ([ADR-0002](adr/0002-standard-modules-swappable-constant.md)).
+    `OQ-01` (the authoritative values) stays open but does **not** block this change —
+    a later revision is a one-line constant + fixture edit.
 - **Depends on:** nothing.
 - **Why here:** highest-leverage, lowest-risk, no UI — proves the numbers first. Maps to
   the `calculation-logic` skill and `DESIGN.md` §10/§12/§13.
 - **Done when:** every function returns the worked-example numbers and the suite is green;
-  zero framework imports in the file (`NFR-PURE-01`).
+  zero framework imports in the file (`NFR-PURE-01`); `STANDARD_MODULES` defined once and
+  `residual` surfaced ([ADR-0002](adr/0002-standard-modules-swappable-constant.md)).
 - **Kickoff:** `openspec new change calculation-engine`
 
 #### 2. `design-system` — visual foundation *(Must)*
@@ -400,9 +412,12 @@ These are verified inside the capability changes, not built separately.
 - **`viz-3d` is the natural cut line in Epic B** — it is `Should`, and `viz-2d` already
   conveys the module-size idea and serves as the fallback.
 - **Open questions that gate content, not order:** `OQ-01` (authoritative
-  `STANDARD_MODULES`) touches `calculation-engine`/`module-2d`; `OQ-04` (default heights)
-  touches `apartment-input`; `OQ-02` (editable furniture depths) touches `walkway`. None
-  block starting the changes; they refine constants and defaults.
+  `STANDARD_MODULES`) touches `calculation-engine`/`module-2d` — structurally de-risked by
+  [ADR-0002](adr/0002-standard-modules-swappable-constant.md) (one swappable constant,
+  `residual` always surfaced), so the value question stays open with the SME without
+  blocking the build; `OQ-04` (default heights) touches `apartment-input`; `OQ-02`
+  (editable furniture depths) touches `walkway`. None block starting the changes; they
+  refine constants and defaults.
 
 ---
 

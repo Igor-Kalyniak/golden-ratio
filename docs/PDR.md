@@ -292,7 +292,7 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 
 | Dependency | Owner | Status | Impact if unmet |
 | ---------- | ----- | ------ | --------------- |
-| Authoritative `STANDARD_MODULES` list for the target market | Architecture SME | open (OQ-01) | Suggestions feel wrong; erodes trust in the core feature |
+| Authoritative `STANDARD_MODULES` list for the target market | Architecture SME | open (OQ-01) — structurally de-risked ([ADR-0002](adr/0002-standard-modules-swappable-constant.md)) | Suggestions feel wrong; erodes trust in the core feature. Mitigated: one swappable constant + `residual` always surfaced, so a bad snap is visible and a fix is a one-line change |
 | UA + EN string translations | PM / translator | not started | Bilingual promise (TC-I18N-01) unmet |
 | Next.js 16 / React 19 / Tailwind 4 toolchain | Eng | accepted (TC-STACK-01/02) | Blocks all build work |
 
@@ -311,7 +311,7 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 
 ## Open questions
 
-- [ ] **OQ-01** Which `STANDARD_MODULES` values are authoritative for the target (UA) market? — Owner: Architecture SME
+- [ ] **OQ-01** Which `STANDARD_MODULES` values are authoritative for the target (UA) market? — Owner: Architecture SME. _Structurally de-risked (not answered): [ADR-0002](adr/0002-standard-modules-swappable-constant.md) makes the list a single swappable constant and always surfaces `residual`, so a revision is a one-line change and a poor snap is never silent. Provisional v1 list `[100, 150, 200, 300, 350, 600, 700]`; the value question stays open with the SME._
 - [ ] **OQ-02** Should furniture depths be editable per room, or are the 600/900 mm defaults sufficient for v1? — Owner: PM
 - [ ] **OQ-03** Do architects need a print-friendly results view even without PDF export? — Owner: PM
 - [ ] **OQ-04** Are the default ceiling (2800) and opening (2100) heights right for the target market? — Owner: Architecture SME
@@ -323,3 +323,4 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 | 1.0     | 2026-06-28 | PM     | Initial PRD derived from the design spec |
 | 1.1     | 2026-06-28 | PM     | Added goals & success metrics, non-goals, MoSCoW prioritization, assumptions, edge-case catalog, dependencies & risks, open questions |
 | 1.2     | 2026-06-29 | PM     | Added 2D/3D mode toggle, 2D module engine, 2D/3D module visualizers, and golden-ratio logo (FR-MODE-*, FR-MODULE2D-*, FR-VIZ2D-*, FR-VIZ3D-*, FR-LOGO-*); added NFR-BUNDLE-01, NFR-PERF-03, NFR-A11Y-03, TC-STACK-04; reworded the "not a CAD tool" non-goal and BC-VALUE-01 to permit read-only visualization |
+| 1.3     | 2026-07-02 | Eng    | Annotated OQ-01 and the `STANDARD_MODULES` dependency/risk rows with the structural mitigation from [ADR-0002](adr/0002-standard-modules-swappable-constant.md) (one swappable constant, `residual` always surfaced); value question stays open with the SME |

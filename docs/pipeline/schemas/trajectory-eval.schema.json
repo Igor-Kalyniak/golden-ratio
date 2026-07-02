@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golden-ratio/pipeline/trajectory-eval.schema.json",
+  "title": "trajectory-eval",
+  "description": "Per-requirement evaluation of an applied OpenSpec change: for each owned PDR requirement, whether it is implemented, tested, and spec-compliant. Written to openspec/changes/<id>/trajectory-eval.json and archived with the change.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["change", "generated_at", "requirements", "summary"],
+  "properties": {
+    "change": { "type": "string", "description": "OpenSpec change id" },
+    "generated_at": { "type": "string", "description": "ISO 8601 timestamp" },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "implemented", "tested", "spec_compliant"],
+        "properties": {
+          "id": { "type": "string", "description": "PDR requirement id, e.g. FR-MODULE-01" },
+          "pdr_section": { "type": "string" },
+          "implemented": { "type": "boolean" },
+          "tested": { "type": "boolean" },
+          "spec_compliant": { "type": "boolean" },
+          "evidence": { "type": "array", "items": { "type": "string" }, "description": "code and test refs, e.g. 'lib/calculations.ts:suggestModule'" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "implemented", "tested", "spec_compliant"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "implemented": { "type": "integer", "minimum": 0 },
+        "tested": { "type": "integer", "minimum": 0 },
+        "spec_compliant": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
