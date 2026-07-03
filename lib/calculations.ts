@@ -204,6 +204,11 @@ export function computeModuleRuler(m: number): ModuleRulerRow[] {
  * Classify a module against the practical range (FR-MODULE-05): `'large'` when
  * `m > MODULE_WARNING.large` (1000), `'small'` when `m < MODULE_WARNING.small` (100),
  * else `null`. The calculation always proceeds; this only drives the warning banner.
+ *
+ * Note: with the current `STANDARD_MODULES` (100…700) a *valid selection* never trips
+ * either bound, so the banner is dormant-by-data — NOT dead code. It is the FR-MODULE-05
+ * spec contract, tested at its boundaries, and becomes live with zero code change if
+ * `STANDARD_MODULES` gains an out-of-range value (ADR-0002 / OQ-01).
  */
 export function moduleWarning(m: number): ModuleWarning | null {
   if (m > MODULE_WARNING.large) return 'large';

@@ -1,0 +1,61 @@
+{
+  "change": "module-summary",
+  "generated_at": "2026-07-03T13:30:00+03:00",
+  "base_sha": "9499335fa72f82684e8407bcc66d456f803a7fff",
+  "head_sha": "249eade7160b4492615a8d8b6438a91cf6e1b172",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 1 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean. code-reviewer (CR-001) and spec-compliance-auditor (SC-001) independently raised the SAME single low observation — the FR-MODULE-05 warning banner is unreachable through the UI because STANDARD_MODULES (100..700) can't produce a module >1000 or <100 — and BOTH judged it acceptable (spec contract, unit-tested at boundaries, gated on the swappable STANDARD_MODULES per ADR-0002/OQ-01, transparently disclosed in design.md). Resolution applied: a one-line code comment on moduleWarning documenting it is dormant-by-data (not dead code) so a future maintainer won't delete the tested helper. Security clean. i18n parity 88/88, no new dependency, no scope drift, ModuleSummary confirmed read-only.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "module-summary is correct, pure, index-aligned (CALC_LABELS / RULER_FACTORS / RULER_USE_KEYS all 7 entries same order), and read-only; importing CALC_LABELS into calculations.ts is safe (no cycle, i18n.ts framework-free, NFR-PURE-01 intact); moduleWarning boundary semantics match the spec (>1000 large, <100 small; 100/1000 inclusive → no banner) and are tested at 99/100/1000/1001. Only note is the spec-mandated warning branch being unreachable via the STANDARD_MODULES-constrained select — acceptable.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["FR-MODULE-05"],
+          "file": "components/ModuleSummary.tsx",
+          "line": 72,
+          "summary": "moduleWarning(activeModule) is always null through the UI: state.module is constrained to STANDARD_MODULES (max 700, min 100), so neither >1000 nor <100 can occur; the warning banner branch is unreachable by data. Acceptable — spec contract (FR-MODULE-05), tested at boundaries, correctly wired, gated on the swappable STANDARD_MODULES (ADR-0002/OQ-01).",
+          "recommendation": "No code change required; optionally add a one-line comment that the banner is dormant until STANDARD_MODULES gains an out-of-range value, so the tested helper isn't removed as 'dead code' later.",
+          "status": "resolved",
+          "resolution": "Added a doc comment on moduleWarning in lib/calculations.ts stating the banner is dormant-by-data (not dead code) and becomes live with zero code change if STANDARD_MODULES gains an out-of-range value (ADR-0002/OQ-01). No behavior change; 61/61 still green."
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "All five owned requirements (FR-MODULE-02/03/04/05 + BC-MODULE-01) implemented and spec-compliant. Strict validation PASS; ruler + warning unit-tested (M=700 sizes, fractional 150→38, boundaries); component DOM manual per ADR-0001; i18n parity 88/88; no new dependency; no scope drift into changes 8-15; apartment-input module selector untouched (Shell only swaps the perRoom placeholder for ModuleSummary). FR-MODULE-05's banner is UI-unreachable under current STANDARD_MODULES but honestly disclosed in design.md + OQ-01/ADR-0002 — judged honest spec compliance, not a gap.",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "low",
+          "category": "spec-compliance",
+          "requirement_ids": ["FR-MODULE-05"],
+          "file": "openspec/changes/module-summary/design.md",
+          "line": 60,
+          "summary": "FR-MODULE-05 warning banner is wired + unit-tested but currently unreachable through the UI (STANDARD_MODULES 100..700 cannot produce >1000 or <100). Disclosure in design.md is accurate and tied to OQ-01/ADR-0002; boundary logic proven by unit tests. Same underlying observation as CR-001. Informational, not a blocker — FR-MODULE-05 is a Should requirement and the tension is transparently documented.",
+          "recommendation": "No code change required. Keep OQ-01 open; the banner becomes live with no further work if STANDARD_MODULES is revised. Retain the QA manual case (temporary constant edit) to observe the banner.",
+          "status": "resolved",
+          "resolution": "Same fix as CR-001 (documenting comment on moduleWarning). Disclosure verified accurate; design.md Risks/Trade-offs section and the QA test plan both record the unreachability + how to observe it."
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Clean for the client-side threat model. ModuleSummary renders only numeric state and static i18n strings via auto-escaped JSX text nodes — no dangerouslySetInnerHTML, no HTML/SVG string sink, no template injection. No network, persistence, analytics, or export introduced (BC-PRIVACY-01/TC-DATA-01/BC-SCOPE-01 upheld). package.json/lockfile unchanged. Pure helpers computeModuleRuler (fixed 7-element map) and moduleWarning (two comparisons) terminate safely on NaN/Infinity/huge/negative input, rendering as inert text with no crash or DoS loop. No new attack surface from the suggestModule reuse.",
+      "findings": []
+    }
+  ]
+}
