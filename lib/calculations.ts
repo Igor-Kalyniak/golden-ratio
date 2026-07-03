@@ -10,6 +10,8 @@
  * skill). Requirement IDs are cited per function.
  */
 
+import { CALC_LABELS, type CalcLabel } from './i18n.ts';
+
 // ---------------------------------------------------------------------------
 // Constants (ADR-0002: STANDARD_MODULES is one swappable constant; residual
 // is always surfaced). Provisional v1 values — OQ-01 stays open with the SME.
@@ -29,6 +31,12 @@ export const BOUNDS = {
 /** Impractical-module warning thresholds (mm) — FR-MODULE-05 consumers. */
 export const MODULE_WARNING = { large: 1000, small: 100 } as const;
 
+/**
+ * Module-ruler multipliers, index-aligned to `CALC_LABELS` (¼M…4M) — FR-MODULE-04.
+ * Kept beside the labels' single source of truth so `computeModuleRuler` zips them.
+ */
+export const RULER_FACTORS = [0.25, 0.5, 1, 1.5, 2, 3, 4] as const;
+
 /** Standard furniture depths (mm). The 1200 "facing units" row extends the brief's pair. */
 export const FURNITURE_DEPTHS = { wardrobeKitchen: 600, sofa: 900, facingUnits: 1200 } as const;
 
@@ -46,6 +54,18 @@ export type WalkwayRecommendationKey =
   | 'walkway.comfortable'
   | 'walkway.acceptable'
   | 'walkway.tight';
+
+/** Non-null result of `moduleWarning` — the active module is out of practical range. */
+export type ModuleWarning = 'large' | 'small';
+
+export interface ModuleRulerRow {
+  /** Fixed, never-translated label (`¼M`…`4M`) — FR-MODULE-04, FR-I18N-03. */
+  label: CalcLabel;
+  /** The multiplier applied to the module. */
+  k: number;
+  /** `round(module × k)` in mm. */
+  size: number;
+}
 
 export interface ModuleSuggestion {
   /** Raw GCD of the source dimensions. */
@@ -161,6 +181,34 @@ export function suggestModule(ceiling: number, opening: number): ModuleSuggestio
     .sort((a, b) => Math.abs(a - rawGcd) - Math.abs(b - rawGcd))
     .slice(0, 2);
   return { rawGcd, suggested, alternatives, residual };
+}
+
+// ---------------------------------------------------------------------------
+// Module ruler & warning — FR-MODULE-04/05
+// ---------------------------------------------------------------------------
+
+/**
+ * The ¼M…4M ruler rows for a module `m`: each `size` is `round(m·k)` (FR-MODULE-04).
+ * Labels come from `CALC_LABELS` (never translated); the UI localizes the "typical use"
+ * prose by keying off the label, so the engine stays language-agnostic (NFR-PURE-01).
+ */
+export function computeModuleRuler(m: number): ModuleRulerRow[] {
+  return RULER_FACTORS.map((k, i) => ({
+    label: CALC_LABELS[i],
+    k,
+    size: Math.round(m * k),
+  }));
+}
+
+/**
+ * Classify a module against the practical range (FR-MODULE-05): `'large'` when
+ * `m > MODULE_WARNING.large` (1000), `'small'` when `m < MODULE_WARNING.small` (100),
+ * else `null`. The calculation always proceeds; this only drives the warning banner.
+ */
+export function moduleWarning(m: number): ModuleWarning | null {
+  if (m > MODULE_WARNING.large) return 'large';
+  if (m < MODULE_WARNING.small) return 'small';
+  return null;
 }
 
 // ---------------------------------------------------------------------------

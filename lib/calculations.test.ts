@@ -9,6 +9,8 @@ import {
   nearestStandardModule,
   snap,
   suggestModule,
+  computeModuleRuler,
+  moduleWarning,
   computeVerticalBands,
   computeGoldenSplit,
   computeRoomGrid,
@@ -18,6 +20,7 @@ import {
   isValidOpening,
   isValidDimension,
 } from './calculations.ts';
+import { CALC_LABELS } from './i18n.ts';
 
 /** Assert two floats are equal within a small tolerance. */
 function near(actual: number, expected: number, eps = 1e-6) {
@@ -65,6 +68,43 @@ test('suggestModule: coprime heights snap to a standard module, residual surface
   assert.equal(s.suggested, 100); // not a literal 1mm module
   assert.equal(s.residual, 99); // full distance, always visible
   assert.equal(s.alternatives.length, 2);
+});
+
+// --- computeModuleRuler (FR-MODULE-04) -------------------------------------
+
+test('computeModuleRuler: sizes at M=700', () => {
+  const rows = computeModuleRuler(700);
+  assert.deepEqual(
+    rows.map((r) => r.size),
+    [175, 350, 700, 1050, 1400, 2100, 2800],
+  );
+});
+
+test('computeModuleRuler: labels equal CALC_LABELS (never translated)', () => {
+  const rows = computeModuleRuler(700);
+  assert.deepEqual(
+    rows.map((r) => r.label),
+    [...CALC_LABELS],
+  );
+});
+
+test('computeModuleRuler: fractional module rounds each size', () => {
+  const rows = computeModuleRuler(150);
+  assert.equal(rows[0].size, 38); // round(150 * 0.25) = round(37.5) = 38
+  assert.equal(rows[1].size, 75); // round(150 * 0.5)
+});
+
+// --- moduleWarning (FR-MODULE-05) ------------------------------------------
+
+test('moduleWarning: none within the practical range', () => {
+  assert.equal(moduleWarning(700), null);
+  assert.equal(moduleWarning(1000), null); // boundary inclusive
+  assert.equal(moduleWarning(100), null); // boundary inclusive
+});
+
+test('moduleWarning: large above 1000, small below 100', () => {
+  assert.equal(moduleWarning(1001), 'large');
+  assert.equal(moduleWarning(99), 'small');
 });
 
 // --- computeVerticalBands (FR-VERT-01/02/03/04) ----------------------------

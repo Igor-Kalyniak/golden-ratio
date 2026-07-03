@@ -4,6 +4,7 @@ import { useI18n } from '../lib/i18n-context';
 import { type AppState, type Room } from '../lib/app-state';
 import { ApartmentForm } from './ApartmentForm';
 import { LanguageToggle } from './LanguageToggle';
+import { ModuleSummary } from './ModuleSummary';
 import { RoomList } from './RoomList';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -22,7 +23,8 @@ interface ShellProps {
  * Presentational shell (DESIGN §4): sticky header + responsive two-column body. A descendant
  * of `LanguageProvider`, so it resolves every string through `t()`. The apartment slot is
  * filled by `ApartmentForm` (change 5) and the rooms slot by `RoomList` (change 6).
- * The results region is a slot for changes 7–11, gated on validity (FR-SHELL-04).
+ * The results region opens with `ModuleSummary` (change 7); bands/per-room/visualizer
+ * (changes 8–15) render below it, all gated on validity (FR-SHELL-04).
  * `state`/`showResults` flow down as props (TC-ARCH-01) from `Calculator`, the state owner.
  */
 export function Shell({
@@ -91,9 +93,14 @@ export function Shell({
         {/* Results region — gated on validity (FR-SHELL-04); announced politely. */}
         <section aria-label={t('results')} aria-live="polite">
           {showResults ? (
-            <div className="rounded-xl border border-line bg-panel p-4 text-sm text-muted">
-              {/* Result sections (module summary, bands, per-room, visualizer) fill this. */}
-              {t('perRoom')}
+            <div className="space-y-5">
+              {/* Module Summary is the first result section (change 7); bands, per-room, and
+                  the visualizer (changes 8–15) follow below it. */}
+              <ModuleSummary
+                module={state.module}
+                ceiling={state.ceiling}
+                opening={state.opening}
+              />
             </div>
           ) : (
             <div className="grid min-h-[160px] place-items-center rounded-xl border border-dashed border-line2 bg-panel2 p-6 text-center text-sm text-muted">
