@@ -48,32 +48,33 @@ export function RoomList({ rooms, onAddRoom, onRemoveRoom, onRoomChange }: RoomL
             key={room.id}
             className="space-y-2.5 rounded-lg border border-line2 bg-field/40 p-3"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between">
               <span
                 aria-hidden="true"
-                className="shrink-0 rounded bg-panel2 px-1.5 py-0.5 font-mono text-[11px] text-muted"
+                className="rounded bg-panel2 px-1.5 py-0.5 font-mono text-[11px] text-muted"
               >
                 R{index + 1}
               </span>
-              <TextField
-                id={`${room.id}-name`}
-                label={t('roomName')}
-                value={room.name}
-                invalid={!isValidName(room.name)}
-                errorText={t('errName')}
-                onChange={(name) => onRoomChange(room.id, { name })}
-              />
               <button
                 type="button"
                 onClick={() => onRemoveRoom(room.id)}
                 disabled={lastRoom}
                 aria-disabled={lastRoom}
                 aria-label={t('removeRoom')}
-                className="shrink-0 rounded-md border border-line2 px-2 py-1 text-sm text-muted disabled:cursor-not-allowed disabled:opacity-30"
+                className="rounded-md border border-line2 px-2 py-1 text-sm text-muted disabled:cursor-not-allowed disabled:opacity-30"
               >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
+
+            <TextField
+              id={`${room.id}-name`}
+              label={t('roomName')}
+              value={room.name}
+              invalid={!isValidName(room.name)}
+              errorText={t('errName')}
+              onChange={(name) => onRoomChange(room.id, { name })}
+            />
 
             <div className="grid grid-cols-[repeat(auto-fit,minmax(118px,1fr))] gap-2.5">
               <NumberField
@@ -129,7 +130,7 @@ function TextField({
   const errorId = `${id}-error`;
   return (
     <div className="min-w-0 flex-1">
-      <label htmlFor={id} className="sr-only">
+      <label htmlFor={id} className="mb-1 block text-xs text-fg2">
         {label}
       </label>
       <input
