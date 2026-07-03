@@ -6,6 +6,7 @@ import { type ModuleSuggestion } from '../lib/calculations';
 import { ApartmentForm } from './ApartmentForm';
 import { BandDiagram } from './BandDiagram';
 import { LanguageToggle } from './LanguageToggle';
+import { Logo } from './Logo';
 import { ModeToggle } from './ModeToggle';
 import { ModuleSummary } from './ModuleSummary';
 import { PerRoomResults } from './PerRoomResults';
@@ -55,11 +56,8 @@ export function Shell({
     <div className="flex min-h-full flex-col bg-bg text-fg">
       {/* Header */}
       <header className="sticky top-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel/90 px-5 py-3 backdrop-blur lg:h-[var(--header-h)] lg:flex-nowrap">
-        {/* Logo placeholder — the golden-ratio mark is FR-LOGO-01 (change 16). */}
-        <span
-          aria-hidden="true"
-          className="h-6 w-6 shrink-0 rounded-sm border-2 border-accent"
-        />
+        {/* Golden-ratio brand mark (FR-LOGO-01); `text-accent` drives its `currentColor`. */}
+        <Logo className="shrink-0 text-accent" />
         <div className="mr-auto min-w-0">
           <h1 className="truncate text-[15px] font-semibold leading-tight">{t('title')}</h1>
           <p className="truncate text-[11.5px] text-muted">{t('subtitle')}</p>
