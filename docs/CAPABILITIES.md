@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> and 5 `apartment-input` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, and 6 `room-input` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -30,9 +30,12 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > [components/ApartmentForm.tsx](../components/ApartmentForm.tsx) fills the apartment slot
 > (ceiling/opening/module + inline validation) and `lib/app-state.ts` gained `moduleTouched`
 > + the `withCeiling`/`withOpening`/`withModule` reducers (module follows the suggestion until
-> overridden). The **rooms slot + results region remain empty slots** awaiting changes 6–11.
-> `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01` is
-> `accepted`; changes 1–5 are `shipped`; everything else is `proposed`.
+> overridden). Change 6: [components/RoomList.tsx](../components/RoomList.tsx) fills the rooms
+> slot (add/remove/edit rooms + inline validation) and `lib/app-state.ts` gained the
+> `addRoom`/`removeRoom`/`updateRoom` reducers + `newRoomId`. The **results region remains an
+> empty slot** awaiting changes 7–11. `@react-three/fiber` + `@react-three/drei` + `three` are
+> already installed. `TC-STACK-01` is `accepted`; changes 1–6 are `shipped`; everything else is
+> `proposed`.
 
 ---
 
@@ -287,10 +290,19 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   recompute synchronously.
 - **Kickoff:** `openspec new change apartment-input`
 
-#### 6. `room-input` — room list *(Must)*
+#### 6. `room-input` — room list *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-room-input/](../openspec/changes/archive/2026-07-03-room-input/);
+  spec synced to `openspec/specs/room-input/spec.md`. Suite 56/56, build ✓, tsc ✓, lint ✓; review
+  **clean** (0 crit/high/med, 3 low — 1 resolved [visible name label], 1 deferred by design [field
+  dedup, YAGNI until a 3rd consumer], 1 acknowledged cosmetic [duplicate default names after
+  removal]). QA 4/4 implemented & spec-compliant, 3/4 automated (CRUD + bounds via reducers;
+  FR-ROOM-04 form DOM manual per ADR-0001). Last-room-remove guard is enforced in the pure
+  `removeRoom` reducer, not only the disabled UI.
 - **Covers:** `FR-ROOM-01/02/03/04`.
-- **Delivers:** starts with one room; "Add room" appends; remove any except the last;
-  per-room name (1–50, default "Room 1"), length + width (500–15000); inline validation.
+- **Delivers:** starts with one room; "Add room" appends `{name:"Room N", length:3000,
+  width:2400}`; remove any except the last; per-room name (1–50, default "Room N"), length + width
+  (500–15000); inline validation matching `FR-APT-04`.
 - **Depends on:** `app-shell`.
 - **Why here:** produces per-room state for golden/grid/walkway; independent of inputs (5).
 - **Done when:** last room cannot be removed; each field validates inline.

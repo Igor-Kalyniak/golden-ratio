@@ -6,33 +6,41 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T11:20:00+03:00
-- **Last action:** **Shipped capability 5 `apartment-input`** end-to-end via the
-  `ship-capability` advisory loop. The apartment card now fills the shell's input slot:
-  [components/ApartmentForm.tsx](../components/ApartmentForm.tsx) renders ceiling / opening
+- **Last updated:** 2026-07-03T12:45:00+03:00
+- **Last action:** **Shipped capability 6 `room-input`** end-to-end via the `ship-capability`
+  advisory loop. The room list now fills the shell's last empty input slot:
+  [components/RoomList.tsx](../components/RoomList.tsx) renders a header (`Rooms N` + accent
+  `+ Add room`) over one panel card per room — `R{n}` tag, editable **name**, **Length**/**Width**
   number fields (range hint, `mm` suffix, inline `role="alert"` errors, `aria-invalid` +
-  `aria-describedby`) and a module `<select>` over `STANDARD_MODULES` annotating the live
-  suggestion. [lib/app-state.ts](../lib/app-state.ts) gained `moduleTouched` + pure reducers
-  `withCeiling`/`withOpening`/`withModule` (module follows the suggestion until the user
-  overrides, then sticky — FR-APT-03); [components/Calculator.tsx](../components/Calculator.tsx)
-  wires the setters. Archived to
-  [openspec/changes/archive/2026-07-03-apartment-input/](../openspec/changes/archive/2026-07-03-apartment-input/);
-  5 requirements synced to `openspec/specs/apartment-input/spec.md`.
-  (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`.)
+  `aria-describedby`), and a per-card remove `×` **disabled on the last room**.
+  [lib/app-state.ts](../lib/app-state.ts) gained pure reducers `addRoom`/`removeRoom`/`updateRoom`
+  + `newRoomId` (monotonic id counter; the last-room-remove guard is enforced **in the reducer**,
+  not only the UI); [components/Calculator.tsx](../components/Calculator.tsx) +
+  [components/Shell.tsx](../components/Shell.tsx) wire the setters. Archived to
+  [openspec/changes/archive/2026-07-03-room-input/](../openspec/changes/archive/2026-07-03-room-input/);
+  4 requirements synced to `openspec/specs/room-input/spec.md`.
+  (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
+  5 `apartment-input`.)
 - **Status:**
-  - Done — **`apartment-input`** (FR-APT-01/02/03/04/05): ceiling/opening/module fields +
-    inline validation, wired to `Calculator` state via pure reducers. Suite **50/50** (25
-    engine + 9 i18n + 16 app-state), build ✓, tsc ✓, lint ✓. Review **clean** (0 crit/high/med,
-    2 low resolved: CR-001 empty-field→NaN coercion, CR-002 hint `aria-describedby`). QA 5/5
-    implemented & spec-compliant, 3/5 automated (FR-APT-03 reducers fully covered; FR-APT-04/05
-    form DOM/reactivity manual per ADR-0001). **Note:** the QA subagent hit a session limit
-    mid-run — it wrote `trajectory-eval.json`; the traceability rows + test plan were completed
-    by the main loop.
+  - Done — **`room-input`** (FR-ROOM-01/02/03/04): dynamic room list (start with one room,
+    add/remove-except-last, per-room name 1–50 + length/width 500–15000 mm) wired to `Calculator`
+    state via pure CRUD reducers. Suite **56/56** (+6 room-reducer tests), build ✓, tsc ✓, lint ✓.
+    Review **clean** (0 crit/high/med, 3 low): **resolved** the room-name label to be visible (was
+    `sr-only`, flagged by both code + spec reviewers as CR-002/SC-001); **deferred by design** the
+    `NumberField`/`InlineError` dedup between `RoomList` and `ApartmentForm` (CR-001 — YAGNI until a
+    3rd field consumer; extracting now would churn the archived apartment-input); **acknowledged
+    cosmetic** the duplicate default names after a removal (CR-003 — DESIGN §5.3 count-based
+    `Room N`, name is user-editable + validated). QA 4/4 implemented & spec-compliant, 3/4 automated
+    (CRUD + bounds via reducers/`isRoomValid`; FR-ROOM-04 form DOM manual per ADR-0001).
+  - Done — **`apartment-input`** (FR-APT-01/02/03/04/05, archived 2026-07-03): ceiling/opening/module
+    fields + inline validation, wired to `Calculator` via pure reducers. Review **clean** (0
+    crit/high/med, 2 low resolved: CR-001 empty-field→NaN coercion, CR-002 hint `aria-describedby`).
+    QA 5/5 implemented & spec-compliant, 3/5 automated.
   - Done — **`app-shell`** (archived 2026-07-03): server page + single `Calculator` client
     boundary/state owner, `LanguageProvider` mounted, responsive header + grid, validity-gated
-    results region, `ThemeToggle`. NFR-RESP-01 / NFR-A11Y-01 partial (band SVG + editable-field
-    labels arrive with later capabilities). The apartment slot is now filled; the **rooms slot
-    remains a placeholder** (change 6).
+    results region, `ThemeToggle`. NFR-RESP-01 / NFR-A11Y-01 partial (band SVG arrives with later
+    capabilities). **Both input slots (apartment + rooms) are now filled;** the **results region
+    remains a placeholder** (changes 7–11).
   - Done — **`i18n`** (archived 2026-07-03): context + `t()`, flat EN/UA dictionaries, live
     `LanguageToggle`, never-translate calc labels. `LanguageProvider` is mounted by `app-shell`.
   - Done — **`design-system`** (archived 2026-07-03): OKLCH token foundation, Inter/JetBrains
@@ -42,13 +50,24 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **6 `room-input`**
-  is next (needs 4 ✓): the room list (start with one room, add/remove except the last, per-room
-  name 1–50 + length/width 500–15000 with inline validation), filling the shell's still-empty
-  rooms slot. `lib/app-state.ts` already has `Room`/`isRoomValid` and a `rooms` array; this
-  change adds the room-CRUD reducers + `RoomList` UI. Then **7 `module-summary`** (the linchpin
-  that establishes the active module every result section reads). **Open low findings for
-  triage** (in the archived `review-findings.json`s):
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **7 `module-summary`**
+  is next (needs 5 ✓ + 1 ✓): the linchpin that establishes the *active module* every result section
+  reads (`FR-MODULE-02`). It wires `suggestModule` to the heights, renders the Module Summary card
+  (M large + `rawGcd → suggested` hint + `alternatives` + `residual`), the ¼M…4M ruler table, and
+  the impractical-module warning banner (>1000 / <100 mm) — `FR-MODULE-02/03/04/05`, `BC-MODULE-01`.
+  It fills the first part of the shell's results region (both input slots are now done). Then the
+  four result sections fan out — **8 `vertical-bands`**, **9 `golden-ratio`**, **10 `grid-fit`**,
+  **11 `walkway`** (each needs 7 + 1; golden/grid/walkway also read the room list shipped here).
+  **Two low findings deferred from `room-input`** (in its archived `review-findings.json`), worth
+  folding into a later change rather than a standalone fix:
+  - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
+    `ApartmentForm`. Extract a shared field component **when a 3rd consumer appears** (likely
+    `module-summary`/result sections) — deferred by design (YAGNI; avoids churning the archived
+    `apartment-input`).
+  - `room-input` **CR-003**: `addRoom` names via `rooms.length + 1`, so default names can repeat
+    after a removal (cosmetic; ids stay unique, name is user-editable + validated). Revisit with
+    `OQ-04` (default room dims/names) if the SME wants distinct auto-names.
+  - **Open low findings for triage** (in the archived `review-findings.json`s):
   - `design-system` **CR-001 → NFR-A11Y-02 partial**: `--faint` (~2.7:1) and
     `--accent`-on-`--bg` (~3.7:1) are **sub-AA** — a verbatim port of the frozen DESIGN §3
     tokens. Body/label/muted text passes AA in both themes. **Constraint:** downstream
