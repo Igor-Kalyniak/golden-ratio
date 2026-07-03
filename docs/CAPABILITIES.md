@@ -12,20 +12,24 @@ between the requirement IDs in the PDR and the changes you scaffold with
 - **Each OpenSpec change** = proposal + design + tasks for one capability, traced back
   to the PDR IDs listed in its card below.
 
-> Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, and 3 `i18n` are shipped**
-> (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts) + its `node:test`
-> suite; runner is `node --test lib/*.test.ts` (Node **native TS type-stripping** — the
-> `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped as redundant** on Node
-> 22.22, ADR amended 2026-07-03). Change 2: [app/globals.css](../app/globals.css) rewritten
-> to the DESIGN §3 OKLCH token system (light/dark, `@theme inline`, motion, focus) and
-> [app/layout.tsx](../app/layout.tsx) self-hosts Inter + JetBrains Mono via `next/font`
-> (Geist removed). Change 3: [locales/en.json](../locales/en.json)+[ua.json](../locales/ua.json),
-> pure [lib/i18n.ts](../lib/i18n.ts), the `'use client'` [lib/i18n-context.tsx](../lib/i18n-context.tsx)
-> (`LanguageProvider`/`useI18n`), and [components/LanguageToggle.tsx](../components/LanguageToggle.tsx).
-> `page.tsx` is still create-next-app boilerplate and no page mounts the i18n provider yet
-> (that is `app-shell`). `@react-three/fiber` + `@react-three/drei` + `three` are already
-> installed. `TC-STACK-01` is `accepted`; changes 1–3 are `shipped`; everything else is
-> `proposed`.
+> Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, and 4
+> `app-shell` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
+> type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
+> as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
+> [app/globals.css](../app/globals.css) — DESIGN §3 OKLCH token system (light/dark, `@theme
+> inline`, motion, focus, `--header-h`) and [app/layout.tsx](../app/layout.tsx) self-hosts
+> Inter + JetBrains Mono via `next/font`. Change 3:
+> [locales/en.json](../locales/en.json)+[ua.json](../locales/ua.json), pure
+> [lib/i18n.ts](../lib/i18n.ts), [lib/i18n-context.tsx](../lib/i18n-context.tsx)
+> (`LanguageProvider`/`useI18n`), [components/LanguageToggle.tsx](../components/LanguageToggle.tsx).
+> Change 4: [app/page.tsx](../app/page.tsx) (Server) → [components/Calculator.tsx](../components/Calculator.tsx)
+> (single client boundary + state owner, mounts the provider) → [components/Shell.tsx](../components/Shell.tsx)
+> (responsive header + two-column layout + validity-gated results) + [components/ThemeToggle.tsx](../components/ThemeToggle.tsx)
+> + pure [lib/app-state.ts](../lib/app-state.ts). The input column + results region are
+> **empty slots** awaiting changes 5–11. `@react-three/fiber` + `@react-three/drei` + `three`
+> are already installed. `TC-STACK-01` is `accepted`; changes 1–4 are `shipped`; everything
+> else is `proposed`.
 
 ---
 
@@ -243,7 +247,13 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** all strings resolve through `t()`; switching locale re-renders live.
 - **Kickoff:** `openspec new change i18n`
 
-#### 4. `app-shell` — page shell, client boundary, layout *(Must)*
+#### 4. `app-shell` — page shell, client boundary, layout *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-app-shell/](../openspec/changes/archive/2026-07-03-app-shell/);
+  spec synced to `openspec/specs/app-shell/spec.md`. Suite 44/44, build ✓, tsc ✓, lint ✓;
+  review clean (0 crit/high/med, 3 low resolved). QA 9/9 implemented & spec-compliant.
+  Input column + results region are **empty slots** for changes 5–11; NFR-RESP-01 / NFR-A11Y-01
+  are partial (band SVG and editable-field labels arrive with later capabilities).
 - **Covers:** `FR-SHELL-01/02/03/04`, `TC-CLIENT-01`, `TC-ARCH-01`, `NFR-RESP-01`,
   `NFR-A11Y-01`, `NFR-PERF-01`.
 - **Delivers:** `page.tsx` stays a Server Component; `Calculator.tsx` is the single
