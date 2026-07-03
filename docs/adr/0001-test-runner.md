@@ -1,10 +1,20 @@
 # ADR 0001 — Test runner: Node built-in `node:test` + `tsx`
 
-- **Status:** Accepted
+- **Status:** Accepted (amended 2026-07-03 — loader dropped, see Amendment)
 - **Date:** 2026-07-02
 - **Deciders:** Eng
 - **Related:** `calculation-engine` (CAPABILITIES change 1), `module-2d` (change 12),
   `NFR-TEST-01`, `NFR-PURE-01`, `TC-DATA-01`, `TC-STACK-01`
+
+> **Amendment (2026-07-03, `calculation-engine` apply).** The `tsx` loader is
+> **dropped**; the runner is now `node:test` executed directly by Node with **native
+> TypeScript type-stripping** (`node --test lib/*.test.ts`). The core decision — Node's
+> built-in `node:test`, zero runtime/dev deps — is unchanged and in fact strengthened:
+> Node ≥ 22.18 (this repo pins 22.22) strips TS types natively, so `tsx` is redundant.
+> The `test` script is `node --test lib/*.test.ts`; no test dependency is added to
+> `package.json`. Wherever this ADR says "`node:test` + `tsx`" below, read "`node:test`
+> (native type-stripping)". This also removed the only network install this change
+> needed, which the sandboxed environment could not reach.
 
 ## Context
 

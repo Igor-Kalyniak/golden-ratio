@@ -11,8 +11,9 @@ export a `gcd(a, b)` helper (integer, absolute-valued) and a `snap(value, step)`
 
 #### Scenario: Nearest standard module snaps to closest value
 
-- **WHEN** `nearestStandardModule(475)` is called
-- **THEN** it returns `600` (the nearest value in `STANDARD_MODULES`, resolving the 250 mm gap)
+- **WHEN** `nearestStandardModule(500)` is called
+- **THEN** it returns `600` (the nearest value in `STANDARD_MODULES`, resolving the 250 mm gap);
+  an exact tie (e.g. `475`) resolves stably to the lower value (`350`)
 
 #### Scenario: GCD of two heights
 
@@ -106,8 +107,8 @@ reads `close`, not `poor`. (`FR-GRID-01/02/03/04`)
 #### Scenario: Worked example — poor fit
 
 - **WHEN** `computeRoomGrid(3800, 2500, 700)` is called
-- **THEN** `lengthModules` is `5`, `widthModules` is `4`, `lengthRemainder` is `−300`,
-  `widthRemainder` is `+300`, and `quality` is `poor`
+- **THEN** `lengthModules` is `5`, `widthModules` is `4`, `lengthRemainder` is `+300`,
+  `widthRemainder` is `−300`, and `quality` is `poor`
 
 #### Scenario: One millimetre short reads close, not poor
 

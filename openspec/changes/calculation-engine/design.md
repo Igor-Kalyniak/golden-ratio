@@ -39,9 +39,11 @@ numbers this change must reproduce.
 - **Fixed walkway thresholds.** Ratings are hardcoded mm bands (`≥900/≥600/<600`) and never reference
   M (`BC-WALK-01`). Standard depths 600/900 (and the reference third row 1200) are exposed as
   constants for the UI to consume.
-- **Test runner = `node:test` + `tsx`.** Tests are `lib/*.test.ts` beside the code; `package.json`
-  gains a `tsx` devDependency and a `test` script (e.g. `tsx --test lib/*.test.ts` — exact form
-  pinned at implementation). No jsdom/JSX needed for pure math ([ADR-0001]).
+- **Test runner = `node:test`, native type-stripping.** Tests are `lib/*.test.ts` beside the code;
+  the `test` script is `node --test lib/*.test.ts`. Node ≥ 22.18 (repo pins 22.22) strips TS types
+  natively, so the `tsx` loader from [ADR-0001] is redundant and **dropped** — no test dependency is
+  added (ADR-0001 amended 2026-07-03). This strengthens the ADR's zero-dep intent. No jsdom/JSX
+  needed for pure math.
 - **Rounding contract.** Exact golden values are kept as floats; snapped values go through `snap`.
   Tests assert exact integers for snapped fields and use tolerance (`≈`) only on the raw float
   fields (`larger`/`smaller`/`snapOffset`).
