@@ -1,5 +1,7 @@
 {
   "language": "Language",
+  "themeLight": "Switch to light theme",
+  "themeDark": "Switch to dark theme",
   "title": "Apartment Module & Golden Ratio",
   "subtitle": "Proportional planning instrument · all values in mm",
   "live": "updates live",
