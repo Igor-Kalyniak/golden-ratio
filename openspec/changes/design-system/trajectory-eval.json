@@ -1,0 +1,53 @@
+{
+  "change": "design-system",
+  "generated_at": "2026-07-03T02:15:00+03:00",
+  "requirements": [
+    {
+      "id": "TC-STACK-02",
+      "pdr_section": "Technical constraints (L228)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "app/globals.css:@import \"tailwindcss\"",
+        "app/globals.css:@theme inline (--color-* + --font-* token mapping)",
+        "app/layout.tsx:utility classes only (h-full antialiased min-h-full flex flex-col)",
+        "build: ✓ Compiled successfully",
+        "npx eslint app/ → clean (exit 0)"
+      ],
+      "notes": "All custom CSS is confined to app/globals.css (token :root/[data-theme=\"dark\"] blocks, @theme inline wiring, base body, focus-visible, motion keyframes + reduced-motion guard). Tokens are surfaced as Tailwind utilities via @theme inline so components consume bg-panel/text-muted/border-line/font-mono rather than raw CSS. No component-level custom CSS or CSS modules exist. 'Tested' here = the Tailwind 4 theme compiles the token utilities during `npm run build` and app/ lints clean; there is no unit/visual test runner for CSS in this repo (see docs/qa/test-plans/design-system.md#tc-1)."
+    },
+    {
+      "id": "TC-STACK-03",
+      "pdr_section": "Technical constraints (L229)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "app/layout.tsx:Inter (next/font/google, weights 400/500/600/700, display swap, variable --font-sans)",
+        "app/layout.tsx:JetBrains_Mono (variable --font-mono)",
+        "app/globals.css:--font-sans / --font-mono mapped in @theme inline (font-sans/font-mono utilities)",
+        "app/globals.css:body font-feature-settings \"tnum\" 1, \"cv01\" 1 (tabular numerals for numeric columns)",
+        "app/globals.css:@custom-variant dark ([data-theme=\"dark\"] &) reconciling dark: variants with the token switch",
+        "build: ✓ Compiled successfully"
+      ],
+      "notes": "Foundation for the mono-for-numbers rule: Inter is wired as the UI sans and JetBrains Mono is exposed as the font-mono utility with tabular-figure feature settings on body. next/font self-hosts both faces (security-reviewer confirmed no runtime Google Fonts request). Dark mode is delivered via a Tailwind @custom-variant bound to [data-theme=\"dark\"], so `dark:` utilities and the DESIGN §3 html[data-theme] token switch share one selector. 'Tested' here = build compiles the font wiring and @custom-variant; per-value application of font-mono to numeric/dimension outputs is a consuming-component concern verified in later capabilities (manual check documented at docs/qa/test-plans/design-system.md#tc-3)."
+    },
+    {
+      "id": "NFR-A11Y-02",
+      "pdr_section": "Non-functional requirements (L216)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": false,
+      "evidence": [
+        "app/globals.css:light + dark token sets (24 color tokens, verbatim DESIGN §3)",
+        "app/globals.css::focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }",
+        "measured (light): fg/bg 16.83:1, fg/panel 17.43:1, fg2/bg 11.03:1, muted/bg 4.61:1, muted/panel 4.78:1 — all ≥ AA",
+        "measured (dark): fg/bg 16.47:1, fg/panel 15.45:1, fg2/bg 12.34:1, muted/bg 7.33:1, muted/panel 6.88:1 — all ≥ AA",
+        "measured sub-AA: faint/bg 2.74:1 light / 3.81:1 dark; accent/bg ~3.7:1 (review CR-001)"
+      ],
+      "notes": "Marked spec_compliant:false because the requirement asks the color palette to meet WCAG AA in both themes and two token pairs do NOT: --faint (2.74:1 light / 3.81:1 dark) and --accent-on-bg (~3.7:1) are below the 4.5:1 normal-text AA threshold. Per review finding CR-001 (severity low, status open) these are an exact verbatim port of the frozen DESIGN §3 tokens, not a porting error, and no component consumes --faint (or accent-colored small text) yet. Body/label/muted text passes AA in BOTH themes (see measurements). The focus outline uses --accent as a non-text UI cue where the 3:1 non-text threshold applies. The 'badges never rely on color alone' clause is a component-layer obligation (tokens provide distinct --good/--warn/--bad/--err + -bg pairs to combine with label+icon) and is not yet exercisable at this CSS-foundation layer — it will be re-evaluated when result badges ship. 'Tested' here = contrast computed by hand for every text/surface pair (documented in docs/qa/test-plans/design-system.md#tc-1); there is no automated a11y/visual test runner in this repo. Constraint to carry downstream: do not use --faint or accent-colored small copy for meaningful text without a non-color cue and/or a larger size."
+    }
+  ],
+  "summary": { "total": 3, "implemented": 3, "tested": 3, "spec_compliant": 2 }
+}
