@@ -6,39 +6,43 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-02T00:00:00+03:00
-- **Last action:** Design-explore resolved the two decisions that change 1 was quietly
-  forcing, and recorded them in the repo as ADRs (new `docs/adr/` — the source-of-truth #7
-  slot that had no directory yet). **[ADR-0001](adr/0001-test-runner.md)** — test runner is
-  Node `node:test` + `tsx` (no heavier framework; the engine is pure so nothing to mock).
-  **[ADR-0002](adr/0002-standard-modules-swappable-constant.md)** — `STANDARD_MODULES` is a
-  single swappable constant and `residual` is always surfaced, so `OQ-01` (authoritative
-  values) is de-risked without being answered. Threaded both into `docs/CAPABILITIES.md`
-  (change-1 card + scope note + §7), `docs/PDR.md` (OQ-01, dependency/risk rows, rev 1.3).
-  (Prior: aligned typography naming to Inter + JetBrains Mono across docs and skills.)
+- **Last updated:** 2026-07-03T00:30:00+03:00
+- **Last action:** **Shipped capability 1 `calculation-engine`** end-to-end via the
+  `ship-capability` advisory loop (propose → validate → apply → parallel review → QA →
+  archive → docs). Delivered [lib/calculations.ts](../lib/calculations.ts) — framework-free
+  pure math — and [lib/calculations.test.ts](../lib/calculations.test.ts) (25 `node:test`
+  cases, all green). Archived to
+  [openspec/changes/archive/2026-07-03-calculation-engine/](../openspec/changes/archive/2026-07-03-calculation-engine/);
+  8 requirements synced to `openspec/specs/calculation-engine/spec.md`.
 - **Status:**
-  - Done — design spec
-    [2026-06-29-2d-3d-mode-and-logo-design.md](superpowers/specs/2026-06-29-2d-3d-mode-and-logo-design.md);
-    PDR (FR-MODE-*, FR-MODULE2D-*, FR-VIZ2D-*, FR-VIZ3D-*, FR-LOGO-*, NFR-BUNDLE-01,
-    NFR-PERF-03, NFR-A11Y-03, TC-STACK-04), PRODUCT-BRIEF, DESIGN, and AGENTS updated.
-    Pre-change-1 decisions recorded — ADR-0001 (test runner), ADR-0002 (`STANDARD_MODULES`).
-  - In progress — none; change 1 not yet proposed.
-  - Blocked — none. `OQ-01` remains open with the Architecture SME but no longer blocks
-    change 1 (de-risked by ADR-0002).
-- **Next steps:** Propose change **1 `calculation-engine`** from
-  [docs/CAPABILITIES.md](CAPABILITIES.md) — `openspec new change calculation-engine` (or
-  `/opsx:propose`), implementing per **ADR-0001** (wire the `node:test` + `tsx` `test`
-  script) and **ADR-0002** (one swappable `STANDARD_MODULES` + `residual` surfaced). Then
-  proceed in the documented order. Epic A (changes 1–11) ships the core calculator before
-  Epic B (mode toggle + visualizers + logo).
-- **Notes:** Decisions — additive (not a pivot); 3D via `@react-three/fiber`
-  lazy-loaded; 2D module = GCD across all room dims snapped; one shared module across
-  rooms; default mode 3D; mode/camera not persisted (BC-PRIVACY-01). The "not a CAD
-  tool" non-goal and BC-VALUE-01 were reworded to permit read-only visualization.
-  New: test runner = `node:test` + `tsx` (ADR-0001); `STANDARD_MODULES` provisional
-  `[100,150,200,300,350,600,700]`, swappable, `residual` always shown (ADR-0002). Open
-  tangent for later: a soft "suggestion is N mm off" hint when `residual` > ¼M
-  (possible FR-MODULE-05 refinement, decide with SME alongside OQ-01).
+  - Done — `calculation-engine`: `STANDARD_MODULES` (one swappable const), `gcd` /
+    `nearestStandardModule` / `snap`, `suggestModule`, `computeVerticalBands`,
+    `computeGoldenSplit`, `computeRoomGrid`, `computeWalkways`, validation bounds +
+    warning thresholds. Runner wired: `node:test` via **native TS type-stripping**
+    (`node --test lib/*.test.ts`) — `tsx` loader dropped as redundant on Node 22.22
+    ([ADR-0001](adr/0001-test-runner.md) **amended 2026-07-03**). Review: 0 critical /
+    0 high (2 medium, 6 low — 6 resolved inline, 2 low deferred). QA: 19/19 implemented &
+    spec-compliant, 16/19 automated-tested.
+  - In progress — none.
+  - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
+- **Next steps:** Ship the next capabilities in [docs/CAPABILITIES.md](CAPABILITIES.md) §3
+  order — **2 `design-system`** and **3 `i18n`** are both dependency-free and parallel with
+  what's done; **4 `app-shell`** needs 2 + 3. Then Phase 1 inputs (5 `apartment-input`
+  needs 4 + 1; 6 `room-input` needs 4). Two low reviewer findings remain open for triage
+  (in the archived `review-findings.json`): **CR-003** — add `"type":"module"` to silence
+  the `node --test` MODULE_TYPELESS warning (verify against Next 16 build first);
+  **SEC-001** — optional `m > 0` guard in the divide-by-`m` helpers (non-reachable today).
+  QA test plan flags an unwritten **NFR-PERF-02** <16 ms benchmark test (see
+  [docs/qa/test-plans/calculation-engine.md](qa/test-plans/calculation-engine.md)).
+- **Notes:** PDR reconciled to match the shipped (correct) engine and DESIGN/SKILL:
+  **FR-VERT-02** `round → floor(ceiling/m)` (round yields a negative `topRemainder`);
+  **FR-GRID-03** to the signed nearest-distance formula `d − round(d/m)·m`; fixed a
+  kitchen-row sign typo in the `calculation-logic` skill. `recommendation` from
+  `computeWalkways` is now a **locale-independent key** (`walkway.<rating>`), not English
+  prose, so the pure engine stays language-agnostic for the bilingual UI (resolves review
+  CR-001). `moduleRuler` (FR-MODULE-04) was removed as scope leak — it belongs to change 7
+  `module-summary`. Open tangent still parked: soft "suggestion is N mm off" hint when
+  `residual` > ¼M (possible FR-MODULE-05 refinement, decide with SME alongside OQ-01).
 
 ## Source Of Truth
 

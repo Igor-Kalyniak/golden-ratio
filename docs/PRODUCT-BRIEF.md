@@ -96,7 +96,7 @@ table and how each is measured live in [docs/PDR.md](PDR.md#goals--success-metri
    mm") with a "suggested from heights" hint, and a ruler table lists ¼M through 4M
    with typical uses (FR-MODULE-03/04). If the module is impractically large or
    small, a warning banner explains why (FR-MODULE-05).
-5. **Read the vertical bands.** A responsive SVG diagram stacks `round(ceiling / m)`
+5. **Read the vertical bands.** A responsive SVG diagram stacks `floor(ceiling / m)`
    height bands — variable, never hardcoded — with mm labels on the left and band
    names on the right (FR-VERT-01/02/05/06). The opening line is highlighted; when
    it doesn't fall on a band boundary it's drawn as an honest off-grid marker, and

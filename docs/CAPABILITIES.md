@@ -1,6 +1,6 @@
 # Capability Plan — OpenSpec change sequence
 
-Last updated: 2026-06-30
+Last updated: 2026-07-03
 
 This document splits [docs/PDR.md](PDR.md) into **capabilities**, each implemented as
 one **OpenSpec change**, and fixes the **order of implementation**. It is the bridge
@@ -13,11 +13,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: the Next.js app is scaffolded (`app/layout.tsx`, `page.tsx`, `globals.css`)
-> but still default boilerplate; there is no `lib/`, no `locales/`, and no test runner
-> *wired* yet — though the runner is now **decided**: Node `node:test` + `tsx`
-> ([ADR-0001](adr/0001-test-runner.md)), added to `package.json` when change 1 is
-> implemented. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
-> `TC-STACK-01` is `accepted`; everything below is `proposed`.
+> but still default boilerplate; `locales/` does not exist yet. **Change 1
+> `calculation-engine` is shipped** (2026-07-03): [lib/calculations.ts](../lib/calculations.ts)
+> + its `node:test` suite exist, and the test runner is wired as `node --test lib/*.test.ts`
+> using Node's **native TS type-stripping** — the `tsx` loader from
+> [ADR-0001](adr/0001-test-runner.md) was **dropped as redundant** on Node 22.22 (ADR
+> amended 2026-07-03). `@react-three/fiber` + `@react-three/drei` + `three` are already
+> installed. `TC-STACK-01` is `accepted`; change 1 is `shipped`; everything else is
+> `proposed`.
 
 ---
 
@@ -171,19 +174,24 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 
 ### Epic A — Core Calculator (MVP)
 
-#### 1. `calculation-engine` — pure proportioning math *(Must)*
+#### 1. `calculation-engine` — pure proportioning math *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-calculation-engine/](../openspec/changes/archive/2026-07-03-calculation-engine/);
+  spec synced to `openspec/specs/calculation-engine/spec.md`. 25 `node:test` cases green;
+  review 0 critical/0 high; QA 19/19 implemented & spec-compliant, 16/19 auto-tested.
 - **Covers:** `FR-MODULE-01`, `FR-VERT-01/02/03/04` (engine), `FR-GOLD-01/02/03` (engine),
   `FR-GRID-01/02/03/04` (engine), `FR-WALK-01/02/03` (engine); `NFR-PURE-01`,
   `NFR-TEST-01`, `NFR-PERF-01`, `NFR-PERF-02`.
 - **Delivers:** `lib/calculations.ts` — `STANDARD_MODULES`, shared types, validation
   bounds, snapping helpers, `suggestModule`, `computeVerticalBands`,
   `computeGoldenSplit`, `computeRoomGrid`, `computeWalkways`; plus the test runner
-  (Node `node:test` + `tsx`, [ADR-0001](adr/0001-test-runner.md)) and the unit suite
-  (normal, boundary, edge cases: coprime heights, variable band counts, off-grid openings,
-  1 mm-short dimensions, snap residuals).
+  (Node `node:test`, native TS type-stripping — `tsx` dropped, [ADR-0001](adr/0001-test-runner.md)
+  amended) and the unit suite (normal, boundary, edge cases: coprime heights, variable band
+  counts, off-grid openings, 1 mm-short dimensions, snap residuals).
 - **Decisions baked in (from design-explore):**
-  - **Test runner** — Node `node:test` + `tsx`, no heavier test framework
-    ([ADR-0001](adr/0001-test-runner.md)). Add the `test` script here.
+  - **Test runner** — Node `node:test` run directly via native TS type-stripping
+    (`node --test lib/*.test.ts`); the `tsx` loader was dropped as redundant on Node 22.22
+    ([ADR-0001](adr/0001-test-runner.md) amended 2026-07-03). No test dependency added.
   - **`STANDARD_MODULES` is one swappable constant** and every snap goes through a single
     helper; `residual` is always returned and always surfaced so a poor suggestion is
     visible, never silent ([ADR-0002](adr/0002-standard-modules-swappable-constant.md)).
@@ -268,7 +276,7 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 #### 8. `vertical-bands` — height-band diagram *(Must)*
 - **Covers:** `FR-VERT-01/02/03/04/05/06`, `NFR-RESP-01`.
 - **Delivers:** SVG `viewBox="0 0 200 400"` + `preserveAspectRatio`, width-responsive;
-  band count `round(ceiling / m)`; `topRemainder` partial band; off-grid opening marker
+  band count `floor(ceiling / m)`; `topRemainder` partial band; off-grid opening marker
   when `openingAligned` is false; mm labels left / band names right; label condensing at
   high band counts.
 - **Depends on:** `module-summary`, `calculation-engine`.
