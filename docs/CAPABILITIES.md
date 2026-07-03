@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, and 10 `grid-fit` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -46,10 +46,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > [components/GridFitBlock.tsx](../components/GridFitBlock.tsx) adds the grid-fit block (nL×nW,
 > signed remainders + round-direction annotation, accessible quality badge) as the per-room card's
 > second block, and `lib/calculations.ts` gained `gridRoundDirection`. The **results region now
-> shows the Module Summary + band diagram + per-room golden split + grid fit**; only the walkway
-> block (11) remains to complete the per-room card, then visualizer slots (12–15).
-> `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
-> is `accepted`; changes 1–10 are `shipped`; everything else is `proposed`.
+> shows the Module Summary + band diagram + per-room golden split + grid fit**. Change 11:
+> [components/WalkwayBlock.tsx](../components/WalkwayBlock.tsx) adds the walkway-clearance block
+> (three furniture presets, fixed-mm ratings + bar meter) as the per-room card's third block, and
+> `lib/calculations.ts` gained `walkwayMeterBars`. **The per-room card and Epic A (the core
+> calculator) are now complete** — full input surface + module summary + band diagram + per-room
+> golden/grid/walkway results. **Epic B** (iteration 2 — visualizers + logo, changes 12–16) is
+> next. `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
+> is `accepted`; changes 1–11 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -406,11 +410,21 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   cue.
 - **Kickoff:** `openspec new change grid-fit`
 
-#### 11. `walkway` — clearance check *(Should)*
+#### 11. `walkway` — clearance check *(Should)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-walkway/](../openspec/changes/archive/2026-07-03-walkway/);
+  spec synced to `openspec/specs/walkway/spec.md`. Suite 77/77, build ✓, tsc ✓, lint ✓; review
+  **all-clean (0 findings)** from all three Checkers. QA 5/5 implemented & spec-compliant, 4/5
+  automated (`computeWalkways`/`rateWalkway`/`walkwayMeterBars` + module-independence test; block
+  DOM manual per ADR-0001). The third/final per-room block — **completes the per-room card and
+  Epic A**. `oppositeDepth` (a `Could`) intentionally not wired; the two-arg
+  `computeWalkways(width, depth)` form is used. `BC-WALK-01` is structurally airtight:
+  `WalkwayBlock` takes **no module prop**, so no code path can let M reach a rating.
 - **Covers:** `FR-WALK-01/02/03/04`, `BC-WALK-01`.
-- **Delivers:** `available = roomWidth − furnitureDepth − (oppositeDepth ?? 0)`; presets
-  600 mm (wardrobe/kitchen) / 900 mm (sofa); fixed mm ratings (≥ 900 comfortable,
-  ≥ 600 acceptable, < 600 tight) decoupled from M; guidance-phrased recommendation.
+- **Delivers:** three furniture-preset rows over room width — wardrobe/kitchen (600), sofa/bed
+  (900), facing units (1200); `available = width − depth`; fixed mm ratings (≥ 900 comfortable,
+  ≥ 600 acceptable, < 600 tight) decoupled from M; a 3-bar meter + colored rating (label+meter, not
+  color alone) + guidance-phrased recommendation from the engine's locale-independent key.
 - **Depends on:** `room-input`, `calculation-engine`.
 - **Why here:** independent; `Should`, so first to cut under time pressure.
 - **Done when:** ratings never scale with M; sub-600 mm reads `tight`.

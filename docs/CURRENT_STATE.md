@@ -6,23 +6,31 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T16:45:00+03:00
-- **Last action:** **Shipped capability 10 `grid-fit`** end-to-end via the `ship-capability`
-  advisory loop. The per-room card gained its **second block**:
-  [components/GridFitBlock.tsx](../components/GridFitBlock.tsx) shows each valid room as `nL × nW`
-  modules (`round(dim/m)`), the signed `remainder L / W` (explicit +/−), a warn-italic round-up/
-  round-down annotation per non-zero remainder, and an accessible `exact`/`close`/`poor` quality
-  badge (label + glyph ✓/≈/✕, never color alone — `NFR-A11Y-02`).
-  [lib/calculations.ts](../lib/calculations.ts) gained the pure `gridRoundDirection(remainder)`
-  helper (`FR-GRID-03` sign convention: positive ⇒ over grid ⇒ round down) and a **corrected stale
-  `RoomGrid` doc comment** that had the direction reversed (returned values were always correct);
-  `computeRoomGrid` reused unchanged. Rendered as the 2nd block in
-  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx). Archived to
-  [openspec/changes/archive/2026-07-03-grid-fit/](../openspec/changes/archive/2026-07-03-grid-fit/);
-  requirements synced to `openspec/specs/grid-fit/spec.md`.
+- **Last updated:** 2026-07-03T17:45:00+03:00
+- **Last action:** **Shipped capability 11 `walkway`** end-to-end via the `ship-capability` advisory
+  loop — **this completes the per-room card and Epic A (the core calculator, changes 1–11).** The
+  per-room card gained its **third/final block**:
+  [components/WalkwayBlock.tsx](../components/WalkwayBlock.tsx) shows three furniture-preset rows
+  (wardrobe/kitchen 600, sofa/bed 900, facing units 1200) over each room's width — the available
+  clearance (`width − depth`), a **fixed-mm** comfort rating (≥900 comfortable / ≥600 acceptable /
+  <600 tight, **never scaling with M** — `BC-WALK-01`), a 3-bar meter, and the localized guidance
+  sentence from the engine's `recommendation` key. [lib/calculations.ts](../lib/calculations.ts)
+  gained the pure `walkwayMeterBars(rating)` helper; `computeWalkways`/`rateWalkway`/
+  `FURNITURE_DEPTHS` reused unchanged. Rendered as the 3rd block in
+  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx). `BC-WALK-01` is structurally
+  airtight — `WalkwayBlock` takes **no module prop**. Archived to
+  [openspec/changes/archive/2026-07-03-walkway/](../openspec/changes/archive/2026-07-03-walkway/);
+  requirements synced to `openspec/specs/walkway/spec.md`.
   (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`.)
+  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`,
+  10 `grid-fit`.)
 - **Status:**
+  - Done — **`walkway`** (FR-WALK-01/02/03/04, BC-WALK-01): per-room walkway-clearance block +
+    `walkwayMeterBars`. Suite **77/77** (+3 tests), build ✓, tsc ✓, lint ✓. Review **all-clean
+    (0 findings)** from all three Checkers. QA 5/5 implemented & spec-compliant, 4/5 automated
+    (`computeWalkways`/`rateWalkway`/`walkwayMeterBars` + a module-independence test; block DOM
+    manual per ADR-0001). `oppositeDepth` (a `Could`) intentionally not wired. **This is the last
+    per-room block — Epic A is complete.**
   - Done — **`grid-fit`** (FR-GRID-01/02/03/04/05, NFR-A11Y-02): per-room grid-fit block +
     `gridRoundDirection`. Suite **74/74** (+2 tests), build ✓, tsc ✓, lint ✓. Review **all-clean
     (0 findings)** from all three Checkers. QA 6/6 implemented & spec-compliant, 4/6 automated
@@ -85,20 +93,26 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **11 `walkway`** is the
-  last per-room block and completes Epic A's core loop (`Should`; first to cut under time pressure).
-  Add a third sibling block in [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) next
-  to `<GoldenSplitBlock>` / `<GridFitBlock>`: per-room walkway rows for wardrobe/kitchen (600),
-  sofa/bed centre (900), and between-facing-600-units (1200); clearance = `width − depth`; **fixed
-  mm ratings** `≥900 comfortable · ≥600 acceptable · <600 tight` that never scale with M
-  (`BC-WALK-01`); each row a 3-bar meter (filled by rating) + a colored text rating (`FR-WALK-*`).
-  The engine (`computeWalkways`/`rateWalkway`, returning the locale-independent
-  `walkway.<rating>` recommendation key) shipped in change 1, so this is a thin presentation layer.
-  After 11, Epic A (the MVP calculator) is complete; **Epic B** (12 `module-2d` → 13 `mode-toggle`
-  → 14 `viz-2d` → 15 `viz-3d`, + 16 `brand-logo`) is the iteration-2 visualizer work.
-  **Likely 3rd field consumer** — walkway (11) reads room state and adds no editable number field,
-  so `room-input` CR-001 (shared-field extraction) stays deferred until the 2D/3D input
-  reorganization (13).
+- **Next steps:** **Epic A (the core calculator, changes 1–11) is complete** — a working,
+  trustworthy, bilingual calculator: full input surface (apartment + rooms) → module summary + band
+  diagram + per-room golden/grid/walkway results, all reactive, all in-memory. **Epic B (iteration 2
+  — visualizers + logo)** is next in [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order and is
+  *additive* (Epic A ships without it):
+  - **12 `module-2d`** (`FR-MODULE2D-01/02`) — pure engine extension: `suggestModule2D(rooms)` (GCD
+    folded across every room's L&W, snapped). Unit-tested like the rest of the engine; the natural
+    next pick (no UI, lowest risk). Needs 1 ✓.
+  - **13 `mode-toggle`** (`FR-MODE-*`, `NFR-A11Y-03`) — 2D⇄3D segmented toggle; 2D hides height
+    fields + suggests module from room dims (12), 3D uses heights (7); shared state preserved,
+    in-memory only. Reorganizes the input column; needs 5+6+7+12. **This is where `room-input`
+    CR-001 (shared `NumberField`/`InlineError` extraction) should finally land** — the 2D/3D input
+    reorg is the 3rd-consumer moment.
+  - **14 `viz-2d`** (`FR-VIZ2D-*`) then **15 `viz-3d`** (`FR-VIZ3D-*`, lazy `@react-three/fiber`) —
+    the read-only visualizers; 2D is the 3D fallback so it comes first. **16 `brand-logo`**
+    (`FR-LOGO-01`) is parallelizable any time after `app-shell` (replaces the header placeholder).
+  - **Watch (Epic B):** `viz-3d` must lazy-load via `next/dynamic ssr:false` so the 2D path carries
+    no Three.js (`NFR-BUNDLE-01`, `TC-STACK-04`); honor `prefers-reduced-motion`; WebGL-off → fall
+    back to `viz-2d` (`FR-VIZ3D-06`). A `three-3d` skill may be added under `.agents/skills/` when
+    3D work begins.
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
