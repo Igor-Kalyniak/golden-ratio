@@ -4,12 +4,16 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { LanguageProvider } from '../lib/i18n-context';
 import {
+  addRoom,
   DEFAULT_STATE,
+  removeRoom,
   showResults,
+  updateRoom,
   withCeiling,
   withModule,
   withOpening,
   type AppState,
+  type Room,
 } from '../lib/app-state';
 import { Shell } from './Shell';
 
@@ -41,6 +45,17 @@ export function Calculator() {
     [],
   );
 
+  const onAddRoom = useCallback(() => setState((prev) => addRoom(prev)), []);
+  const onRemoveRoom = useCallback(
+    (id: string) => setState((prev) => removeRoom(prev, id)),
+    [],
+  );
+  const onRoomChange = useCallback(
+    (id: string, patch: Partial<Pick<Room, 'name' | 'length' | 'width'>>) =>
+      setState((prev) => updateRoom(prev, id, patch)),
+    [],
+  );
+
   return (
     <LanguageProvider>
       <Shell
@@ -49,6 +64,9 @@ export function Calculator() {
         onCeilingChange={onCeilingChange}
         onOpeningChange={onOpeningChange}
         onModuleChange={onModuleChange}
+        onAddRoom={onAddRoom}
+        onRemoveRoom={onRemoveRoom}
+        onRoomChange={onRoomChange}
       />
     </LanguageProvider>
   );

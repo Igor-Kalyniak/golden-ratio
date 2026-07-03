@@ -108,3 +108,51 @@ export function withOpening(state: AppState, opening: number): AppState {
 export function withModule(state: AppState, module: number): AppState {
   return { ...state, module, moduleTouched: true };
 }
+
+// ---------------------------------------------------------------------------
+// Room-list CRUD reducers (FR-ROOM-01/02/03) — pure, synchronous (NFR-PERF-01).
+//
+// Ids are minted by a module-level monotonic counter (never Date.now/Math.random),
+// so ids are unique within a session and reducers stay deterministic for tests. Ids
+// are React keys / reducer match keys only — never persisted (BC-PRIVACY-01).
+// ---------------------------------------------------------------------------
+
+/** Next room sequence — starts after DEFAULT_STATE's `room-1`. */
+let nextRoomSeq = 2;
+
+/** Mint a unique, stable room id (`room-2`, `room-3`, …). */
+export function newRoomId(): string {
+  return `room-${nextRoomSeq++}`;
+}
+
+/** Append a defaulted room; existing rooms unchanged (FR-ROOM-01, DESIGN §5.3). */
+export function addRoom(state: AppState): AppState {
+  const room: Room = {
+    id: newRoomId(),
+    name: `Room ${state.rooms.length + 1}`,
+    length: 3000,
+    width: 2400,
+  };
+  return { ...state, rooms: [...state.rooms, room] };
+}
+
+/**
+ * Remove the room with `id`. No-op when only one room remains, so the list can never
+ * be emptied (FR-ROOM-02) — the invariant is enforced here, not only in the disabled UI.
+ */
+export function removeRoom(state: AppState, id: string): AppState {
+  if (state.rooms.length <= 1) return state;
+  return { ...state, rooms: state.rooms.filter((room) => room.id !== id) };
+}
+
+/** Patch a single room's editable fields, matched by id (FR-ROOM-03). */
+export function updateRoom(
+  state: AppState,
+  id: string,
+  patch: Partial<Pick<Room, 'name' | 'length' | 'width'>>,
+): AppState {
+  return {
+    ...state,
+    rooms: state.rooms.map((room) => (room.id === id ? { ...room, ...patch } : room)),
+  };
+}

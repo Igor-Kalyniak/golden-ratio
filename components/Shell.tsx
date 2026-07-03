@@ -1,9 +1,10 @@
 'use client';
 
 import { useI18n } from '../lib/i18n-context';
-import { type AppState } from '../lib/app-state';
+import { type AppState, type Room } from '../lib/app-state';
 import { ApartmentForm } from './ApartmentForm';
 import { LanguageToggle } from './LanguageToggle';
+import { RoomList } from './RoomList';
 import { ThemeToggle } from './ThemeToggle';
 
 interface ShellProps {
@@ -12,12 +13,15 @@ interface ShellProps {
   onCeilingChange: (value: number) => void;
   onOpeningChange: (value: number) => void;
   onModuleChange: (value: number) => void;
+  onAddRoom: () => void;
+  onRemoveRoom: (id: string) => void;
+  onRoomChange: (id: string, patch: Partial<Pick<Room, 'name' | 'length' | 'width'>>) => void;
 }
 
 /**
  * Presentational shell (DESIGN §4): sticky header + responsive two-column body. A descendant
  * of `LanguageProvider`, so it resolves every string through `t()`. The apartment slot is
- * filled by `ApartmentForm` (change 5); the rooms slot remains a placeholder for change 6.
+ * filled by `ApartmentForm` (change 5) and the rooms slot by `RoomList` (change 6).
  * The results region is a slot for changes 7–11, gated on validity (FR-SHELL-04).
  * `state`/`showResults` flow down as props (TC-ARCH-01) from `Calculator`, the state owner.
  */
@@ -27,6 +31,9 @@ export function Shell({
   onCeilingChange,
   onOpeningChange,
   onModuleChange,
+  onAddRoom,
+  onRemoveRoom,
+  onRoomChange,
 }: ShellProps) {
   const { t } = useI18n();
 
@@ -72,10 +79,12 @@ export function Shell({
               onOpeningChange={onOpeningChange}
               onModuleChange={onModuleChange}
             />
-            {/* Room list — change 6. */}
-            <div className="rounded-lg border border-dashed border-line2 p-3 text-sm text-muted">
-              {t('rooms')}
-            </div>
+            <RoomList
+              rooms={state.rooms}
+              onAddRoom={onAddRoom}
+              onRemoveRoom={onRemoveRoom}
+              onRoomChange={onRoomChange}
+            />
           </div>
         </section>
 

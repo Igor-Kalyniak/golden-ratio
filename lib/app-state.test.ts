@@ -5,10 +5,13 @@ import { fileURLToPath } from 'node:url';
 
 import { suggestModule } from './calculations.ts';
 import {
+  addRoom,
   DEFAULT_STATE,
   isApartmentValid,
   isRoomValid,
+  removeRoom,
   showResults,
+  updateRoom,
   withCeiling,
   withModule,
   withOpening,
@@ -121,6 +124,59 @@ test('reducers are pure — do not mutate the input state', () => {
   withOpening(DEFAULT_STATE, 2000);
   withModule(DEFAULT_STATE, 600);
   assert.deepEqual(DEFAULT_STATE, before);
+});
+
+// --- Room-list reducers (FR-ROOM-01/02/03) ---------------------------------
+
+test('addRoom: appends a defaulted room with a unique id', () => {
+  const next = addRoom(DEFAULT_STATE);
+  assert.equal(next.rooms.length, DEFAULT_STATE.rooms.length + 1);
+  const added = next.rooms[next.rooms.length - 1];
+  assert.equal(added.name, `Room ${DEFAULT_STATE.rooms.length + 1}`);
+  assert.equal(added.length, 3000);
+  assert.equal(added.width, 2400);
+  // id is distinct from every existing room's id
+  assert.ok(DEFAULT_STATE.rooms.every((r) => r.id !== added.id));
+});
+
+test('addRoom: successive rooms get distinct ids', () => {
+  const one = addRoom(DEFAULT_STATE);
+  const two = addRoom(one);
+  const ids = two.rooms.map((r) => r.id);
+  assert.equal(new Set(ids).size, ids.length, 'all ids unique');
+});
+
+test('removeRoom: removes the room matched by id', () => {
+  const two = addRoom(DEFAULT_STATE);
+  const targetId = two.rooms[0].id;
+  const next = removeRoom(two, targetId);
+  assert.equal(next.rooms.length, 1);
+  assert.ok(next.rooms.every((r) => r.id !== targetId));
+});
+
+test('removeRoom: is a no-op on the last remaining room', () => {
+  const onlyId = DEFAULT_STATE.rooms[0].id;
+  const next = removeRoom(DEFAULT_STATE, onlyId);
+  assert.equal(next, DEFAULT_STATE, 'last room cannot be removed (identity returned)');
+});
+
+test('updateRoom: patches only the matched room', () => {
+  const two = addRoom(DEFAULT_STATE);
+  const id = two.rooms[0].id;
+  const next = updateRoom(two, id, { name: 'Kitchen', length: 4200 });
+  assert.equal(next.rooms[0].name, 'Kitchen');
+  assert.equal(next.rooms[0].length, 4200);
+  assert.equal(next.rooms[0].width, two.rooms[0].width, 'unpatched field preserved');
+  assert.deepEqual(next.rooms[1], two.rooms[1], 'other rooms untouched');
+});
+
+test('room reducers are pure — do not mutate the input state', () => {
+  const base = addRoom(DEFAULT_STATE); // two rooms
+  const snapshot = JSON.parse(JSON.stringify(base));
+  addRoom(base);
+  removeRoom(base, base.rooms[0].id);
+  updateRoom(base, base.rooms[0].id, { name: 'X' });
+  assert.deepEqual(base, snapshot);
 });
 
 // --- Purity (no framework imports in lib/app-state.ts) ---------------------
