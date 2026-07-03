@@ -13,7 +13,9 @@ component rendered by `Shell` when `mode === '2d'`.
 **Goals**
 - Per-room to-scale SVG rectangles, faint M×M grid, signed-remainder edge strip, exactly one accent
   cell, width-responsive (`FR-VIZ2D-01/02/03`, `NFR-PERF-03`).
-- Reuse the shipped `cellpulse`/`griddraw` keyframes; reduced-motion honored (`FR-VIZ2D-04/05`).
+- Reuse the shipped `cellpulse` keyframe on the highlighted cell; reduced-motion honored
+  (`FR-VIZ2D-04/05`). The animate-in/tween clauses of FR-VIZ2D-04 are `MAY` (a `Should` req),
+  satisfied by the pulse; `griddraw` is available but intentionally not applied to the grid lines.
 - Read-only — no geometry editing, no export (`BC-VALUE-01`).
 
 **Non-Goals**
@@ -50,7 +52,7 @@ the pure helper.
 ### Reduced-motion is already free
 `FR-VIZ2D-05` needs no new code: `app/globals.css` ships
 `@media (prefers-reduced-motion: reduce) { *,::before,::after { animation: none !important } }`, so
-the `cellpulse`/`griddraw` animations snap automatically. The component just applies the keyframes;
+the `cellpulse` animation snaps automatically. The component just applies the keyframe;
 the global rule suppresses them. Documented so it isn't re-implemented per-component.
 
 ### Read-only by construction (BC-VALUE-01)

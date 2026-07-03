@@ -38,7 +38,8 @@ the 3D WebGL fallback (`FR-VIZ3D-06`). Capability 14 in
   a remainder on one/both axes, the highlighted cell is a single M×M cell at the expected corner,
   and `cols`/`rows` = `floor(dim/m)`.
 
-Motion (`FR-VIZ2D-04`) uses the shipped `cellpulse` + `griddraw` keyframes; **reduced-motion
+Motion (`FR-VIZ2D-04`, a `Should` whose animate-in/tween clauses are `MAY`) uses the shipped
+`cellpulse` keyframe on the highlighted cell; **reduced-motion
 (`FR-VIZ2D-05`) is already honored globally** — `app/globals.css` has
 `@media (prefers-reduced-motion: reduce) { *, ::before, ::after { animation: none !important } }`,
 so animations snap for free. Scope stays the **2D** visualizer; `viz-3d` (15), the WebGL fallback,
@@ -62,6 +63,6 @@ remain the accessible source of truth (`NFR-A11Y-03`, owned by 13).
   dependency** — pure SVG + Tailwind (the `@react-three/*` deps are for `viz-3d`, 15).
 - **Requirements owned:** `FR-VIZ2D-01/02/03/04/05`, `NFR-PERF-03`, `BC-VALUE-01`.
 - **Consumes (shipped):** `state.rooms`/`state.mode`/active `module` from `Calculator`; `isRoomValid`
-  from `lib/app-state.ts`; `cellpulse`/`griddraw` keyframes + reduced-motion from `design-system`;
+  from `lib/app-state.ts`; the `cellpulse` keyframe + reduced-motion from `design-system`;
   `useI18n`.
 - **Enables:** `viz-3d` (15) reuses this as the WebGL-unavailable fallback (`FR-VIZ3D-06`).
