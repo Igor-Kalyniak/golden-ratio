@@ -1,6 +1,6 @@
 # Capability Plan — OpenSpec change sequence
 
-Last updated: 2026-07-03
+Last updated: 2026-07-04
 
 This document splits [docs/PDR.md](PDR.md) into **capabilities**, each implemented as
 one **OpenSpec change**, and fixes the **order of implementation**. It is the bridge
@@ -70,7 +70,9 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > lazy `Viz3DScene` chunk** — the 2D path + first paint carry no 3D dep (NFR-BUNDLE-01 verified).
 > Change 16: [components/Logo.tsx](../components/Logo.tsx) + [app/icon.svg](../app/icon.svg) add the
 > golden-ratio brand mark (header + favicon), replacing the placeholder. **All 16 shipped.**
-> `TC-STACK-01` is `accepted`; **changes 1–16 are all `shipped` — nothing remains `proposed`.**
+> `TC-STACK-01` is `accepted`; **changes 1–16 are all `shipped`.** A follow-up **iteration 3** change
+> — 17 `viz-3d-grid` (3D module-grid parity with the 2D visualizer, new `FR-VIZ3D-07`) — is
+> **`proposed`**; see its card in §5.
 
 ---
 
@@ -113,6 +115,7 @@ Two decomposition rules keep the mapping clean:
 | 14 | `viz-2d` | `viz-2d` | B · Visualization | Must (iter 2) |
 | 15 | `viz-3d` | `viz-3d` | B · Visualization | Should (iter 2) |
 | 16 | `brand-logo` | `brand` | B · Visualization | Must (iter 2) · parallelizable |
+| 17 | `viz-3d-grid` | `viz-3d-grid` | B · Visualization | Should (iter 3) |
 
 ---
 
@@ -141,6 +144,9 @@ Epic B — Mode toggle + Visualizers + Logo (iteration 2)
                               14. viz-2d               (needs 13 + 12)
                               15. viz-3d               (needs 14)
                               16. brand-logo           (needs 4 — parallelizable any time)
+
+Epic B — follow-up (iteration 3)
+                              17. viz-3d-grid          (needs 15 — 3D module-grid parity with 2D)
 ```
 
 **Why this order**
@@ -186,6 +192,7 @@ graph TD
   V2[14 viz-2d]
   V3[15 viz-3d]
   LOGO[16 brand-logo]
+  V3G[17 viz-3d-grid]
 
   DS --> SH
   I18N --> SH
@@ -213,6 +220,7 @@ graph TD
   M2 --> V2
   V2 --> V3
   SH --> LOGO
+  V3 --> V3G
 ```
 
 ---
@@ -562,6 +570,38 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Why here:** standalone and tiny — schedule any time after the shell; grouped with
   iteration 2 for narrative, not dependency.
 - **Kickoff:** `openspec new change brand-logo`
+
+### Epic B — follow-up (iteration 3)
+
+#### 17. `viz-3d-grid` — 3D module-grid parity with 2D *(Should, iter 3)* — 🔲 **proposed**
+- **Goal:** bring the **3D** visualizer to visual parity with the **2D** one by drawing the
+  **module grid inside the room volume**. Today [components/Viz2D.tsx](../components/Viz2D.tsx)
+  tiles each room with a faint M × M grid + a signed-remainder edge strip + one highlighted
+  accent cell ([Viz2D.tsx:83-108](../components/Viz2D.tsx#L83-L108)), but
+  [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) only draws the translucent room box,
+  an outer wireframe, the opening band, and one highlighted M³ cube — there is **no module grid**.
+  This change adds an **M × M × M module lattice** to the 3D box so the module's size relative to
+  the whole volume reads the same way it does in 2D (matches the attached 2D/3D screenshots).
+- **Covers:** a new **`FR-VIZ3D-07`** (to add to [docs/PDR.md](PDR.md), mirroring `FR-VIZ2D-02`
+  in 3D: "A faint M³ module lattice tiles each room box; the signed grid remainder reads as a thin
+  partial slab at the far faces"); re-verifies `NFR-BUNDLE-01`/`TC-STACK-04` (grid stays inside the
+  lazy `Viz3DScene` chunk — no new dependency), `NFR-PERF-03` (line/instanced-mesh count capped at
+  high room counts), `NFR-A11Y-03`, `BC-VALUE-01` (read-only — no handlers, never edits geometry).
+- **Delivers:** in [components/Viz3DScene.tsx](../components/Viz3DScene.tsx), a faint 3D module
+  lattice per room box (grid lines or instanced edges on the M step), reusing the shared mm→scene
+  `scale` and the highlighted M³ cube already present; the signed remainder rendered as thin partial
+  slabs on the far faces (the 3D analogue of `Viz2D`'s `--warn-bg` edge strips). The grid geometry
+  should come from a pure, unit-tested helper — extend `layoutRoom3D` or add a `layoutGrid3D` in
+  [lib/calculations.ts](../lib/calculations.ts) that returns whole-cell counts + remainder per axis
+  (parity with `layoutRoom2D`), so `FR-VIZ3D-07` is testable without a canvas (ADR-0001).
+  Reduced-motion + WebGL-fallback behavior is unchanged (inherited from change 15).
+- **Depends on:** `viz-3d` (15) — extends its scene; no other change.
+- **Why here:** purely additive polish on a shipped 3D view; `Should`, and cuttable without
+  breaking anything. Grid math mirrors the already-shipped `layoutRoom2D`, so risk is low.
+- **Done when:** the 3D box shows a faint M-step lattice + remainder slabs matching the 2D grid;
+  three.js stays confined to the lazy chunk (NFR-BUNDLE-01 re-verified); the grid helper is
+  unit-tested; frame budget holds at high room counts.
+- **Kickoff:** `openspec new change viz-3d-grid`
 
 ---
 
