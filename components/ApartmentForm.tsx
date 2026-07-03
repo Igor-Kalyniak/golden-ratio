@@ -95,13 +95,17 @@ function NumberField({
   onChange: (value: number) => void;
 }) {
   const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
+  const describedBy = [hintId, invalid ? errorId : null].filter(Boolean).join(' ');
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
         <label htmlFor={id} className="text-sm text-fg2">
           {label}
         </label>
-        <span className="font-mono text-[11px] text-faint">{hint}</span>
+        <span id={hintId} className="font-mono text-[11px] text-faint">
+          {hint}
+        </span>
       </div>
       <div className="relative">
         <input
@@ -110,9 +114,9 @@ function NumberField({
           inputMode="numeric"
           step={1}
           value={Number.isFinite(value) ? value : ''}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))}
           aria-invalid={invalid}
-          aria-describedby={invalid ? errorId : undefined}
+          aria-describedby={describedBy}
           className={`w-full rounded-md border bg-field px-3 py-2 pr-9 font-mono text-[15px] text-fg ${
             invalid ? 'border-err' : 'border-line2'
           }`}

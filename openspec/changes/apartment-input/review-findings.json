@@ -1,0 +1,56 @@
+{
+  "change": "apartment-input",
+  "generated_at": "2026-07-03T03:00:00+03:00",
+  "base_sha": "34d66b94cedf2a5e4d259920bcf79748ca52f330",
+  "head_sha": "ecb10bf9fdc3697d297a7678ad9e00cda329c840",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 2 },
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "FR-APT-03's sticky-override reducers are correct (untouched follows the live suggestion; withModule unconditionally marks touched, even when the picked value equals the current suggestion), validation is non-stale and derived from the current ceiling, Shell's results gate/aria-live untouched, and scope stays within FR-APT-01/02/03/04/05. Two low polish items, both resolved.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "correctness",
+          "requirement_ids": ["FR-APT-01", "FR-APT-02"],
+          "file": "components/ApartmentForm.tsx",
+          "line": 112,
+          "summary": "Number.isFinite(value) ? value : '' fallback was dead: Number('') is 0, not NaN, so clearing a field pushed 0 into state and rendered \"0\" instead of blank; the intended empty-field UX never fired.",
+          "recommendation": "Coerce the empty string explicitly to NaN in onChange so the finite-guard fires as intended.",
+          "status": "resolved"
+        },
+        {
+          "id": "CR-002",
+          "severity": "low",
+          "category": "a11y",
+          "requirement_ids": ["FR-APT-04"],
+          "file": "components/ApartmentForm.tsx",
+          "line": 104,
+          "summary": "The range hint (e.g. \"2000–5000\") was visually associated with the input but not exposed to assistive tech via aria-describedby, so screen-reader users didn't hear the allowed range.",
+          "recommendation": "Give the hint span an id and include it in the input's aria-describedby, alongside the error id when invalid.",
+          "status": "resolved"
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "openspec validate apartment-input --strict: PASS. All five owned IDs implemented, tested, and spec-compliant — FR-APT-01/02 bounds+defaults, FR-APT-03's three spec scenarios (untouched-follows, sticky, default-700) all covered by app-state.test.ts, FR-APT-04 inline validation wiring, FR-APT-05 no-submit synchronous recompute. No scope drift into room-input/module-summary/mode-toggle; no new dependency; all 9 consumed i18n keys pre-existed (verified against locales/*.json). 50/50 tests pass.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "In-memory-only state (BC-PRIVACY-01/TC-DATA-01), no unsafe rendering, hostile numeric input (Infinity/NaN/huge/negative) through the suggestModule/gcd keystroke path terminates safely (Euclid is O(log n), no unbounded loop, no prototype pollution). package.json/lockfile unchanged.",
+      "findings": []
+    }
+  ]
+}
