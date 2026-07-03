@@ -12,6 +12,7 @@ import {
   computeModuleRuler,
   moduleWarning,
   computeVerticalBands,
+  layoutBandDiagram,
   computeGoldenSplit,
   computeRoomGrid,
   computeWalkways,
@@ -137,6 +138,72 @@ test('computeVerticalBands: minimal 2-band case', () => {
   const b = computeVerticalBands(2000, 700); // floor(2000/700)=2
   assert.equal(b.bands, 2);
   assert.equal(b.topRemainder, 600);
+});
+
+// --- layoutBandDiagram (FR-VERT-02/03/04/06) -------------------------------
+
+test('layoutBandDiagram: divisible ceiling → full bands, no partial', () => {
+  const l = layoutBandDiagram(2800, 700);
+  assert.equal(l.bands.length, 4);
+  assert.equal(l.bands.some((b) => b.partial), false);
+});
+
+test('layoutBandDiagram: non-divisible ceiling → trailing partial band', () => {
+  const l = layoutBandDiagram(3000, 700); // floor=4, remainder 200
+  assert.equal(l.bands.length, 5);
+  const partial = l.bands[l.bands.length - 1];
+  assert.equal(partial.partial, true);
+  assert.equal(partial.span, 200);
+  assert.equal(partial.from, 2800);
+  assert.equal(partial.to, 3000);
+});
+
+test('layoutBandDiagram: large band count is derived, not capped', () => {
+  const l = layoutBandDiagram(5000, 100);
+  assert.equal(l.bands.length, 50);
+});
+
+test('layoutBandDiagram: opening on a boundary is aligned', () => {
+  const l = layoutBandDiagram(2800, 700, 2100);
+  assert.deepEqual(l.opening, { mm: 2100, aligned: true });
+});
+
+test('layoutBandDiagram: off-grid opening at its true height', () => {
+  const l = layoutBandDiagram(2800, 400, 2100); // 2100 % 400 !== 0
+  assert.equal(l.opening?.aligned, false);
+  assert.equal(l.opening?.mm, 2100);
+});
+
+test('layoutBandDiagram: no opening → null overlay', () => {
+  assert.equal(layoutBandDiagram(2800, 700).opening, null);
+});
+
+test('layoutBandDiagram: band-name key sequence (3D rule)', () => {
+  const keys = layoutBandDiagram(2800, 700, 2100).bands.map((b) => b.nameKey);
+  // base at bottom, door-head where the opening (2100) falls (band index 2: 1400..2100),
+  // upper/ceiling at top; the rest work-zone.
+  assert.equal(keys[0], 'band.basePlinth');
+  assert.equal(keys[keys.length - 1], 'band.upperCeiling');
+  assert.equal(keys[2], 'band.doorHead'); // 1400 < 2100 <= 2100
+});
+
+test('layoutBandDiagram: mark labels condense only above the density threshold', () => {
+  // Sparse: 4 bands → 5 marks (≤16) → no condensing, every label kept.
+  const sparse = layoutBandDiagram(2800, 700);
+  assert.equal(sparse.condensed, false);
+  assert.ok(sparse.marks.every((m) => !m.condensedOut));
+
+  // 15 full bands → 16 marks (== threshold, not >) → still not condensed.
+  assert.equal(layoutBandDiagram(1500, 100).marks.length, 16);
+  assert.equal(layoutBandDiagram(1500, 100).condensed, false);
+
+  // 16 full bands → 17 marks (> 16) → condensed; the last label is always kept.
+  const dense = layoutBandDiagram(1600, 100);
+  assert.equal(dense.marks.length, 17);
+  assert.equal(dense.condensed, true);
+  assert.equal(dense.marks[dense.marks.length - 1].condensedOut, false);
+  assert.equal(dense.marks[0].condensedOut, false); // index 0 kept (i % 4 === 0)
+  assert.equal(dense.marks[1].condensedOut, true); // index 1 hidden
 });
 
 // --- computeGoldenSplit (FR-GOLD-01/02/03) ---------------------------------

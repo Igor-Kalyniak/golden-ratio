@@ -89,6 +89,54 @@ export interface VerticalBands {
   openingBand: number | null;
 }
 
+/**
+ * Locale-independent band-name key; the UI maps it via `t()` so the engine stays
+ * language-agnostic (FR-VERT-06, same pattern as `WalkwayRecommendationKey`).
+ */
+export type BandNameKey =
+  | 'band.basePlinth'
+  | 'band.workZone'
+  | 'band.doorHead'
+  | 'band.upperCeiling';
+
+export interface BandLayoutRow {
+  /** 0-based index, bottom-to-top. */
+  index: number;
+  /** Lower edge in mm. */
+  from: number;
+  /** Upper edge in mm. */
+  to: number;
+  /** `to − from` in mm. */
+  span: number;
+  /** Locale-independent name key. */
+  nameKey: BandNameKey;
+  /** True for the trailing leftover band (`topRemainder > 0`). */
+  partial: boolean;
+  /** Alternating-fill flag (odd index) for the renderer. */
+  alt: boolean;
+}
+
+export interface BandMark {
+  /** Mark height in mm (0…ceiling). */
+  mm: number;
+  /** True when the label is condensed away at high band counts (FR-VERT-06). */
+  condensedOut: boolean;
+}
+
+export interface BandDiagramLayout {
+  /** Bands bottom-to-top; the partial band (if any) is last. */
+  bands: BandLayoutRow[];
+  /** mm marks `0…ceiling`; `condensedOut` hides the label when dense. */
+  marks: BandMark[];
+  /** Opening overlay at its true height, or null when no opening. */
+  opening: { mm: number; aligned: boolean } | null;
+  /** True when the mark count exceeds the density threshold (16). */
+  condensed: boolean;
+}
+
+/** Mark-label density threshold — above this, labels are condensed (FR-VERT-06). */
+export const BAND_MARK_DENSITY = 16;
+
 export interface GoldenSplit {
   /** Exact larger segment: length × 0.618. */
   larger: number;
@@ -234,6 +282,66 @@ export function computeVerticalBands(ceiling: number, m: number, opening?: numbe
     openingBand = Math.ceil(opening / m);
   }
   return { bands, topRemainder, openingAligned, openingBand };
+}
+
+/**
+ * Render-ready band layout (FR-VERT-02/03/04/06) built from `computeVerticalBands`.
+ * All values are in mm space (0…ceiling); the SVG maps mm → y with a single viewBox
+ * scale, so this stays resolution-independent and unit-testable. Band names are
+ * locale-independent keys the UI resolves via `t()`.
+ */
+export function layoutBandDiagram(ceiling: number, m: number, opening?: number): BandDiagramLayout {
+  const { bands: fullBands, topRemainder } = computeVerticalBands(ceiling, m, opening);
+  const hasPartial = topRemainder > 0;
+  const totalRows = fullBands + (hasPartial ? 1 : 0);
+
+  const bands: BandLayoutRow[] = [];
+  for (let i = 0; i < totalRows; i++) {
+    const partial = hasPartial && i === totalRows - 1;
+    const from = i * m;
+    const to = partial ? ceiling : (i + 1) * m;
+    bands.push({
+      index: i,
+      from,
+      to,
+      span: to - from,
+      nameKey: bandNameKey(i, totalRows, partial, opening, m),
+      partial,
+      alt: i % 2 === 1,
+    });
+  }
+
+  // Marks at every band boundary plus the ceiling; condense labels when dense.
+  const markVals: number[] = [];
+  for (let i = 0; i <= fullBands; i++) markVals.push(i * m);
+  if (hasPartial) markVals.push(ceiling);
+  const condensed = markVals.length > BAND_MARK_DENSITY;
+  const marks: BandMark[] = markVals.map((mm, i) => ({
+    mm,
+    // Keep every 4th mark and the last; hide the rest only when dense.
+    condensedOut: condensed && i % 4 !== 0 && i !== markVals.length - 1,
+  }));
+
+  const overlay =
+    opening !== undefined ? { mm: opening, aligned: opening % m === 0 } : null;
+
+  return { bands, marks, opening: overlay, condensed };
+}
+
+/** Band-name key for band `i` of `total` (3D-mode rule from the frozen prototype). */
+function bandNameKey(
+  i: number,
+  total: number,
+  partial: boolean,
+  opening: number | undefined,
+  m: number,
+): BandNameKey {
+  if (i === 0) return 'band.basePlinth';
+  if (partial || i === total - 1) return 'band.upperCeiling';
+  if (opening !== undefined && i * m < opening && (i + 1) * m >= opening) {
+    return 'band.doorHead';
+  }
+  return 'band.workZone';
 }
 
 // ---------------------------------------------------------------------------

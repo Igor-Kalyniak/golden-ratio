@@ -3,6 +3,7 @@
 import { useI18n } from '../lib/i18n-context';
 import { type AppState, type Room } from '../lib/app-state';
 import { ApartmentForm } from './ApartmentForm';
+import { BandDiagram } from './BandDiagram';
 import { LanguageToggle } from './LanguageToggle';
 import { ModuleSummary } from './ModuleSummary';
 import { RoomList } from './RoomList';
@@ -99,6 +100,13 @@ export function Shell({
               <ModuleSummary
                 module={state.module}
                 ceiling={state.ceiling}
+                opening={state.opening}
+              />
+              {/* Band diagram is a 3D-mode result (DESIGN §6.2); renders unconditionally until
+                  mode-toggle (change 13) gates it on mode === '3d'. */}
+              <BandDiagram
+                ceiling={state.ceiling}
+                module={state.module}
                 opening={state.opening}
               />
             </div>
