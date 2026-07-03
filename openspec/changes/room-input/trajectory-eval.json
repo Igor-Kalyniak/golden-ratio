@@ -1,0 +1,76 @@
+{
+  "change": "room-input",
+  "generated_at": "2026-07-03T13:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-ROOM-01",
+      "pdr_section": "PDR §Room input (L78)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:DEFAULT_STATE.rooms=[{id:'room-1',name:'Room 1',length:3000,width:2400}] (starts with exactly one room)",
+        "lib/app-state.ts:newRoomId (module-level monotonic counter, no Date.now/Math.random)",
+        "lib/app-state.ts:addRoom (appends {id:newRoomId(), name:`Room ${rooms.length+1}`, length:3000, width:2400}; existing rooms unchanged)",
+        "components/RoomList.tsx:'+ Add room' button wired to onAddRoom (header row)",
+        "lib/app-state.test.ts:\"addRoom: appends a defaulted room with a unique id\"",
+        "lib/app-state.test.ts:\"addRoom: successive rooms get distinct ids\"",
+        "openspec/changes/room-input/review-findings.json:CR-003 (duplicate default names after removal, acknowledged/cosmetic)"
+      ],
+      "notes": "Fully automated at the reducer level. App starts with a single defaulted room; addRoom appends {name:'Room N', 3000×2400} where N = rooms.length+1, leaving prior rooms untouched, and mints ids from a monotonic counter so successive appends get distinct, deterministic ids — both pinned by app-state.test.ts. No upper bound on room count. The '+ Add room' button rendering is manual (ADR-0001), covered by room-input.md TC-1. CR-003 (after removals a new room can reuse a visible 'Room N' label) was reviewed and accepted as cosmetic: ids stay unique so keys/matching are unaffected and the name is immediately user-editable; not a spec violation (DESIGN §5.3 specifies the count-based label)."
+    },
+    {
+      "id": "FR-ROOM-02",
+      "pdr_section": "PDR §Room input (L79)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:removeRoom (filters the room by id; returns state unchanged when rooms.length <= 1)",
+        "components/RoomList.tsx:per-card remove button, disabled + aria-disabled + dimmed (opacity-30) when lastRoom (rooms.length === 1)",
+        "lib/app-state.test.ts:\"removeRoom: removes the room matched by id\"",
+        "lib/app-state.test.ts:\"removeRoom: is a no-op on the last remaining room\""
+      ],
+      "notes": "The last-room guard is enforced in the reducer (not only via the disabled UI), so the list can never be emptied even if the control is bypassed — confirmed by the code-reviewer and pinned by the removeRoom no-op test. Removing one of several rooms filters by id and leaves the others intact (also tested). The disabled/aria-disabled/dimmed remove affordance on the sole remaining room is DOM-level and manual (ADR-0001), covered by room-input.md TC-2."
+    },
+    {
+      "id": "FR-ROOM-03",
+      "pdr_section": "PDR §Room input (L80)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:isRoomValid (trimmed name 1–50 chars AND isValidDimension(length) AND isValidDimension(width))",
+        "lib/app-state.ts:ROOM_NAME bounds {min:1,max:50}; isValidDimension (integer 500–15000 mm)",
+        "lib/app-state.ts:updateRoom (patches only the matched room by id; patch limited to name|length|width)",
+        "components/RoomList.tsx:editable name field (default 'Room N') + Length + Width number fields with mm suffix and range hint",
+        "lib/app-state.test.ts:\"isRoomValid: default room is valid\"",
+        "lib/app-state.test.ts:\"isRoomValid: empty/too-long name is invalid\"",
+        "lib/app-state.test.ts:\"isRoomValid: out-of-range dimension is invalid\"",
+        "lib/app-state.test.ts:\"updateRoom: patches only the matched room\""
+      ],
+      "notes": "Validation bounds are fully automated: the trimmed-name 1–50 rule and the 500–15000 mm integer dimension rule are pinned via isRoomValid (empty/too-long name and out-of-range dimension cases). updateRoom is pinned to patch only the matched room and leave siblings unchanged. The three fields (name/length/width) rendering, mm suffix, and range hint are DOM-level and manual (ADR-0001), covered by room-input.md TC-3. The isRoomValid/isValidDimension predicates predate this change (from the shell/engine) but are the exact validity source this UI consumes."
+    },
+    {
+      "id": "FR-ROOM-04",
+      "pdr_section": "PDR §Room input (L81)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/RoomList.tsx:NumberField (border-err on invalid, role=\"alert\" error node, aria-invalid, aria-describedby=errorId)",
+        "components/RoomList.tsx:name field errorText=t('errName'); dimension fields errorText=t('errDim') (localized)",
+        "components/RoomList.tsx:visible <label htmlFor={id} className=\"mb-1 block …\"> for the name field (matches Length/Width)",
+        "locales/en.json + locales/ua.json:roomName / errName / removeRoom (key-parity preserved, 81 keys each)",
+        "openspec/changes/room-input/review-findings.json:CR-002 + SC-001 (sr-only name label → visible, resolved)"
+      ],
+      "notes": "Inline validation mirrors the FR-APT-04 pattern: red border (border-err), localized role=alert message directly below each field, aria-invalid, and aria-describedby linking the error id. NOT automated — no React/DOM runner (ADR-0001). Verified by build+tsc+eslint clean, 56/56 tests, and the manual checklist (room-input.md TC-3/TC-4). A11y was directly re-checked by two independent reviewers: the room-name field originally used an sr-only label while the spec/DESIGN §5.4 require a visible label (reported as BOTH CR-002 and SC-001); htmlFor association was always intact, so it was a wording/UX nit, and it was RESOLVED — the name field now renders a visible label identical to Length/Width."
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "implemented": 4,
+    "tested": 3,
+    "spec_compliant": 4
+  }
+}
