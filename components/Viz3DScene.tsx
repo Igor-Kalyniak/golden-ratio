@@ -19,6 +19,52 @@ interface Viz3DSceneProps {
 const TARGET_UNITS = 2.4;
 const GAP = 0.5; // between-room gap in scene units
 const ACCENT_FALLBACK = 'rgb(37, 99, 235)'; // used only until the CSS --accent is sampled
+const LATTICE_COLOR = '#5a6474'; // matches the box wireframe / 2D `--line` — faint, neutral, not chrome
+const REMAINDER_COLOR = '#d97706'; // warn tone — the 3D analogue of the 2D `--warn-bg` remainder strip
+// Per-room lattice cap (NFR-PERF-03): when a room's total module divisions exceed this (a tiny module
+// relative to a large room), the faint lattice is skipped so line geometry stays bounded — the box,
+// remainder slabs, and highlighted cube always render.
+const MAX_LATTICE_DIVISIONS = 40;
+const EPS = 1e-4;
+
+/** Centered interior grid offsets along an axis of scene extent `ext`, on the module `step`. */
+function interiorOffsets(ext: number, step: number): number[] {
+  if (step <= 0) return [];
+  const offsets: number[] = [];
+  for (let i = 1; -ext / 2 + i * step < ext / 2 - EPS; i += 1) offsets.push(-ext / 2 + i * step);
+  return offsets;
+}
+
+/**
+ * Flat `[x1,y1,z1, x2,y2,z2, …]` line-segment vertices for the faint M³ module lattice on a box of
+ * scene extents `w × h × d` at the module `step` (FR-VIZ3D-07). The lattice is drawn on the three
+ * faces meeting at the front-bottom-left corner (floor, front, left) — the floor face is the direct
+ * 3D parity of the 2D plan grid, and the two wall faces convey the vertical (layer) tiling. Returns
+ * `null` when the module divisions exceed the per-room cap (NFR-PERF-03).
+ */
+function buildLatticeSegments(w: number, h: number, d: number, step: number): Float32Array | null {
+  if (step <= 0) return null;
+  const xs = interiorOffsets(w, step);
+  const ys = interiorOffsets(h, step);
+  const zs = interiorOffsets(d, step);
+  if (xs.length + ys.length + zs.length > MAX_LATTICE_DIVISIONS) return null;
+
+  const v: number[] = [];
+  const line = (a: [number, number, number], b: [number, number, number]) => v.push(...a, ...b);
+  const y0 = -h / 2;
+  const z1 = d / 2;
+  const x0 = -w / 2;
+  // Floor (y = -h/2): the 2D plan grid — lines along x (per z) and along z (per x).
+  for (const z of zs) line([-w / 2, y0, z], [w / 2, y0, z]);
+  for (const x of xs) line([x, y0, -d / 2], [x, y0, d / 2]);
+  // Front face (z = +d/2): height tiling — lines along x (per y) and along y (per x).
+  for (const y of ys) line([-w / 2, y, z1], [w / 2, y, z1]);
+  for (const x of xs) line([x, -h / 2, z1], [x, h / 2, z1]);
+  // Left face (x = -w/2): depth × height tiling — lines along z (per y) and along y (per z).
+  for (const y of ys) line([x0, y, -d / 2], [x0, y, d / 2]);
+  for (const z of zs) line([x0, -h / 2, z], [x0, h / 2, z]);
+  return new Float32Array(v);
+}
 
 /** Resolve `var(--accent)` to its used `rgb(...)` value via a hidden probe (client-only). */
 function readAccent(): string {
@@ -146,10 +192,18 @@ function RoomBox({
   const w = layout.l * scale;
   const h = layout.h * scale;
   const d = layout.w * scale;
+  const step = m * scale;
   // Clamp the highlight cube to the box so a room smaller than one module doesn't overflow the
   // walls (mirrors the 2D visualizer's Math.min clamp — CR-003).
   const cellS = Math.min(m * scale, w, h, d);
   const baseY = -h / 2 + cellS / 2;
+
+  // Faint M³ lattice on the three corner faces (FR-VIZ3D-07); null when past the per-room cap.
+  const lattice = useMemo(() => buildLatticeSegments(w, h, d, step), [w, h, d, step]);
+  // Signed remainder slabs on the far faces — the 3D analogue of Viz2D's `--warn-bg` edge strips.
+  const remL = layout.lengthRemainder * scale;
+  const remW = layout.widthRemainder * scale;
+  const remH = layout.heightRemainder * scale;
 
   // Gentle highlight float (FR-VIZ3D-04); suppressed under reduced-motion (FR-VIZ3D-05).
   useFrame(({ clock }) => {
@@ -171,6 +225,38 @@ function RoomBox({
         <boxGeometry args={[w, h, d]} />
         <meshBasicMaterial color="#5a6474" wireframe />
       </mesh>
+
+      {/* Faint M³ module lattice on the floor + two corner walls (FR-VIZ3D-07). Keyed on the
+          extents so a changed grid remounts (disposing the old geometry). */}
+      {lattice && (
+        <lineSegments key={`${w}x${h}x${d}x${step}`}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" args={[lattice, 3]} />
+          </bufferGeometry>
+          <lineBasicMaterial color={LATTICE_COLOR} transparent opacity={0.4} />
+        </lineSegments>
+      )}
+
+      {/* Signed remainder slabs on the far faces (FR-VIZ3D-07) — leftover past the last whole
+          module per axis; omitted when the dimension divides evenly (remainder 0). */}
+      {remL > EPS && (
+        <mesh position={[w / 2 - remL / 2, 0, 0]}>
+          <boxGeometry args={[remL, h, d]} />
+          <meshBasicMaterial color={REMAINDER_COLOR} transparent opacity={0.16} depthWrite={false} />
+        </mesh>
+      )}
+      {remW > EPS && (
+        <mesh position={[0, 0, d / 2 - remW / 2]}>
+          <boxGeometry args={[w, h, remW]} />
+          <meshBasicMaterial color={REMAINDER_COLOR} transparent opacity={0.16} depthWrite={false} />
+        </mesh>
+      )}
+      {remH > EPS && (
+        <mesh position={[0, h / 2 - remH / 2, 0]}>
+          <boxGeometry args={[w, remH, d]} />
+          <meshBasicMaterial color={REMAINDER_COLOR} transparent opacity={0.16} depthWrite={false} />
+        </mesh>
+      )}
 
       {/* Opening band on the front wall face (FR-VIZ3D-02). */}
       {openingScene !== null && (

@@ -174,6 +174,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | FR-VIZ3D-04 | OrbitControls allow rotate/zoom/pan; gentle auto-rotate, highlight float/pulse, and room fade-in on mount                | proposed |
 | FR-VIZ3D-05 | `prefers-reduced-motion` disables auto-rotate and pulsing; a loading state shows while the Three.js chunk loads          | proposed |
 | FR-VIZ3D-06 | When WebGL is unavailable, a graceful message shows and the view falls back to the 2D visualizer                         | proposed |
+| FR-VIZ3D-07 | A faint M³ module lattice tiles each room box (the 3D parity of the 2D M × M grid); the signed grid remainder per axis reads as a thin partial slab on the far faces; lattice line count is capped at high room counts and stays inside the lazy Three.js chunk | proposed |
 
 ### Branding (capability `brand`)
 

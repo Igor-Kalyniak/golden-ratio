@@ -489,6 +489,27 @@ test('layoutRoom3D: openingY null when omitted or above the ceiling (FR-VIZ3D-02
   assert.equal(layoutRoom3D(4200, 3500, 2800, 700, 2800).openingY, 2800); // == ceiling is valid
 });
 
+test('layoutRoom3D: even dims → zero remainder on every axis (FR-VIZ3D-07)', () => {
+  const l = layoutRoom3D(4200, 3500, 2800, 700); // 6 × 5 × 4 exact
+  assert.equal(l.lengthRemainder, 0);
+  assert.equal(l.widthRemainder, 0);
+  assert.equal(l.heightRemainder, 0);
+});
+
+test('layoutRoom3D: off-grid dims surface signed remainder per axis (FR-VIZ3D-07)', () => {
+  const l = layoutRoom3D(3700, 2500, 2900, 600); // floor 6 (rem 100) × 4 (rem 100) × 4 (rem 500)
+  assert.equal(l.lengthRemainder, 100); // 3700 − 6·600
+  assert.equal(l.widthRemainder, 100); // 2500 − 4·600
+  assert.equal(l.heightRemainder, 500); // 2900 − 4·600
+});
+
+test('layoutRoom3D: length/width remainders match layoutRoom2D strips (parity, FR-VIZ3D-07)', () => {
+  const g3 = layoutRoom3D(3200, 2500, 2800, 600);
+  const g2 = layoutRoom2D(3200, 2500, 600);
+  assert.equal(g3.lengthRemainder, g2.rightStrip);
+  assert.equal(g3.widthRemainder, g2.bottomStrip);
+});
+
 // --- Validation bounds -----------------------------------------------------
 
 test('validation bounds', () => {

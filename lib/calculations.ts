@@ -521,6 +521,14 @@ export interface Room3DLayout {
   cols: number;
   rows: number;
   layers: number;
+  /**
+   * Signed grid remainder per axis (mm): `dim − floor(dim/m)·m`, i.e. the leftover past the last
+   * whole module. The 3D analogue of `layoutRoom2D`'s `rightStrip`/`bottomStrip`, rendered as thin
+   * partial slabs on the far faces (FR-VIZ3D-07). 0 when the dimension divides evenly by m.
+   */
+  lengthRemainder: number;
+  widthRemainder: number;
+  heightRemainder: number;
   /** Origin (mm, room-corner-relative) of the single highlighted M³ cube. */
   cube: { x: number; y: number; z: number };
   /** Opening band height (mm) on a wall face, or null when omitted / above the ceiling. */
@@ -533,7 +541,9 @@ export interface Room3DLayout {
  * ceiling; `cols/rows/layers` are the whole modules that fit along each axis; exactly one M³ cube
  * is highlighted at the box's bottom-front-left corner; `openingY` is the opening height on a wall
  * face, or null when no opening is given or it exceeds the ceiling (FR-VIZ3D-02 "omitted when
- * blank"). Framework-free — no R3F/three import (NFR-BUNDLE-01: the 2D path stays 3D-free).
+ * blank"). `lengthRemainder`/`widthRemainder`/`heightRemainder` carry the leftover past the last
+ * whole module per axis so the lattice's far-face partial slabs are a data fact (FR-VIZ3D-07).
+ * Framework-free — no R3F/three import (NFR-BUNDLE-01: the 2D path stays 3D-free).
  */
 export function layoutRoom3D(
   length: number,
@@ -543,13 +553,19 @@ export function layoutRoom3D(
   opening?: number,
 ): Room3DLayout {
   const openingValid = opening !== undefined && opening > 0 && opening <= ceiling;
+  const cols = Math.floor(length / m);
+  const rows = Math.floor(width / m);
+  const layers = Math.floor(ceiling / m);
   return {
     l: length,
     w: width,
     h: ceiling,
-    cols: Math.floor(length / m),
-    rows: Math.floor(width / m),
-    layers: Math.floor(ceiling / m),
+    cols,
+    rows,
+    layers,
+    lengthRemainder: length - cols * m,
+    widthRemainder: width - rows * m,
+    heightRemainder: ceiling - layers * m,
     cube: { x: 0, y: 0, z: 0 },
     openingY: openingValid ? opening : null,
   };
