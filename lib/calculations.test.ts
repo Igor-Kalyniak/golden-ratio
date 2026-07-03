@@ -14,7 +14,6 @@ import {
   computeRoomGrid,
   computeWalkways,
   rateWalkway,
-  moduleRuler,
   isValidCeiling,
   isValidOpening,
   isValidDimension,
@@ -184,19 +183,18 @@ test('computeWalkways: opposite depth subtracted', () => {
   assert.equal(computeWalkways(3500, 600, 600).available, 2300);
 });
 
+test('computeWalkways: recommendation is a locale-independent key, not English prose', () => {
+  assert.equal(computeWalkways(3500, 600).recommendation, 'walkway.comfortable');
+  assert.equal(computeWalkways(1500, 900).recommendation, 'walkway.acceptable');
+  assert.equal(computeWalkways(1500, 1200).recommendation, 'walkway.tight');
+});
+
 test('computeWalkways: thresholds are fixed mm, independent of module', () => {
   // Same 550mm clearance is "tight" regardless of what M might be.
   assert.equal(rateWalkway(899), 'acceptable');
   assert.equal(rateWalkway(900), 'comfortable');
   assert.equal(rateWalkway(599), 'tight');
   assert.equal(rateWalkway(600), 'acceptable');
-});
-
-// --- moduleRuler (FR-MODULE-04) --------------------------------------------
-
-test('moduleRuler: ¼M…4M sizes for M=700', () => {
-  const sizes = moduleRuler(700).map((r) => r.size);
-  assert.deepEqual(sizes, [175, 350, 700, 1050, 1400, 2100, 2800]);
 });
 
 // --- Validation bounds -----------------------------------------------------

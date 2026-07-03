@@ -68,7 +68,7 @@ Default state: 3D mode, light theme, EN, all three rooms valid.
 | Room | Dims | Golden (exact → snapped, offset) | Grid | Badge | Walkway |
 |---|---|---|---|---|---|
 | **Living room** | 4200 × 3500 | 2595.6 / 1604.4 → 2450 / 1750, off 145.6 | 6 × 5, rem 0 / 0 | **exact** | 2900 comf · 2600 comf |
-| **Kitchen** | 3800 × 2500 | 2348.4 / 1451.6 → 2450 / 1350, off 101.6 | 5 × 4, rem −300 / +300 | **poor** | 1900 comf |
+| **Kitchen** | 3800 × 2500 | 2348.4 / 1451.6 → 2450 / 1350, off 101.6 | 5 × 4, rem +300 / −300 | **poor** | 1900 comf |
 | **Bathroom** | 2150 × 1500 | 1328.7 / 821.3 → 1400 / 750, off 71.3 | 3 × 2, rem +50 / +100 | **close** | 600 acceptable · 300 tight |
 
 Across the three: grid `exact / close / poor`; walkway `comfortable / acceptable / tight`.

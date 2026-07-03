@@ -95,7 +95,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | ID          | Description                                                                                                              | Status   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
 | FR-VERT-01  | `computeVerticalBands(ceiling, m)` returns `{ bands, topRemainder, openingAligned, openingBand }`                        | proposed |
-| FR-VERT-02  | Band count is derived as `round(ceiling / m)` — variable, never hardcoded; the renderer handles 2 bands and 50+ alike   | proposed |
+| FR-VERT-02  | Band count is derived as `floor(ceiling / m)` — variable, never hardcoded; the renderer handles 2 bands and 50+ alike (floor, not round, so the leftover is always the non-negative `topRemainder`) | proposed |
 | FR-VERT-03  | Leftover height above the last full module is reported and drawn as a partial band (`topRemainder`)                     | proposed |
 | FR-VERT-04  | When the opening does not land on a band boundary, `openingAligned` is false and an off-grid marker is drawn at its true height | proposed |
 | FR-VERT-05  | SVG diagram uses `viewBox="0 0 200 400"` + `preserveAspectRatio`; container is width-responsive with no fixed pixel size  | proposed |
@@ -116,7 +116,7 @@ Status values: `proposed` · `accepted` · `shipped` · `dropped`.
 | ----------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
 | FR-GRID-01  | `computeRoomGrid(length, width, m)` returns `{ lengthModules, widthModules, lengthRemainder, widthRemainder, quality }` | proposed |
 | FR-GRID-02  | Module counts use `round(dimension / m)` (nearest), not floor                                                           | proposed |
-| FR-GRID-03  | Remainder is the signed distance to the nearest multiple — `min(d % m, m - (d % m))` — so the UI can say "round up" vs "round down" | proposed |
+| FR-GRID-03  | Remainder is the signed distance to the nearest multiple — `d - round(d / m) * m` (magnitude `≤ m/2`; positive ⇒ "round down"/dimension over grid, negative ⇒ "round up"/under grid) | proposed |
 | FR-GRID-04  | Quality: `exact` when both nearest-distances are 0; `close` when both ≤ ¼M; `poor` otherwise (a dimension 1 mm short reads `close`, not `poor`) | proposed |
 | FR-GRID-05  | Per-room results show modules × modules, the remainders, and a colored quality badge                                    | proposed |
 

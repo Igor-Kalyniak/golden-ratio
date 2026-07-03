@@ -48,6 +48,6 @@
 
 ## 9. Verify
 
-- [ ] 9.1 `npm test` passes green
-- [ ] 9.2 `npm run lint` is clean
-- [ ] 9.3 `npx tsc --noEmit` (or build) type-checks under strict mode
+- [x] 9.1 `npm test` passes green (25 node:test cases)
+- [x] 9.2 `eslint lib/` is clean; repo-wide `npm run lint` errors are confined to the pre-existing frozen `docs/design/export/` vendor files (out of scope for this change)
+- [x] 9.3 `npx tsc --noEmit` type-checks under strict mode

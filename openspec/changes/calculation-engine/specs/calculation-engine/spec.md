@@ -159,7 +159,8 @@ deterministic and synchronous. (`NFR-PURE-01`, `NFR-PERF-01`)
 
 ### Requirement: Unit test coverage of the engine
 
-Every calculation function SHALL have unit tests, run by Node `node:test` via `tsx` ([ADR-0001]),
+Every calculation function SHALL have unit tests, run by Node `node:test` with native TypeScript
+type-stripping — `node --test lib/*.test.ts` (`tsx` loader dropped; [ADR-0001] amended) —
 covering normal, boundary, and edge-case inputs — variable band counts, off-grid openings, coprime
 heights, 1 mm-short dimensions, and snap residuals — and asserting the documented worked-example
 numbers. A `test` script SHALL exist in `package.json` and the suite SHALL pass. Recomputation for a

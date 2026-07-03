@@ -41,6 +41,11 @@ export const WALKWAY_THRESHOLDS = { comfortable: 900, acceptable: 600 } as const
 
 export type GridQuality = 'exact' | 'close' | 'poor';
 export type WalkwayRating = 'comfortable' | 'acceptable' | 'tight';
+/** Locale-independent i18n key for the walkway guidance sentence; the UI maps it via `t()`. */
+export type WalkwayRecommendationKey =
+  | 'walkway.comfortable'
+  | 'walkway.acceptable'
+  | 'walkway.tight';
 
 export interface ModuleSuggestion {
   /** Raw GCD of the source dimensions. */
@@ -90,8 +95,11 @@ export interface Walkway {
   /** roomWidth − furnitureDepth − (oppositeDepth ?? 0). */
   available: number;
   rating: WalkwayRating;
-  /** Guidance-phrased recommendation (not code compliance). */
-  recommendation: string;
+  /**
+   * Locale-independent i18n key for the guidance sentence (never code compliance).
+   * The pure engine stays language-agnostic (NFR-PURE-01); the UI localizes via `t()`.
+   */
+  recommendation: WalkwayRecommendationKey;
 }
 
 // ---------------------------------------------------------------------------
@@ -240,23 +248,6 @@ export function computeWalkways(
 ): Walkway {
   const available = roomWidth - furnitureDepth - (oppositeDepth ?? 0);
   const rating = rateWalkway(available);
-  const recommendation =
-    rating === 'comfortable'
-      ? 'Comfortable clearance for easy passage.'
-      : rating === 'acceptable'
-        ? 'Acceptable clearance; usable but not generous.'
-        : 'Tight clearance; consider reducing furniture depth or widening the walkway.';
+  const recommendation: WalkwayRecommendationKey = `walkway.${rating}`;
   return { available, rating, recommendation };
-}
-
-// ---------------------------------------------------------------------------
-// Module ruler — FR-MODULE-04 consumers
-// ---------------------------------------------------------------------------
-
-/** Ruler multipliers ¼M…4M. Labels (¼M, ½M, …) are never translated. */
-export const MODULE_RULER_STEPS = [0.25, 0.5, 1, 1.5, 2, 3, 4] as const;
-
-/** Sizes for the ruler table given module `m`: round(m × k). */
-export function moduleRuler(m: number): { multiplier: number; size: number }[] {
-  return MODULE_RULER_STEPS.map((k) => ({ multiplier: k, size: Math.round(m * k) }));
 }
