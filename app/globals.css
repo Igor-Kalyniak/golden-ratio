@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
+/* Dark mode and the token switch share ONE selector: [data-theme="dark"].
+   Reconciles DESIGN §3 (html[data-theme]) with TC-STACK-03 ("dark:" variants). */
+@custom-variant dark ([data-theme="dark"] &);
+
+/* ── Design tokens — verbatim from docs/DESIGN.md §3. Default theme is light. ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --bg: #fbfbfa;
+  --panel: #ffffff;
+  --panel2: #f6f6f4;
+  --inset: #f1f1ee;
+  --fg: #1a1a18;
+  --fg2: #3a3a36;
+  --muted: #73736c;
+  --faint: #9a9a91;
+  --line: rgba(20, 20, 16, 0.1);
+  --line2: rgba(20, 20, 16, 0.18);
+  --field: #ffffff;
+
+  --accent: oklch(0.55 0.13 248);
+  --accent-fg: #ffffff;
+  --accent-bg: oklch(0.95 0.03 248);
+  --accent-line: oklch(0.8 0.07 248);
+
+  --good: oklch(0.52 0.12 150);
+  --good-bg: oklch(0.95 0.04 150);
+  --warn: oklch(0.58 0.11 70);
+  --warn-bg: oklch(0.95 0.05 75);
+  --bad: oklch(0.52 0.17 28);
+  --bad-bg: oklch(0.95 0.04 28);
+  --err: oklch(0.52 0.17 28);
+  --err-bg: oklch(0.96 0.03 28);
 }
 
+[data-theme="dark"] {
+  --bg: #0e0e0d;
+  --panel: #161614;
+  --panel2: #1c1c1a;
+  --inset: #222220;
+  --fg: #ededea;
+  --fg2: #cfcfc9;
+  --muted: #a0a097;
+  --faint: #6f6f67;
+  --line: rgba(255, 255, 250, 0.12);
+  --line2: rgba(255, 255, 250, 0.22);
+  --field: #1b1b19;
+
+  --accent: oklch(0.74 0.13 248);
+  --accent-fg: #0e0e0d;
+  --accent-bg: oklch(0.3 0.06 248);
+  --accent-line: oklch(0.45 0.09 248);
+
+  --good: oklch(0.74 0.13 150);
+  --good-bg: oklch(0.3 0.06 150);
+  --warn: oklch(0.78 0.12 75);
+  --warn-bg: oklch(0.32 0.06 75);
+  --bad: oklch(0.7 0.16 28);
+  --bad-bg: oklch(0.32 0.07 28);
+  --err: oklch(0.7 0.16 28);
+  --err-bg: oklch(0.3 0.06 28);
+}
+
+/* ── Map tokens into Tailwind's theme so utilities resolve (TC-STACK-02).
+   `inline` keeps the var() references live, so dark-mode overrides flow through. ── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel2: var(--panel2);
+  --color-inset: var(--inset);
+  --color-fg: var(--fg);
+  --color-fg2: var(--fg2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line2: var(--line2);
+  --color-field: var(--field);
+
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-line: var(--accent-line);
+
+  --color-good: var(--good);
+  --color-good-bg: var(--good-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+  --color-err: var(--err);
+  --color-err-bg: var(--err-bg);
+
+  --font-sans: var(--sans);
+  --font-mono: var(--mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Base element styles ── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  /* Tabular numerals so numeric columns align (the mono-for-numbers rule). */
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+/* Visible focus everywhere (NFR-A11Y-02 / DESIGN §9). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Motion keyframes — consumed by later capabilities (DESIGN §8). ── */
+@keyframes livedot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+@keyframes griddraw {
+  from { stroke-dashoffset: 240; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cellpulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.45; }
+}
+@keyframes spin3d {
+  from { transform: rotateX(-22deg) rotateY(0deg); }
+  to { transform: rotateX(-22deg) rotateY(360deg); }
+}
+
+/* Motion is decorative — nothing depends on it. Suppress under reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
