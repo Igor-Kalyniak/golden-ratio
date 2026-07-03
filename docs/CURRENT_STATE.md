@@ -6,22 +6,31 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T12:45:00+03:00
-- **Last action:** **Shipped capability 6 `room-input`** end-to-end via the `ship-capability`
-  advisory loop. The room list now fills the shell's last empty input slot:
-  [components/RoomList.tsx](../components/RoomList.tsx) renders a header (`Rooms N` + accent
-  `+ Add room`) over one panel card per room — `R{n}` tag, editable **name**, **Length**/**Width**
-  number fields (range hint, `mm` suffix, inline `role="alert"` errors, `aria-invalid` +
-  `aria-describedby`), and a per-card remove `×` **disabled on the last room**.
-  [lib/app-state.ts](../lib/app-state.ts) gained pure reducers `addRoom`/`removeRoom`/`updateRoom`
-  + `newRoomId` (monotonic id counter; the last-room-remove guard is enforced **in the reducer**,
-  not only the UI); [components/Calculator.tsx](../components/Calculator.tsx) +
-  [components/Shell.tsx](../components/Shell.tsx) wire the setters. Archived to
-  [openspec/changes/archive/2026-07-03-room-input/](../openspec/changes/archive/2026-07-03-room-input/);
-  4 requirements synced to `openspec/specs/room-input/spec.md`.
+- **Last updated:** 2026-07-03T13:45:00+03:00
+- **Last action:** **Shipped capability 7 `module-summary`** end-to-end via the `ship-capability`
+  advisory loop. The **results region now opens with the Module Summary** — the linchpin that
+  surfaces the *active module* every downstream result reads (`FR-MODULE-02`, `BC-MODULE-01`):
+  [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) renders a two-pane card (hero
+  `M = {state.module}` + `GCD(ceiling,opening) = rawGcd → snapped` hint with `residual`/
+  `alternatives` chips), a `role="alert"` warning banner, and the ¼M…4M ruler table (labels never
+  translated, use prose localized). It is **read-only** — the module `<select>` stays in
+  `ApartmentForm`. [lib/calculations.ts](../lib/calculations.ts) gained pure
+  `computeModuleRuler(m)`/`moduleWarning(m)` + `RULER_FACTORS`;
+  [components/Shell.tsx](../components/Shell.tsx) renders it as the first result section. Archived
+  to [openspec/changes/archive/2026-07-03-module-summary/](../openspec/changes/archive/2026-07-03-module-summary/);
+  4 requirements synced to `openspec/specs/module-summary/spec.md`.
   (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`.)
+  5 `apartment-input`, 6 `room-input`.)
 - **Status:**
+  - Done — **`module-summary`** (FR-MODULE-02/03/04/05, BC-MODULE-01): read-only Module Summary
+    card + pure `computeModuleRuler`/`moduleWarning`. Suite **61/61** (+5 engine tests), build ✓,
+    tsc ✓, lint ✓. Review **all-clean** (0 crit/high/med, 1 low resolved). QA 5/5 implemented &
+    spec-compliant, 2/5 automated (ruler + warning **logic**; hero/hint/chips render manual per
+    ADR-0001). **Note:** the `FR-MODULE-05` warning banner is **dormant-by-data** — the current
+    `STANDARD_MODULES` (100…700) can't reach the `>1000`/`<100` bounds, so it never fires through
+    the UI, but the logic is wired + unit-tested at its boundaries and goes live with zero code
+    change if the constant is revised (ADR-0002 / OQ-01). A documenting comment on `moduleWarning`
+    marks it dormant-by-data, not dead code (review CR-001/SC-001 resolution).
   - Done — **`room-input`** (FR-ROOM-01/02/03/04): dynamic room list (start with one room,
     add/remove-except-last, per-room name 1–50 + length/width 500–15000 mm) wired to `Calculator`
     state via pure CRUD reducers. Suite **56/56** (+6 room-reducer tests), build ✓, tsc ✓, lint ✓.
@@ -39,8 +48,8 @@
   - Done — **`app-shell`** (archived 2026-07-03): server page + single `Calculator` client
     boundary/state owner, `LanguageProvider` mounted, responsive header + grid, validity-gated
     results region, `ThemeToggle`. NFR-RESP-01 / NFR-A11Y-01 partial (band SVG arrives with later
-    capabilities). **Both input slots (apartment + rooms) are now filled;** the **results region
-    remains a placeholder** (changes 7–11).
+    capabilities). **Both input slots filled + the results region now shows the Module Summary;**
+    bands/per-room/visualizer sections fill the rest (changes 8–15).
   - Done — **`i18n`** (archived 2026-07-03): context + `t()`, flat EN/UA dictionaries, live
     `LanguageToggle`, never-translate calc labels. `LanguageProvider` is mounted by `app-shell`.
   - Done — **`design-system`** (archived 2026-07-03): OKLCH token foundation, Inter/JetBrains
@@ -50,20 +59,25 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **7 `module-summary`**
-  is next (needs 5 ✓ + 1 ✓): the linchpin that establishes the *active module* every result section
-  reads (`FR-MODULE-02`). It wires `suggestModule` to the heights, renders the Module Summary card
-  (M large + `rawGcd → suggested` hint + `alternatives` + `residual`), the ¼M…4M ruler table, and
-  the impractical-module warning banner (>1000 / <100 mm) — `FR-MODULE-02/03/04/05`, `BC-MODULE-01`.
-  It fills the first part of the shell's results region (both input slots are now done). Then the
-  four result sections fan out — **8 `vertical-bands`**, **9 `golden-ratio`**, **10 `grid-fit`**,
-  **11 `walkway`** (each needs 7 + 1; golden/grid/walkway also read the room list shipped here).
-  **Two low findings deferred from `room-input`** (in its archived `review-findings.json`), worth
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — the four result
+  sections now **fan out in parallel** (each needs 7 ✓ + 1 ✓): **8 `vertical-bands`** (height-band
+  SVG, `floor(ceiling/m)` bands + `topRemainder` + off-grid opening marker — `FR-VERT-*`,
+  `NFR-RESP-01`), **9 `golden-ratio`** (per-room longer-wall split, exact/½M-snapped + approximate-
+  fit flag — `FR-GOLD-*`), **10 `grid-fit`** (modules×modules, signed remainders, quality badge —
+  `FR-GRID-*`, `NFR-A11Y-02`), **11 `walkway`** (fixed-mm clearance ratings — `FR-WALK-*`,
+  `BC-WALK-01`). 9/10/11 also read the room list; the engine functions
+  (`computeVerticalBands`/`computeGoldenSplit`/`computeRoomGrid`/`computeWalkways`) already shipped
+  in change 1, so these are thin presentation layers. `vertical-bands` (8) is the natural next pick
+  (3D-only, ceiling-driven, no room dependency).
+  **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
-    `ApartmentForm`. Extract a shared field component **when a 3rd consumer appears** (likely
-    `module-summary`/result sections) — deferred by design (YAGNI; avoids churning the archived
-    `apartment-input`).
+    `ApartmentForm`. Extract a shared field component **when a 3rd consumer appears** — deferred by
+    design (YAGNI; avoids churning the archived `apartment-input`). *(module-summary added no new
+    number field, so still 2 consumers.)*
+  - `module-summary` **CR-001/SC-001** (resolved): the `FR-MODULE-05` warning banner is
+    dormant-by-data under the current `STANDARD_MODULES`; a code comment marks it as such. Becomes
+    live if `OQ-01` revises the constant to include an out-of-range value — no code change needed.
   - `room-input` **CR-003**: `addRoom` names via `rooms.length + 1`, so default names can repeat
     after a removal (cosmetic; ids stay unique, name is user-editable + validated). Revisit with
     `OQ-04` (default room dims/names) if the SME wants distinct auto-names.

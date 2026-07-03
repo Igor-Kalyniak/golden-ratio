@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, and 6 `room-input` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, and 7 `module-summary` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -32,10 +32,13 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > + the `withCeiling`/`withOpening`/`withModule` reducers (module follows the suggestion until
 > overridden). Change 6: [components/RoomList.tsx](../components/RoomList.tsx) fills the rooms
 > slot (add/remove/edit rooms + inline validation) and `lib/app-state.ts` gained the
-> `addRoom`/`removeRoom`/`updateRoom` reducers + `newRoomId`. The **results region remains an
-> empty slot** awaiting changes 7–11. `@react-three/fiber` + `@react-three/drei` + `three` are
-> already installed. `TC-STACK-01` is `accepted`; changes 1–6 are `shipped`; everything else is
-> `proposed`.
+> `addRoom`/`removeRoom`/`updateRoom` reducers + `newRoomId`. Change 7:
+> [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) opens the results region (hero
+> `M = value` + `GCD → snapped` hint + ¼M…4M ruler + dormant warning banner) and
+> `lib/calculations.ts` gained `computeModuleRuler`/`moduleWarning` + `RULER_FACTORS`. The
+> **results region now shows the Module Summary**; bands/per-room/visualizer slots await changes
+> 8–15. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
+> `TC-STACK-01` is `accepted`; changes 1–7 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -308,12 +311,23 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** last room cannot be removed; each field validates inline.
 - **Kickoff:** `openspec new change room-input`
 
-#### 7. `module-summary` — active module + suggestion display *(Must)*
+#### 7. `module-summary` — active module + suggestion display *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-module-summary/](../openspec/changes/archive/2026-07-03-module-summary/);
+  spec synced to `openspec/specs/module-summary/spec.md`. Suite 61/61, build ✓, tsc ✓, lint ✓;
+  review **clean** (0 crit/high/med, 1 low resolved). QA 5/5 implemented & spec-compliant, 2/5
+  automated (ruler + warning **logic** via `computeModuleRuler`/`moduleWarning`; the hero/hint/
+  chips render is manual per ADR-0001). **Note:** the `FR-MODULE-05` warning banner is
+  *dormant-by-data* — with the current `STANDARD_MODULES` (100…700) a valid selection can't reach
+  the `>1000`/`<100` bounds, so the banner never fires through the UI, but the logic is wired +
+  unit-tested at its boundaries and goes live with zero code change if the constant is revised
+  (ADR-0002 / OQ-01). The module `<select>` stays in `ApartmentForm`; this card is a read-only
+  display of the same `state.module`.
 - **Covers:** `FR-MODULE-02/03/04/05`, `BC-MODULE-01`. *(`FR-MODULE-01` fn from change 1.)*
-- **Delivers:** wires `suggestModule` to heights; active module = user selection
-  (default `suggested`, overridable, never raw GCD); Module Summary (M large +
-  `rawGcd → suggested` hint + `alternatives` + `residual`); ¼M…4M ruler table;
-  impractical-module warning banner (> 1000 / < 100 mm).
+- **Delivers:** active module = user selection (default `suggested`, overridable, never raw GCD);
+  Module Summary (M large + `GCD → suggested` hint + `alternatives` + `residual`); ¼M…4M ruler
+  table (labels never translated, use prose localized); impractical-module warning banner
+  (> 1000 / < 100 mm).
 - **Depends on:** `apartment-input`, `calculation-engine`.
 - **Why here:** the linchpin — establishes the *active module* every result reads
   (`FR-MODULE-02`). Must precede all result sections.
