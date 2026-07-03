@@ -6,27 +6,30 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T19:55:00+03:00
-- **Last action:** **Shipped capability 13 `mode-toggle`** end-to-end via the `ship-capability`
-  advisory loop — the 2D⇄3D calculation-mode pivot that makes `module-2d` (12) real.
-  [components/ModeToggle.tsx](../components/ModeToggle.tsx) is a segmented 2D/3D control (default
-  3D, `role="group"` + `aria-pressed`, keyboard-operable — `NFR-A11Y-03`).
-  [lib/app-state.ts](../lib/app-state.ts) gained `mode: Mode` (in-memory only — `FR-MODE-05`/
-  `BC-PRIVACY-01`), `moduleSuggestion(state)` (heights in 3D via `suggestModule`, room dims in 2D
-  via `suggestModule2D`), a `withMode` reducer, and a private `resyncModule` funnel that routes
-  **every** mutating reducer — behaviour-preserving in the 3D default, and in 2D the untouched
-  module tracks room-dimension edits (a **touched** module is sticky across a switch — `FR-MODE-04`);
-  `isApartmentValid` is now mode-aware. In 2D, [components/ApartmentForm.tsx](../components/ApartmentForm.tsx)
-  hides the ceiling/opening fields and [components/Shell.tsx](../components/Shell.tsx) hides the
-  band diagram (`FR-MODE-02`, completing the change-8 gating deferral);
-  [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) shows the mode-appropriate hint
-  (`GCD(rooms)` / `suggested from room dimensions` in 2D). [components/Calculator.tsx](../components/Calculator.tsx)
-  computes `moduleSuggestion` once and flows it down (`TC-ARCH-01`). Runtime-verified both surfaces
-  via the `verify` skill. Archived to
-  [openspec/changes/archive/2026-07-03-mode-toggle/](../openspec/changes/archive/2026-07-03-mode-toggle/);
-  requirements synced to `openspec/specs/mode-toggle/spec.md`.
-  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`.)
+- **Last updated:** 2026-07-03T20:35:00+03:00
+- **Last action:** **Shipped capability 14 `viz-2d`** end-to-end via the `ship-capability` advisory
+  loop — the read-only 2D SVG module visualizer, the first of the two visualizers.
+  [components/Viz2D.tsx](../components/Viz2D.tsx) draws each valid room as a to-scale plan rectangle
+  in a wrapping row (not a floor plan), tiled with a faint M×M grid, a `--warn-bg` signed-remainder
+  strip on the far edge, and **exactly one `--accent` highlighted module cell** (`cellpulse`), with a
+  `1 module` swatch + the read-only note. [lib/calculations.ts](../lib/calculations.ts) gained the
+  pure `layoutRoom2D(length,width,m)` (whole-cell `floor` tiling + strips + one highlight, in module
+  space); [components/Shell.tsx](../components/Shell.tsx) renders it **when `mode === '2d'`** (mirrors
+  the band diagram's 3D gate). Read-only by construction (no handlers/export — `BC-VALUE-01`);
+  reduced-motion honored by the global `globals.css` reset (`FR-VIZ2D-05`). Runtime-verified the 2D
+  surface via `next dev`. Archived to
+  [openspec/changes/archive/2026-07-03-viz-2d/](../openspec/changes/archive/2026-07-03-viz-2d/);
+  requirements synced to `openspec/specs/viz-2d/spec.md`.
+  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`, 13 `mode-toggle`.)
 - **Status:**
+  - Done — **`viz-2d`** (FR-VIZ2D-01/02/03/04/05, NFR-PERF-03, BC-VALUE-01): read-only 2D SVG
+    visualizer + pure `layoutRoom2D`. Suite **94/94** (+5 tests), build ✓, tsc ✓, lint ✓. Review
+    **clean** (0 crit/high/med, 1 low resolved — a doc-accuracy note that `griddraw` was claimed but
+    only `cellpulse` is applied). QA 7/7 implemented & spec-compliant, 3/7 automated (`layoutRoom2D`;
+    SVG/animation/responsiveness manual per ADR-0001, runtime-verified). **Notes:** the visualizer
+    tiles `floor(dim/m)` whole cells (spec-mandated by `FR-VIZ2D-02`'s text — distinct from
+    grid-fit's `round`); `FR-VIZ2D-04`'s tween/animate-in are unimplemented `MAY` clauses (a `Should`
+    met by `cellpulse`). Rendered in 2D mode only; the 3D scene is `viz-3d` (15).
   - Done — **`mode-toggle`** (FR-MODE-01/02/03/04/05, BC-PRIVACY-01, NFR-A11Y-03): 2D⇄3D toggle +
     mode-driven module suggestion + `resyncModule` funnel. Suite **89/89** (+7 tests), build ✓, tsc
     ✓, lint ✓. Review **all-clean (0 findings)** from all three Checkers. QA 7/7 implemented &
@@ -110,25 +113,28 @@
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
 - **Next steps:** **Epic A complete** (changes 1–11); **Epic B underway** — 12 `module-2d` +
-  13 `mode-toggle` shipped. Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is
-  *additive*; Epic A ships without it):
-  - **14 `viz-2d`** (`FR-VIZ2D-01/02/03/04/05`, `NFR-PERF-03`, `BC-VALUE-01`) — **next pick**: the
-    read-only 2D SVG plan visualizer (DESIGN §6.4). Each room a to-scale rectangle in a row/wrap
-    (not a floor plan); a faint M×M grid; the signed remainder as a thin edge strip; **exactly one
-    highlighted accent module cell**; a grid/highlight tween on input change that **snaps** under
-    `prefers-reduced-motion`. Read-only — never edits geometry, never exports (`BC-VALUE-01`). Reads
-    `state.mode`/rooms/active module (all shipped). Pure SVG + Tailwind — **no new dependency**;
-    reuses `computeRoomGrid` for the cell counts. It must land **before** `viz-3d` because the 2D
-    view is the 3D fallback (`FR-VIZ3D-06`). Needs 13 ✓ + 12 ✓.
-  - **15 `viz-3d`** (`FR-VIZ3D-*`, `NFR-BUNDLE-01`, `TC-STACK-04`) — the lazy 3D visualizer; **16
-    `brand-logo`** (`FR-LOGO-01`) is parallelizable any time (replaces the header placeholder).
-  - **`room-input` CR-001 is still open** — `mode-toggle` hid existing fields rather than adding a
-    new number-field consumer, so the shared-`NumberField` extraction did **not** trigger. `viz-2d`
-    adds no editable fields either; the 3rd consumer likely never materializes in Epic B, so this
-    can be closed as "won't extract (only 2 consumers)" or picked up opportunistically. Not blocking.
-  - **Watch (Epic B):** `viz-3d` must lazy-load via `next/dynamic ssr:false` so the 2D path carries
-    no Three.js (`NFR-BUNDLE-01`, `TC-STACK-04`); honor `prefers-reduced-motion`; WebGL-off → fall
-    back to `viz-2d` (`FR-VIZ3D-06`). A `three-3d` skill may be added under `.agents/skills/` when
+  13 `mode-toggle` + 14 `viz-2d` shipped. Two changes remain; continue
+  [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is *additive*; Epic A ships without it):
+  - **15 `viz-3d`** (`FR-VIZ3D-01/02/03/04/05/06`, `NFR-BUNDLE-01`, `NFR-PERF-03`, `TC-STACK-04`,
+    `NFR-A11Y-03`) — **next pick**: the lazy 3D module visualizer. One box per room (L×W×ceiling) to
+    scale, an opening band when provided, one highlighted M³ cube, OrbitControls + gentle
+    auto-rotate/float. **The heaviest, riskiest change** — the *only* one using
+    `@react-three/fiber` + `@react-three/drei` (already installed), and it **must lazy-load via
+    `next/dynamic({ ssr:false })`** so the 2D path + first paint carry no Three.js
+    (`NFR-BUNDLE-01`, `TC-STACK-04`). Must honor `prefers-reduced-motion` (disable auto-rotate/pulse)
+    and provide a **WebGL-unavailable fallback to `viz-2d`** (`FR-VIZ3D-06`, just shipped). Rendered
+    when `mode === '3d'` (where `viz-2d` is gated to 2D). Needs 14 ✓ + 13 ✓. **Consider adding a
+    `three-3d` skill** under `.agents/skills/` before starting (AGENTS.md flags this).
+  - **16 `brand-logo`** (`FR-LOGO-01`) — parallelizable any time: an SVG golden-ratio mark replacing
+    the header placeholder (`components/Shell.tsx` line ~38). Depends only on `app-shell`. Smallest
+    remaining change; a good low-risk closer for Epic B.
+  - **`room-input` CR-001 — effectively closed:** `mode-toggle` and `viz-2d` both added no new
+    editable number field, and neither `viz-3d` nor `brand-logo` will. The 3rd `NumberField` consumer
+    never materialized, so the shared-field extraction stays intentionally un-done ("only 2
+    consumers"). Not blocking; drop unless a future change adds a numeric input.
+  - **Watch (`viz-3d`):** lazy-load via `next/dynamic ssr:false` so the 2D path carries no Three.js
+    (`NFR-BUNDLE-01`, `TC-STACK-04`); honor `prefers-reduced-motion`; WebGL-off → fall back to
+    `viz-2d` (`FR-VIZ3D-06`). A `three-3d` skill may be added under `.agents/skills/` when
     3D work begins.
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:

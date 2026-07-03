@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` + 14 `viz-2d` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -55,9 +55,12 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > [`suggestModule2D`](../lib/calculations.ts) (the pure 2D-mode module derivation) is shipped, and
 > change 13 [components/ModeToggle.tsx](../components/ModeToggle.tsx) wires the 2D⇄3D toggle — 2D
 > hides the height fields + band diagram and sources the module from room dims via
-> `moduleSuggestion`/`withMode` in [lib/app-state.ts](../lib/app-state.ts). The visualizers (14/15)
-> and logo (16) remain. `@react-three/fiber` + `@react-three/drei` + `three` are already installed
-> (for `viz-3d`, 15). `TC-STACK-01` is `accepted`; changes 1–13 are `shipped`; everything else is
+> `moduleSuggestion`/`withMode` in [lib/app-state.ts](../lib/app-state.ts). Change 14:
+> [components/Viz2D.tsx](../components/Viz2D.tsx) adds the read-only 2D SVG plan visualizer
+> (to-scale room rects, faint M×M grid, remainder strip, one highlighted `cellpulse` cell) rendered
+> in 2D mode, and `lib/calculations.ts` gained the pure `layoutRoom2D`. The 3D visualizer (15) and
+> logo (16) remain. `@react-three/fiber` + `@react-three/drei` + `three` are already installed
+> (for `viz-3d`, 15). `TC-STACK-01` is `accepted`; changes 1–14 are `shipped`; everything else is
 > `proposed`.
 
 ---
@@ -481,13 +484,24 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   persistence.
 - **Kickoff:** `openspec new change mode-toggle`
 
-#### 14. `viz-2d` — read-only SVG plan visualizer *(Must, iter 2)*
+#### 14. `viz-2d` — read-only SVG plan visualizer *(Must, iter 2)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-viz-2d/](../openspec/changes/archive/2026-07-03-viz-2d/);
+  spec synced to `openspec/specs/viz-2d/spec.md`. Suite 94/94, build ✓, tsc ✓, lint ✓; review
+  **clean** (0 crit/high/med, 1 low resolved — a doc-accuracy note on `griddraw`). QA 7/7
+  implemented & spec-compliant, 3/7 automated (`layoutRoom2D`; SVG/animation/responsiveness manual
+  per ADR-0001 — **runtime-verified** the 2D surface). Rendered in 2D mode only (mirrors the band
+  diagram's 3D gate). **Notes:** the visualizer tiles `floor(dim/m)` whole cells (spec-mandated by
+  `FR-VIZ2D-02`'s text — intentionally distinct from grid-fit's `round`); reduced-motion
+  (`FR-VIZ2D-05`) is covered by the shipped global `globals.css` reset + a static highlight opacity
+  = the `cellpulse` endpoint; `FR-VIZ2D-04`'s tween/animate-in are unimplemented `MAY` clauses (a
+  `Should` met by `cellpulse`).
 - **Covers:** `FR-VIZ2D-01/02/03/04/05`, `NFR-PERF-03`, `BC-VALUE-01`.
-- **Delivers:** width-responsive `viewBox` SVG; each room a to-scale rectangle in a
-  row/wrap (not a floor plan); faint M × M grid; signed remainder as a thin edge strip;
-  exactly one highlighted accent module cell; grid/highlight animation that tweens on
-  input change; `prefers-reduced-motion` snaps instead of plays. Read-only — never edits
-  geometry, never exports.
+- **Delivers:** width-responsive `viewBox` SVG; each room a to-scale rectangle in a row/wrap (not a
+  floor plan); faint M × M grid; signed remainder as a thin `--warn-bg` edge strip; exactly one
+  highlighted accent module cell (`cellpulse`); `prefers-reduced-motion` snaps instead of plays.
+  Read-only — no handlers, never edits geometry, never exports. A pure `layoutRoom2D` helper carries
+  the grid geometry so `FR-VIZ2D-02/03` are unit-tested.
 - **Depends on:** `mode-toggle`, `module-2d`, `calculation-engine`.
 - **Why here:** the 2D view is also the 3D fallback, so it must exist before 3D.
 - **Done when:** redraw stays within the < 16 ms budget; reduced-motion respected.
