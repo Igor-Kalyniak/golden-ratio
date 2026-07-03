@@ -1,0 +1,109 @@
+{
+  "change": "viz-3d",
+  "generated_at": "2026-07-03T21:30:00+03:00",
+  "base_sha": "c5507a56587781878e0d3e4f0ea8dffa4fc5d245",
+  "head_sha": "6e94074d7f72c7c64c50d0a4b0c31e98c3c6281a",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean-after-fix",
+  "counts": { "critical": 0, "high": 0, "medium": 1, "low": 5 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). Security clean. code-reviewer + spec-compliance both 'concerns' — 1 medium + 5 low, no crit/high. The load-bearing NFR-BUNDLE-01/TC-STACK-04 constraint was verified faithful by all reviewers + the Maker: Viz3DScene is the SOLE @react-three importer, reached only via dynamic(() => import, {ssr:false}); Shell statically imports only the thin Viz3D wrapper (Three-free); the `import type { Group, Mesh }` is erased by tsc; build splits Three into a separate 880K chunk absent from first-load JS; package.json/lockfile unchanged (R3F pre-installed at scaffold, so 'no new dependency' is accurate). The Must core (FR-VIZ3D-01/02/03) is solid and the geometry is pure + unit-tested (layoutRoom3D). RESOLVED in-loop: CR-001 (medium — the 3D highlight was a hardcoded orange '#c8823c' whose comment falsely claimed to mirror --accent, which is blue; the 2D viz + legend use the real blue token, so 3D was visibly inconsistent) → now samples the resolved var(--accent) rgb() from CSS via a probe, re-sampling on theme change, so 3D matches 2D in both themes; CR-003 (low — the M³ cube wasn't clamped and could poke through a sub-module room's walls) → clamped to min(w,h,d) like the 2D path; CR-002/SC-001 (low — 'room fade-in on mount' claimed but unimplemented, dead `group` ref) → removed the dead ref and corrected the wording (fade-in is a MAY under the FR-VIZ3D-04 Should, satisfied by auto-rotate + highlight float). ACKNOWLEDGED (not fixed): CR-004/SC-002 (low — NFR-PERF-03 'capped at high room counts' has no explicit cap) — both reviewers judged it defensible (validated bounds, few rooms in practice, documented in design.md); a hard room cap belongs in room-input/app-state, not this presentational change. Re-verified after fixes: lint clean, 99/99, build+tsc green, Three still isolated to Viz3DScene.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "Lazy-load/bundle constraint correctly implemented (sole importer + dynamic ssr:false + type-only three import + Three-free static chain); WebGL detection via useSyncExternalStore returns null on server (no hydration mismatch) and caches the probe; layoutRoom3D pure + tested; useFrame mutates a ref (no per-frame setState/alloc). The 3D highlight used a hardcoded orange contradicting the blue --accent token and the 2D viz — a real visible defect — plus minor fade-in/clamp/room-cap gaps.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "medium",
+          "category": "spec",
+          "requirement_ids": ["FR-VIZ3D-03", "FR-VIZ3D-02"],
+          "file": "components/Viz3DScene.tsx",
+          "line": 21,
+          "summary": "ACCENT='#c8823c' (orange, hue ~30) did not match --accent (blue OKLCH hue 248); the comment 'mirrors --accent' was false. The 2D viz uses var(--accent) and the legend swatch uses bg-accent, so the highlighted module rendered a different color in 3D than in 2D and than its own legend.",
+          "recommendation": "Use the design accent value (sample getComputedStyle of var(--accent) once at mount, re-sample on theme change) for the cube + opening band; correct the comment.",
+          "status": "resolved",
+          "resolution": "Added useAccentColor(): a lazy-initialized hook that resolves var(--accent) to its used rgb() via a hidden probe element and re-samples on data-theme change (MutationObserver), passed to RoomBox for both the cube and the opening band. The 3D highlight now matches the 2D viz + the legend swatch in light and dark. Lint clean (lazy init avoids setState-in-effect)."
+        },
+        {
+          "id": "CR-002",
+          "severity": "low",
+          "category": "spec",
+          "requirement_ids": ["FR-VIZ3D-04"],
+          "file": "components/Viz3DScene.tsx",
+          "line": 114,
+          "summary": "FR-VIZ3D-04 lists room fade-in on mount; only auto-rotate + highlight float were implemented, and an unused `group` ref was left as dead code (also flagged as SC-001).",
+          "recommendation": "Add the fade-in or drop the claim + dead ref.",
+          "status": "resolved",
+          "resolution": "Removed the dead `group` ref (and the now-unused `Group` type import); corrected the docs/tasks wording. Fade-in is a MAY clause under the FR-VIZ3D-04 Should, which is satisfied by the implemented auto-rotate + highlight float; intentionally not added to keep the motion minimal and reduced-motion-safe."
+        },
+        {
+          "id": "CR-003",
+          "severity": "low",
+          "category": "correctness",
+          "requirement_ids": ["FR-VIZ3D-03"],
+          "file": "components/Viz3DScene.tsx",
+          "line": 111,
+          "summary": "cellS (cube size) was not clamped to the box extents; a room smaller than the module rendered a cube larger than the room box, poking through walls. The 2D viz clamps via Math.min(step,w,h).",
+          "recommendation": "Clamp cellS to min(w,h,d) as the 2D path does.",
+          "status": "resolved",
+          "resolution": "cellS = Math.min(m*scale, w, h, d); the cube now stays within the box for sub-module rooms, matching the 2D visualizer's clamp."
+        },
+        {
+          "id": "CR-004",
+          "severity": "low",
+          "category": "perf",
+          "requirement_ids": ["NFR-PERF-03"],
+          "file": "components/Viz3DScene.tsx",
+          "line": 78,
+          "summary": "NFR-PERF-03's 'capped/guarded at high room counts' is unmet: addRoom has no upper bound and every room adds a Canvas subtree with its own useFrame. Per-room cost is trivial (one sin + one assignment, no allocation) and this is a pre-existing app-state gap.",
+          "recommendation": "Cap room count in app-state, or guard the scene at a max room count; low priority.",
+          "status": "acknowledged",
+          "resolution": "Accepted as a documented decision (design.md): validated bounds keep rooms few in practice, per-frame cost is trivial, and R3F auto-disposes. A hard room cap is an additive guard that belongs in room-input/app-state (not this presentational change); recorded for a future change if a ceiling is ever exercised."
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "concerns",
+      "strict_validation": "PASS",
+      "summary": "The Must core (FR-VIZ3D-01/02/03) ships solidly with pure unit-tested geometry. The critical NFR-BUNDLE-01/TC-STACK-04 constraint is faithfully + verifiably implemented (dynamic ssr:false, sole importer, build chunk split); package.json unchanged. Should-tier FR-VIZ3D-04/05/06 present with matchMedia reduced-motion (correct for the R3F frame loop) and WebGL→Viz2D fallback. Two low findings: room-fade-in claimed in tasks but unimplemented (a MAY, so task-hygiene not a breach), and NFR-PERF-03 has no explicit room cap (documented decision). No scope drift (no logo, no new deps, 2D stays pure SVG).",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "low",
+          "category": "spec-compliance",
+          "requirement_ids": ["FR-VIZ3D-04"],
+          "file": "components/Viz3DScene.tsx",
+          "line": 107,
+          "summary": "tasks.md 2.3 claimed 'room fade-in on mount' but no fade-in was implemented (the RoomBox group ref was declared and never animated). Auto-rotate + float/pulse ARE implemented; fade-in is a MAY under the FR-VIZ3D-04 Should, so task-hygiene not a requirement breach.",
+          "recommendation": "Add the fade-in or drop the claim + dead ref to keep the task ledger honest.",
+          "status": "resolved",
+          "resolution": "Same fix as CR-002 — removed the dead ref and corrected the wording; fade-in is a descoped MAY, the Should is met by auto-rotate + highlight float."
+        },
+        {
+          "id": "SC-002",
+          "severity": "low",
+          "category": "spec-compliance",
+          "requirement_ids": ["NFR-PERF-03"],
+          "file": "lib/app-state.ts",
+          "line": 163,
+          "summary": "NFR-PERF-03 asks the 3D view be 'capped/guarded at high room counts', but there is no explicit cap in addRoom or the scene. design.md documents this as intentional (validated bounds, rooms few in practice, cap as an additive future guard).",
+          "recommendation": "Acceptable as a documented v1 decision; add an additive guard if a room-count ceiling is ever exercised.",
+          "status": "acknowledged",
+          "resolution": "Same disposition as CR-004 — accepted/documented; a hard cap belongs in room-input/app-state, deferred, not blocking."
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "No dependency added/bumped (package.json + lock unchanged); Three.js imported only by Viz3DScene and lazy-loaded via next/dynamic ssr:false, keeping the 2D path 3D-free (TC-STACK-04, NFR-BUNDLE-01). The scene renders only numeric geometry from validated dims via layoutRoom3D — no room.name or user free-text reaches any DOM/3D-text sink, no dangerouslySetInnerHTML, colors are literals/resolved-CSS. No network/fetch, no storage, no analytics, no export, and no remote asset load (no Environment/useTexture/useGLTF URL) — privacy constraints upheld. WebGL probe is in-memory only (no fingerprint transmission). useFrame mutates a ref with no per-frame allocation; room count validated. No findings.",
+      "findings": []
+    }
+  ]
+}

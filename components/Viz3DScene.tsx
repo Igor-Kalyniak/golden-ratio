@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import type { Group, Mesh } from 'three';
+import type { Mesh } from 'three';
 
 import { layoutRoom3D } from '../lib/calculations';
 import { isRoomValid, type Room } from '../lib/app-state';
@@ -18,7 +18,35 @@ interface Viz3DSceneProps {
 // mm → scene units: the largest room dimension maps to ~2.4 units, so the scene fits the camera.
 const TARGET_UNITS = 2.4;
 const GAP = 0.5; // between-room gap in scene units
-const ACCENT = '#c8823c'; // accent highlight (mirrors --accent; three needs a literal color)
+const ACCENT_FALLBACK = 'rgb(37, 99, 235)'; // used only until the CSS --accent is sampled
+
+/** Resolve `var(--accent)` to its used `rgb(...)` value via a hidden probe (client-only). */
+function readAccent(): string {
+  const probe = document.createElement('span');
+  probe.style.color = 'var(--accent)';
+  probe.style.display = 'none';
+  document.body.appendChild(probe);
+  const resolved = getComputedStyle(probe).color;
+  document.body.removeChild(probe);
+  return resolved || ACCENT_FALLBACK;
+}
+
+/**
+ * Resolve the design `--accent` token to a three-parseable color string. three.Color can't read
+ * CSS custom properties or oklch(), so the browser resolves `var(--accent)` to `rgb(...)`; the
+ * lazy initializer reads it once and the effect only re-samples when the theme (`data-theme`)
+ * changes — so the 3D highlight matches the 2D visualizer's `var(--accent)` in both themes without
+ * a synchronous setState in the effect body.
+ */
+function useAccentColor(): string {
+  const [accent, setAccent] = useState(readAccent);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setAccent(readAccent()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+  return accent;
+}
 
 /** True when the user prefers reduced motion — disables idle animation (FR-VIZ3D-05). */
 function usePrefersReducedMotion(): boolean {
@@ -44,6 +72,7 @@ function usePrefersReducedMotion(): boolean {
  */
 export default function Viz3DScene({ rooms, module: m, ceiling, opening }: Viz3DSceneProps) {
   const reduced = usePrefersReducedMotion();
+  const accent = useAccentColor();
   const valid = useMemo(() => rooms.filter(isRoomValid), [rooms]);
 
   // One shared mm → scene-unit scale across all rooms.
@@ -76,7 +105,15 @@ export default function Viz3DScene({ rooms, module: m, ceiling, opening }: Viz3D
       <directionalLight position={[4, 6, 3]} intensity={1.1} />
       <group position={[-placed.offset, 0, 0]}>
         {placed.items.map(({ room, layout, x }) => (
-          <RoomBox key={room.id} layout={layout} m={m} scale={scale} x={x} reduced={reduced} />
+          <RoomBox
+            key={room.id}
+            layout={layout}
+            m={m}
+            scale={scale}
+            x={x}
+            reduced={reduced}
+            accent={accent}
+          />
         ))}
       </group>
       <OrbitControls
@@ -96,31 +133,34 @@ function RoomBox({
   scale,
   x,
   reduced,
+  accent,
 }: {
   layout: ReturnType<typeof layoutRoom3D>;
   m: number;
   scale: number;
   x: number;
   reduced: boolean;
+  accent: string;
 }) {
   const cube = useRef<Mesh>(null);
-  const group = useRef<Group>(null);
   const w = layout.l * scale;
   const h = layout.h * scale;
   const d = layout.w * scale;
-  const cellS = m * scale;
+  // Clamp the highlight cube to the box so a room smaller than one module doesn't overflow the
+  // walls (mirrors the 2D visualizer's Math.min clamp — CR-003).
+  const cellS = Math.min(m * scale, w, h, d);
+  const baseY = -h / 2 + cellS / 2;
 
-  // Gentle highlight float/pulse (FR-VIZ3D-04); suppressed under reduced-motion (FR-VIZ3D-05).
+  // Gentle highlight float (FR-VIZ3D-04); suppressed under reduced-motion (FR-VIZ3D-05).
   useFrame(({ clock }) => {
     if (reduced || !cube.current) return;
-    const t = clock.getElapsedTime();
-    cube.current.position.y = -h / 2 + cellS / 2 + Math.sin(t * 1.6) * cellS * 0.12;
+    cube.current.position.y = baseY + Math.sin(clock.getElapsedTime() * 1.6) * cellS * 0.12;
   });
 
   const openingScene = layout.openingY !== null ? layout.openingY * scale - h / 2 : null;
 
   return (
-    <group ref={group} position={[x, 0, 0]}>
+    <group position={[x, 0, 0]}>
       {/* Room volume — translucent so the interior cube reads. */}
       <mesh>
         <boxGeometry args={[w, h, d]} />
@@ -136,14 +176,14 @@ function RoomBox({
       {openingScene !== null && (
         <mesh position={[0, openingScene, d / 2 + 0.001]}>
           <planeGeometry args={[w, Math.max(0.02, cellS * 0.08)]} />
-          <meshBasicMaterial color={ACCENT} />
+          <meshBasicMaterial color={accent} />
         </mesh>
       )}
 
       {/* Exactly one highlighted M³ cube at the bottom-front-left corner (FR-VIZ3D-03). */}
-      <mesh ref={cube} position={[-w / 2 + cellS / 2, -h / 2 + cellS / 2, d / 2 - cellS / 2]}>
+      <mesh ref={cube} position={[-w / 2 + cellS / 2, baseY, d / 2 - cellS / 2]}>
         <boxGeometry args={[cellS, cellS, cellS]} />
-        <meshStandardMaterial color={ACCENT} transparent opacity={0.85} />
+        <meshStandardMaterial color={accent} transparent opacity={0.85} />
       </mesh>
     </group>
   );

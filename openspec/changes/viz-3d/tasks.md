@@ -13,9 +13,11 @@
   one shared scale), laid out along the x-axis (`FR-VIZ3D-01`).
 - [x] 2.2 Accent opening band (thin plane) on a wall face at `openingY` when non-null (`FR-VIZ3D-02`);
   exactly one accent M³ cube mesh at the room corner (`FR-VIZ3D-03`).
-- [x] 2.3 `<OrbitControls>` (rotate/zoom/pan); gentle auto-rotate + highlight float/pulse + room
-  fade-in on mount (`FR-VIZ3D-04`), all gated on a `prefers-reduced-motion` check → disabled when
-  reduced (`FR-VIZ3D-05`). This is the ONLY module importing `@react-three/*`.
+- [x] 2.3 `<OrbitControls>` (rotate/zoom/pan); gentle auto-rotate + highlight float (`FR-VIZ3D-04` —
+  room fade-in is a descoped MAY, the Should is met by auto-rotate + float), gated on a
+  `prefers-reduced-motion` check → disabled when reduced (`FR-VIZ3D-05`). The M³ cube + opening band
+  use the resolved `--accent` (sampled from CSS, re-sampled on theme change). This is the ONLY
+  module importing `@react-three/*`.
 
 ## 3. UI: thin lazy wrapper (`components/Viz3D.tsx`, `'use client'`)
 
