@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, and 7 `module-summary` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, and 8 `vertical-bands` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -35,10 +35,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > `addRoom`/`removeRoom`/`updateRoom` reducers + `newRoomId`. Change 7:
 > [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) opens the results region (hero
 > `M = value` + `GCD → snapped` hint + ¼M…4M ruler + dormant warning banner) and
-> `lib/calculations.ts` gained `computeModuleRuler`/`moduleWarning` + `RULER_FACTORS`. The
-> **results region now shows the Module Summary**; bands/per-room/visualizer slots await changes
-> 8–15. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
-> `TC-STACK-01` is `accepted`; changes 1–7 are `shipped`; everything else is `proposed`.
+> `lib/calculations.ts` gained `computeModuleRuler`/`moduleWarning` + `RULER_FACTORS`. Change 8:
+> [components/BandDiagram.tsx](../components/BandDiagram.tsx) adds the height-band SVG (responsive
+> `viewBox 0 0 360 470`, full + partial bands, mm marks, band names, opening on/off-grid marker)
+> and `lib/calculations.ts` gained the pure `layoutBandDiagram` + band-layout types. The
+> **results region now shows the Module Summary + band diagram**; per-room result sections
+> (golden/grid/walkway) + visualizer slots await changes 9–15. `@react-three/fiber` +
+> `@react-three/drei` + `three` are already installed. `TC-STACK-01` is `accepted`; changes 1–8
+> are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -335,12 +339,22 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   and warnings show correctly.
 - **Kickoff:** `openspec new change module-summary`
 
-#### 8. `vertical-bands` — height-band diagram *(Must)*
+#### 8. `vertical-bands` — height-band diagram *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-vertical-bands/](../openspec/changes/archive/2026-07-03-vertical-bands/);
+  spec synced to `openspec/specs/vertical-bands/spec.md`. Suite 69/69, build ✓, tsc ✓, lint ✓;
+  review found **1 high, resolved in-loop** (see below), 0 crit/med/low. QA 7/7 implemented &
+  spec-compliant, 5/7 automated (layout logic via `layoutBandDiagram`; viewBox/responsiveness
+  manual per ADR-0001). **viewBox reconciled to `0 0 360 470`** (DESIGN §6.2), *not* the PDR
+  `FR-VERT-05` literal `0 0 200 400`: the code-reviewer (CR-001, high) found the narrow box clipped
+  the right-side band-name/opening labels, failing `FR-VERT-06` legibility; the wider DESIGN box is
+  the only geometry satisfying both requirements. The PDR literal is flagged for a docs-pass
+  reconciliation. Renders unconditionally for now — `mode-toggle` (13) will gate it on 3D mode.
 - **Covers:** `FR-VERT-01/02/03/04/05/06`, `NFR-RESP-01`.
-- **Delivers:** SVG `viewBox="0 0 200 400"` + `preserveAspectRatio`, width-responsive;
-  band count `floor(ceiling / m)`; `topRemainder` partial band; off-grid opening marker
-  when `openingAligned` is false; mm labels left / band names right; label condensing at
-  high band counts.
+- **Delivers:** width-responsive `viewBox` SVG + `preserveAspectRatio`; band count
+  `floor(ceiling / m)`; `topRemainder` partial band; off-grid opening marker when `openingAligned`
+  is false; mm labels left / localized band names right; label condensing at high band counts. A
+  pure `layoutBandDiagram` helper carries the geometry so `FR-VERT-02/03/04/06` are unit-tested.
 - **Depends on:** `module-summary`, `calculation-engine`.
 - **Why here:** consumes active module + ceiling; first of the fan-out result sections.
 - **Done when:** 2-band and 50+-band cases both render legibly and responsively.

@@ -6,22 +6,34 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T13:45:00+03:00
-- **Last action:** **Shipped capability 7 `module-summary`** end-to-end via the `ship-capability`
-  advisory loop. The **results region now opens with the Module Summary** — the linchpin that
-  surfaces the *active module* every downstream result reads (`FR-MODULE-02`, `BC-MODULE-01`):
-  [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) renders a two-pane card (hero
-  `M = {state.module}` + `GCD(ceiling,opening) = rawGcd → snapped` hint with `residual`/
-  `alternatives` chips), a `role="alert"` warning banner, and the ¼M…4M ruler table (labels never
-  translated, use prose localized). It is **read-only** — the module `<select>` stays in
-  `ApartmentForm`. [lib/calculations.ts](../lib/calculations.ts) gained pure
-  `computeModuleRuler(m)`/`moduleWarning(m)` + `RULER_FACTORS`;
-  [components/Shell.tsx](../components/Shell.tsx) renders it as the first result section. Archived
-  to [openspec/changes/archive/2026-07-03-module-summary/](../openspec/changes/archive/2026-07-03-module-summary/);
-  4 requirements synced to `openspec/specs/module-summary/spec.md`.
+- **Last updated:** 2026-07-03T14:45:00+03:00
+- **Last action:** **Shipped capability 8 `vertical-bands`** end-to-end via the `ship-capability`
+  advisory loop. The **results region now shows the height-band diagram** below the Module Summary:
+  [components/BandDiagram.tsx](../components/BandDiagram.tsx) is a width-responsive `viewBox` SVG —
+  `floor(ceiling/m)` full bands bottom-to-top with alternating fills, a dashed partial band for the
+  `topRemainder`, mm marks up the left (condensed at high counts), localized band names on the
+  right, and the opening as a dashed accent rule tagged on/off-grid.
+  [lib/calculations.ts](../lib/calculations.ts) gained the pure `layoutBandDiagram(ceiling,m,opening?)`
+  helper (render-ready layout in mm space + band-name keys + mark-condense flag) so
+  `FR-VERT-02/03/04/06` are unit-tested; [components/Shell.tsx](../components/Shell.tsx) renders it
+  after `ModuleSummary`. **Review caught a real HIGH defect** — the first cut used the PDR
+  `FR-VERT-05` literal `viewBox 0 0 200 400`, which clipped the right-side labels (failing
+  `FR-VERT-06`); resolved in-loop by adopting DESIGN §6.2's `0 0 360 470`, the only geometry
+  satisfying both requirements. Archived to
+  [openspec/changes/archive/2026-07-03-vertical-bands/](../openspec/changes/archive/2026-07-03-vertical-bands/);
+  requirements synced to `openspec/specs/vertical-bands/spec.md`.
   (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`, 6 `room-input`.)
+  5 `apartment-input`, 6 `room-input`, 7 `module-summary`.)
 - **Status:**
+  - Done — **`vertical-bands`** (FR-VERT-01/02/03/04/05/06, NFR-RESP-01): height-band SVG + pure
+    `layoutBandDiagram`. Suite **69/69** (+8 layout tests), build ✓, tsc ✓, lint ✓. Review found
+    **1 high, resolved in-loop** — CR-001: the `200×400` viewBox clipped right-side band-name/
+    opening labels; fixed by adopting DESIGN §6.2's **`360×470`** (satisfies both `FR-VERT-05`
+    responsive contract and `FR-VERT-06` legibility). security + spec-compliance clean. QA 7/7
+    implemented & spec-compliant, 5/7 automated (layout logic; viewBox/responsiveness manual per
+    ADR-0001). **Two documented deltas:** (a) shipped `viewBox` is `360×470`, not the PDR
+    `FR-VERT-05` literal `200×400` — flagged for a docs-pass reconciliation; (b) the diagram renders
+    unconditionally (DESIGN §6.2 marks it "3D-mode only") until `mode-toggle` (13) adds mode state.
   - Done — **`module-summary`** (FR-MODULE-02/03/04/05, BC-MODULE-01): read-only Module Summary
     card + pure `computeModuleRuler`/`moduleWarning`. Suite **61/61** (+5 engine tests), build ✓,
     tsc ✓, lint ✓. Review **all-clean** (0 crit/high/med, 1 low resolved). QA 5/5 implemented &
@@ -59,16 +71,20 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — the four result
-  sections now **fan out in parallel** (each needs 7 ✓ + 1 ✓): **8 `vertical-bands`** (height-band
-  SVG, `floor(ceiling/m)` bands + `topRemainder` + off-grid opening marker — `FR-VERT-*`,
-  `NFR-RESP-01`), **9 `golden-ratio`** (per-room longer-wall split, exact/½M-snapped + approximate-
-  fit flag — `FR-GOLD-*`), **10 `grid-fit`** (modules×modules, signed remainders, quality badge —
-  `FR-GRID-*`, `NFR-A11Y-02`), **11 `walkway`** (fixed-mm clearance ratings — `FR-WALK-*`,
-  `BC-WALK-01`). 9/10/11 also read the room list; the engine functions
-  (`computeVerticalBands`/`computeGoldenSplit`/`computeRoomGrid`/`computeWalkways`) already shipped
-  in change 1, so these are thin presentation layers. `vertical-bands` (8) is the natural next pick
-  (3D-only, ceiling-driven, no room dependency).
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — three **per-room**
+  result sections remain, each independent (needs 7 ✓ + 1 ✓ + the room list 6 ✓): **9 `golden-ratio`**
+  (per-room longer-wall split, exact/½M-snapped + approximate-fit flag when offset > ¼M —
+  `FR-GOLD-*`), **10 `grid-fit`** (modules×modules via `round(dim/m)`, signed remainders,
+  `exact`/`close`/`poor` quality badge that never relies on color alone — `FR-GRID-*`,
+  `NFR-A11Y-02`), **11 `walkway`** (fixed-mm clearance ratings decoupled from M — `FR-WALK-*`,
+  `BC-WALK-01`, `Should`). The engine functions
+  (`computeGoldenSplit`/`computeRoomGrid`/`computeWalkways`) already shipped in change 1, so these
+  are thin presentation layers that map one card per valid room (DESIGN §6.3). `golden-ratio` (9)
+  is the natural next pick. **Likely 3rd field consumer** — none of 9/10/11 add editable number
+  fields (they read room state), so `room-input` CR-001 (shared-field extraction) stays deferred
+  until the 2D/3D input reorganization (13). **Watch:** `grid-fit` (10) owns `NFR-A11Y-02`
+  (partial) — its quality badge must carry a text/icon cue, not color alone, and must avoid
+  `--faint`/accent for small meaningful text (see the design-system finding below).
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
