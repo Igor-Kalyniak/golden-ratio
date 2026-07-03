@@ -5,7 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { Mesh } from 'three';
 
-import { layoutRoom3D } from '../lib/calculations';
+import { layoutRoom3D, interiorModuleLines } from '../lib/calculations';
 import { isRoomValid, type Room } from '../lib/app-state';
 
 interface Viz3DSceneProps {
@@ -27,26 +27,23 @@ const REMAINDER_COLOR = '#d97706'; // warn tone — the 3D analogue of the 2D `-
 const MAX_LATTICE_DIVISIONS = 40;
 const EPS = 1e-4;
 
-/** Centered interior grid offsets along an axis of scene extent `ext`, on the module `step`. */
-function interiorOffsets(ext: number, step: number): number[] {
-  if (step <= 0) return [];
-  const offsets: number[] = [];
-  for (let i = 1; -ext / 2 + i * step < ext / 2 - EPS; i += 1) offsets.push(-ext / 2 + i * step);
-  return offsets;
-}
-
 /**
  * Flat `[x1,y1,z1, x2,y2,z2, …]` line-segment vertices for the faint M³ module lattice on a box of
- * scene extents `w × h × d` at the module `step` (FR-VIZ3D-07). The lattice is drawn on the three
- * faces meeting at the front-bottom-left corner (floor, front, left) — the floor face is the direct
- * 3D parity of the 2D plan grid, and the two wall faces convey the vertical (layer) tiling. Returns
- * `null` when the module divisions exceed the per-room cap (NFR-PERF-03).
+ * scene extents `w × h × d` (FR-VIZ3D-07), from the centered interior grid offsets per axis (`xs`,
+ * `ys`, `zs` — already scaled to scene units). The lattice is drawn on the three faces meeting at
+ * the front-bottom-left corner (floor, front, left): the floor face is the direct 3D parity of the
+ * 2D plan grid, and the two wall faces convey the vertical (layer) tiling. Returns `null` when the
+ * module divisions exceed the per-room cap (NFR-PERF-03). The offset math lives in the pure,
+ * unit-tested `interiorModuleLines` engine helper — this only assembles segments.
  */
-function buildLatticeSegments(w: number, h: number, d: number, step: number): Float32Array | null {
-  if (step <= 0) return null;
-  const xs = interiorOffsets(w, step);
-  const ys = interiorOffsets(h, step);
-  const zs = interiorOffsets(d, step);
+function buildLatticeSegments(
+  xs: number[],
+  ys: number[],
+  zs: number[],
+  w: number,
+  h: number,
+  d: number,
+): Float32Array | null {
   if (xs.length + ys.length + zs.length > MAX_LATTICE_DIVISIONS) return null;
 
   const v: number[] = [];
@@ -199,7 +196,14 @@ function RoomBox({
   const baseY = -h / 2 + cellS / 2;
 
   // Faint M³ lattice on the three corner faces (FR-VIZ3D-07); null when past the per-room cap.
-  const lattice = useMemo(() => buildLatticeSegments(w, h, d, step), [w, h, d, step]);
+  // Interior line offsets come from the pure, tested `interiorModuleLines` (mm), mapped to centered
+  // scene units (−ext/2 + pos·scale) so the lattice shares one rule with the 2D grid.
+  const lattice = useMemo(() => {
+    const xs = interiorModuleLines(layout.l, m).map((p) => -w / 2 + p * scale);
+    const ys = interiorModuleLines(layout.h, m).map((p) => -h / 2 + p * scale);
+    const zs = interiorModuleLines(layout.w, m).map((p) => -d / 2 + p * scale);
+    return buildLatticeSegments(xs, ys, zs, w, h, d);
+  }, [layout, m, scale, w, h, d]);
   // Signed remainder slabs on the far faces — the 3D analogue of Viz2D's `--warn-bg` edge strips.
   const remL = layout.lengthRemainder * scale;
   const remW = layout.widthRemainder * scale;

@@ -24,6 +24,7 @@ import {
   walkwayMeterBars,
   layoutRoom2D,
   layoutRoom3D,
+  interiorModuleLines,
   isValidCeiling,
   isValidOpening,
   isValidDimension,
@@ -508,6 +509,34 @@ test('layoutRoom3D: length/width remainders match layoutRoom2D strips (parity, F
   const g2 = layoutRoom2D(3200, 2500, 600);
   assert.equal(g3.lengthRemainder, g2.rightStrip);
   assert.equal(g3.widthRemainder, g2.bottomStrip);
+});
+
+// --- interiorModuleLines (FR-VIZ3D-07 lattice / FR-VIZ2D-02 grid) -----------
+
+test('interiorModuleLines: exact fit drops the coincident far-edge line', () => {
+  // 3000 / 600 = 5 cells → interior lines at 600…2400 (the 3000 edge is the box outline, excluded)
+  assert.deepEqual(interiorModuleLines(3000, 600), [600, 1200, 1800, 2400]);
+});
+
+test('interiorModuleLines: off-grid keeps the last whole-module line before the remainder', () => {
+  // 3200 / 600 → floor 5; last whole line 3000 < 3200 kept, 3600 excluded
+  assert.deepEqual(interiorModuleLines(3200, 600), [600, 1200, 1800, 2400, 3000]);
+});
+
+test('interiorModuleLines: count parity with layoutRoom3D per-axis cells', () => {
+  const l = layoutRoom3D(3700, 2500, 2900, 600);
+  // off-grid axis → line count equals the whole-cell count (floor(dim/m))
+  assert.equal(interiorModuleLines(3700, 600).length, l.cols); // 6
+  assert.equal(interiorModuleLines(2500, 600).length, l.rows); // 4
+  assert.equal(interiorModuleLines(2900, 600).length, l.layers); // 4
+});
+
+test('interiorModuleLines: dimension smaller than a module → no interior lines', () => {
+  assert.deepEqual(interiorModuleLines(500, 600), []);
+});
+
+test('interiorModuleLines: guards a non-positive module', () => {
+  assert.deepEqual(interiorModuleLines(3000, 0), []);
 });
 
 // --- Validation bounds -----------------------------------------------------

@@ -508,6 +508,21 @@ export function layoutRoom2D(length: number, width: number, m: number): Room2DLa
   };
 }
 
+/**
+ * Interior module grid-line offsets (mm) strictly inside a dimension: `[m, 2m, … < dimension]` —
+ * the whole-module division lines that fall *inside* the span, excluding the far edge (the box
+ * outline already draws that). This is the per-axis interior line count the 2D grid and 3D lattice
+ * both tile with, so both `layoutRoom2D`'s grid and `layoutRoom3D`'s lattice share one tested rule.
+ * An exact fit (dimension divisible by m) drops the coincident far-edge line; an off-grid dimension
+ * keeps the last whole-module line before the remainder (FR-VIZ2D-02 / FR-VIZ3D-07).
+ */
+export function interiorModuleLines(dimension: number, m: number): number[] {
+  if (m <= 0) return [];
+  const lines: number[] = [];
+  for (let i = 1; i * m < dimension; i += 1) lines.push(i * m);
+  return lines;
+}
+
 // ---------------------------------------------------------------------------
 // 3D visualizer geometry — FR-VIZ3D-01/02/03
 // ---------------------------------------------------------------------------
