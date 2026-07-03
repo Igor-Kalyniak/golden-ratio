@@ -6,22 +6,32 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T15:45:00+03:00
-- **Last action:** **Shipped capability 9 `golden-ratio`** end-to-end via the `ship-capability`
-  advisory loop. The **results region now shows per-room cards** below the band diagram:
-  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) maps each valid room to a card
-  (header: name + `l × w mm` + a `clean fit` ✓ / `approximate fit` ≈ badge driven by the golden
-  offset, text+glyph not color-only), and [components/GoldenSplitBlock.tsx](../components/GoldenSplitBlock.tsx)
-  renders the golden split of the longer wall — exact 0.618/0.382, ½M-snapped (accent), and
-  `snapOffset` colored by fit. [lib/calculations.ts](../lib/calculations.ts) gained the pure
-  `longerWall(room)` (`FR-GOLD-03`) and `isApproximateFit(offset, m)` (`FR-GOLD-04`, offset > ¼M)
-  helpers; `computeGoldenSplit` reused unchanged. This introduces the **per-room card scaffold**
-  (DESIGN §6.3) that grid-fit (10) + walkway (11) extend. Archived to
-  [openspec/changes/archive/2026-07-03-golden-ratio/](../openspec/changes/archive/2026-07-03-golden-ratio/);
-  requirements synced to `openspec/specs/golden-ratio/spec.md`.
+- **Last updated:** 2026-07-03T16:45:00+03:00
+- **Last action:** **Shipped capability 10 `grid-fit`** end-to-end via the `ship-capability`
+  advisory loop. The per-room card gained its **second block**:
+  [components/GridFitBlock.tsx](../components/GridFitBlock.tsx) shows each valid room as `nL × nW`
+  modules (`round(dim/m)`), the signed `remainder L / W` (explicit +/−), a warn-italic round-up/
+  round-down annotation per non-zero remainder, and an accessible `exact`/`close`/`poor` quality
+  badge (label + glyph ✓/≈/✕, never color alone — `NFR-A11Y-02`).
+  [lib/calculations.ts](../lib/calculations.ts) gained the pure `gridRoundDirection(remainder)`
+  helper (`FR-GRID-03` sign convention: positive ⇒ over grid ⇒ round down) and a **corrected stale
+  `RoomGrid` doc comment** that had the direction reversed (returned values were always correct);
+  `computeRoomGrid` reused unchanged. Rendered as the 2nd block in
+  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx). Archived to
+  [openspec/changes/archive/2026-07-03-grid-fit/](../openspec/changes/archive/2026-07-03-grid-fit/);
+  requirements synced to `openspec/specs/grid-fit/spec.md`.
   (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`.)
+  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`.)
 - **Status:**
+  - Done — **`grid-fit`** (FR-GRID-01/02/03/04/05, NFR-A11Y-02): per-room grid-fit block +
+    `gridRoundDirection`. Suite **74/74** (+2 tests), build ✓, tsc ✓, lint ✓. Review **all-clean
+    (0 findings)** from all three Checkers. QA 6/6 implemented & spec-compliant, 4/6 automated
+    (`computeRoomGrid` + `gridRoundDirection`; block DOM + badge a11y manual per ADR-0001). **Notes:**
+    (a) corrected a reversed `RoomGrid` doc comment vs `FR-GRID-03` (comment-only; values unchanged);
+    (b) shipped kitchen signs are the engine's authoritative `+300 / −300` — DESIGN §6.3's table
+    lists them reversed (flagged for a docs-pass). The quality badge discharges the grid-badge part
+    of `NFR-A11Y-02` (label+glyph); the sub-AA `--faint`/accent token issue from `design-system`
+    stays the open part.
   - Done — **`golden-ratio`** (FR-GOLD-01/02/03/04): per-room card scaffold + golden-split block.
     Suite **72/72** (+3 tests), build ✓, tsc ✓, lint ✓. Review **all-clean** (0 crit/high/med, 1
     low resolved — golden split computed once in `PerRoomResults` and passed to `GoldenSplitBlock`
@@ -75,19 +85,18 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — two **per-room**
-  result blocks remain, each extending the **shared per-room card** that `golden-ratio` (9)
-  established in [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) (add a sibling
-  block next to `<GoldenSplitBlock>`): **10 `grid-fit`** (modules×modules via `round(dim/m)`, signed
-  remainders, `exact`/`close`/`poor` quality badge that never relies on color alone — `FR-GRID-*`,
-  `NFR-A11Y-02`; engine `computeRoomGrid` shipped in change 1), then **11 `walkway`** (fixed-mm
-  clearance ratings decoupled from M, 3-bar meter per row — `FR-WALK-*`, `BC-WALK-01`, `Should`;
-  engine `computeWalkways`/`rateWalkway` shipped in change 1). Both are thin presentation layers.
-  `grid-fit` (10) is the natural next pick. **Watch:** `grid-fit` owns `NFR-A11Y-02` (partial) — its
-  quality badge must carry a text/icon cue, not color alone (follow the `golden-ratio` fit-badge
-  pattern: glyph + label), and must avoid `--faint`/accent for small meaningful text (see the
-  design-system finding below).
-  **Likely 3rd field consumer** — none of 10/11 add editable number fields (they read room state),
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **11 `walkway`** is the
+  last per-room block and completes Epic A's core loop (`Should`; first to cut under time pressure).
+  Add a third sibling block in [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) next
+  to `<GoldenSplitBlock>` / `<GridFitBlock>`: per-room walkway rows for wardrobe/kitchen (600),
+  sofa/bed centre (900), and between-facing-600-units (1200); clearance = `width − depth`; **fixed
+  mm ratings** `≥900 comfortable · ≥600 acceptable · <600 tight` that never scale with M
+  (`BC-WALK-01`); each row a 3-bar meter (filled by rating) + a colored text rating (`FR-WALK-*`).
+  The engine (`computeWalkways`/`rateWalkway`, returning the locale-independent
+  `walkway.<rating>` recommendation key) shipped in change 1, so this is a thin presentation layer.
+  After 11, Epic A (the MVP calculator) is complete; **Epic B** (12 `module-2d` → 13 `mode-toggle`
+  → 14 `viz-2d` → 15 `viz-3d`, + 16 `brand-logo`) is the iteration-2 visualizer work.
+  **Likely 3rd field consumer** — walkway (11) reads room state and adds no editable number field,
   so `room-input` CR-001 (shared-field extraction) stays deferred until the 2D/3D input
   reorganization (13).
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth

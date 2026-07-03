@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, and 9 `golden-ratio` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, and 10 `grid-fit` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -42,10 +42,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) +
 > [components/GoldenSplitBlock.tsx](../components/GoldenSplitBlock.tsx) add the per-room card
 > scaffold + golden-split block, and `lib/calculations.ts` gained `longerWall`/`isApproximateFit`.
-> The **results region now shows the Module Summary + band diagram + per-room golden split**; the
-> grid-fit (10) and walkway (11) blocks extend the same per-room card, and visualizer slots await
-> 12–15. `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
-> is `accepted`; changes 1–9 are `shipped`; everything else is `proposed`.
+> Change 10:
+> [components/GridFitBlock.tsx](../components/GridFitBlock.tsx) adds the grid-fit block (nL×nW,
+> signed remainders + round-direction annotation, accessible quality badge) as the per-room card's
+> second block, and `lib/calculations.ts` gained `gridRoundDirection`. The **results region now
+> shows the Module Summary + band diagram + per-room golden split + grid fit**; only the walkway
+> block (11) remains to complete the per-room card, then visualizer slots (12–15).
+> `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
+> is `accepted`; changes 1–10 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -381,11 +385,21 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** exact + snapped values shown per room; large-offset rooms flagged.
 - **Kickoff:** `openspec new change golden-ratio`
 
-#### 10. `grid-fit` — room grid fit *(Must)*
+#### 10. `grid-fit` — room grid fit *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-grid-fit/](../openspec/changes/archive/2026-07-03-grid-fit/);
+  spec synced to `openspec/specs/grid-fit/spec.md`. Suite 74/74, build ✓, tsc ✓, lint ✓; review
+  **all-clean (0 findings)** from all three Checkers. QA 6/6 implemented & spec-compliant, 4/6
+  automated (`computeRoomGrid` + `gridRoundDirection`; block DOM + badge a11y manual per ADR-0001).
+  Adds the second per-room block below the golden split. **Two notes:** (a) added
+  `gridRoundDirection(remainder)` and **corrected a stale `RoomGrid` doc comment** in
+  `lib/calculations.ts` that had the round-direction reversed vs `FR-GRID-03` (value was always
+  correct); (b) the shipped kitchen signs are the engine's authoritative `+300 / −300` — DESIGN
+  §6.3's example table lists them reversed (flagged for a docs-pass).
 - **Covers:** `FR-GRID-01/02/03/04/05`, `NFR-A11Y-02`.
-- **Delivers:** modules × modules via `round(dimension / m)`; signed nearest-distance
-  remainders ("round up"/"round down"); quality `exact`/`close`/`poor`; colored quality
-  badge that never relies on color alone.
+- **Delivers:** modules × modules via `round(dimension / m)`; signed nearest-distance remainders
+  with a "round up"/"round down" annotation (positive ⇒ over grid ⇒ round down); quality
+  `exact`/`close`/`poor`; a quality badge carrying a text label + glyph (✓/≈/✕), never color alone.
 - **Depends on:** `module-summary`, `room-input`, `calculation-engine`.
 - **Why here:** independent result section; parallel with 8/9.
 - **Done when:** a 1 mm-short dimension reads `close`, not `poor`; badge has a text/icon
