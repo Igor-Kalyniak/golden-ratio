@@ -46,12 +46,12 @@ export const DEFAULT_STATE: AppState = {
   rooms: [{ id: 'room-1', name: 'Room 1', length: 3000, width: 2400 }],
 };
 
-/** A room is valid when its name is 1–50 chars and both dimensions are in range. */
+/** A room is valid when its (trimmed) name is 1–50 chars and both dimensions are in range. */
 export function isRoomValid(room: Room): boolean {
   const name = room.name.trim();
   return (
     name.length >= ROOM_NAME.min &&
-    room.name.length <= ROOM_NAME.max &&
+    name.length <= ROOM_NAME.max &&
     isValidDimension(room.length) &&
     isValidDimension(room.width)
   );

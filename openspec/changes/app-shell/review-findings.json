@@ -1,0 +1,67 @@
+{
+  "change": "app-shell",
+  "generated_at": "2026-07-03T02:15:00+03:00",
+  "base_sha": "19ad721f40346124effdbf3401720847964e3074",
+  "head_sha": "5e6c838ed559e82cb06b7afff8a4b2d2520e6c03",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "concerns",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 3 },
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "Shell meets all owned requirements (server page + single client boundary, state ownership, pure synchronous results gate, responsive layout, a11y) with passing lint/build/44 tests; three low, mostly-latent issues — all resolved.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "correctness",
+          "requirement_ids": ["FR-SHELL-04", "FR-ROOM-03"],
+          "file": "lib/app-state.ts",
+          "line": 52,
+          "summary": "isRoomValid checked the min length on the trimmed name but the max on the untrimmed value, so a <=50-char name padded with whitespace was wrongly rejected. Latent now (only DEFAULT_STATE validated) but ships into room editing (change 6).",
+          "recommendation": "Validate both bounds against the trimmed name.",
+          "status": "resolved"
+        },
+        {
+          "id": "CR-002",
+          "severity": "low",
+          "category": "a11y",
+          "requirement_ids": ["NFR-A11Y-01", "FR-SHELL-04"],
+          "file": "components/Shell.tsx",
+          "line": 64,
+          "summary": "The results <section> landmark was labelled t('perRoom') ('Per-room results'), but the region will hold the module summary, band diagram, per-room cards AND visualizer — mislabelling the landmark for screen-reader navigation.",
+          "recommendation": "Add a generic 'results' key and label the region with it; reserve perRoom for its subsection.",
+          "status": "resolved"
+        },
+        {
+          "id": "CR-003",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["FR-SHELL-02", "NFR-RESP-01"],
+          "file": "components/Shell.tsx",
+          "line": 49,
+          "summary": "The sticky input column used a hardcoded lg:top-[67px] decoupled from the derived header height; a header padding/typography change would silently misalign it.",
+          "recommendation": "Derive the offset from a shared header-height token.",
+          "status": "resolved"
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "openspec validate app-shell --strict: PASS (0 issues). All owned IDs implemented + covered (page.tsx Server Component renders single <Calculator/>; Calculator owns AppState + derives showResults via useMemo; pure synchronous gate unit-tested incl. purity; responsive grid; LanguageToggle top-right; aria-live results; focus/label a11y). No forward scope drift (input/results are empty slots — no apartment fields/room CRUD/result sections/mode toggle). ThemeToggle + themeLight/themeDark keys are acceptable DESIGN §4 header furniture owned by tasks §6; EN/UA parity preserved; no new dependency. 44/44 tests pass.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Holds all privacy/security constraints: no persistence (localStorage/sessionStorage/cookie/indexedDB), no network/analytics, ThemeToggle is in-memory useState setting html[data-theme] to a fixed literal (no attribute injection), all strings render as auto-escaped JSX from static dictionaries (no dangerouslySetInnerHTML/eval/URL sinks), package.json/lockfile unchanged, Server page renders only <Calculator/> with no props/secrets/server-actions (TC-DATA-01/BC-PRIVACY-01/BC-SCOPE-01 upheld).",
+      "findings": []
+    }
+  ]
+}

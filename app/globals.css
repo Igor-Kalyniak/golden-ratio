@@ -9,6 +9,10 @@
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
+  /* Shell header height — single source for the sticky header and the input column's
+     sticky offset so they stay aligned (DESIGN §4 "input column top:67px"). */
+  --header-h: 67px;
+
   --bg: #fbfbfa;
   --panel: #ffffff;
   --panel2: #f6f6f4;

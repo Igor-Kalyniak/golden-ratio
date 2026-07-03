@@ -18,7 +18,7 @@ export function Shell({ showResults }: { showResults: boolean }) {
   return (
     <div className="flex min-h-full flex-col bg-bg text-fg">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel/90 px-5 py-3 backdrop-blur">
+      <header className="sticky top-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel/90 px-5 py-3 backdrop-blur lg:h-[var(--header-h)] lg:flex-nowrap">
         {/* Logo placeholder — the golden-ratio mark is FR-LOGO-01 (change 16). */}
         <span
           aria-hidden="true"
@@ -46,7 +46,7 @@ export function Shell({ showResults }: { showResults: boolean }) {
       {/* Body: stacked on small screens, two columns on wide (FR-SHELL-02, NFR-RESP-01). */}
       <main className="mx-auto grid w-full max-w-[1400px] flex-1 grid-cols-1 gap-6 p-5 lg:grid-cols-[minmax(320px,400px)_1fr] lg:items-start">
         {/* Input column slot — apartment fields (5) + room list (6) fill this. */}
-        <section aria-label={t('inputs')} className="lg:sticky lg:top-[67px]">
+        <section aria-label={t('inputs')} className="lg:sticky lg:top-[var(--header-h)]">
           <div className="rounded-xl border border-line bg-panel p-4">
             <h2 className="mb-3 text-sm font-semibold">{t('inputs')}</h2>
             <div className="space-y-3 text-sm text-muted">
@@ -61,7 +61,7 @@ export function Shell({ showResults }: { showResults: boolean }) {
         </section>
 
         {/* Results region — gated on validity (FR-SHELL-04); announced politely. */}
-        <section aria-label={t('perRoom')} aria-live="polite">
+        <section aria-label={t('results')} aria-live="polite">
           {showResults ? (
             <div className="rounded-xl border border-line bg-panel p-4 text-sm text-muted">
               {/* Result sections (module summary, bands, per-room, visualizer) fill this. */}

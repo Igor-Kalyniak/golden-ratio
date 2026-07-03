@@ -43,6 +43,7 @@
   "offGrid": "off-grid",
   "partial": "partial",
   "leftover": "leftover",
+  "results": "Results",
   "perRoom": "Per-room results",
   "goldenSplit": "Golden-ratio split",
   "longerWall": "longer wall",
