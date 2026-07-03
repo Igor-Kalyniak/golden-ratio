@@ -14,6 +14,8 @@ import {
   computeVerticalBands,
   layoutBandDiagram,
   computeGoldenSplit,
+  longerWall,
+  isApproximateFit,
   computeRoomGrid,
   computeWalkways,
   rateWalkway,
@@ -229,6 +231,29 @@ test('computeGoldenSplit: bathroom longer wall 2150', () => {
   assert.equal(g.largerSnapped, 1400);
   assert.equal(g.smallerSnapped, 750);
   near(g.snapOffset, 71.3, 1e-4);
+});
+
+// --- longerWall / isApproximateFit (FR-GOLD-03/04) -------------------------
+
+test('longerWall: returns the larger dimension', () => {
+  assert.equal(longerWall({ length: 3500, width: 4200 }), 4200); // width larger
+  assert.equal(longerWall({ length: 4200, width: 3500 }), 4200); // length larger
+  assert.equal(longerWall({ length: 3000, width: 3000 }), 3000); // square
+});
+
+test('isApproximateFit: true only above a quarter module', () => {
+  // ¼M for M=700 is 175.
+  assert.equal(isApproximateFit(174, 700), false);
+  assert.equal(isApproximateFit(175, 700), false); // exactly ¼M is still clean (not >)
+  assert.equal(isApproximateFit(176, 700), true);
+});
+
+test('golden worked example: living room reads clean, offset ≤ ¼M', () => {
+  const g = computeGoldenSplit(longerWall({ length: 4200, width: 3500 }), 700);
+  near(g.larger, 2595.6, 1e-1);
+  assert.equal(g.largerSnapped, 2450);
+  near(g.snapOffset, 145.6, 1e-1);
+  assert.equal(isApproximateFit(g.snapOffset, 700), false); // 145.6 ≤ 175
 });
 
 // --- computeRoomGrid (FR-GRID-01/02/03/04) ---------------------------------

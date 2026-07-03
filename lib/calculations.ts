@@ -361,6 +361,19 @@ export function computeGoldenSplit(length: number, m: number): GoldenSplit {
   return { larger, smaller, largerSnapped, smallerSnapped, snapOffset };
 }
 
+/** The wall the golden split is applied to: the longer of a room's two dimensions (FR-GOLD-03). */
+export function longerWall(room: { length: number; width: number }): number {
+  return Math.max(room.length, room.width);
+}
+
+/**
+ * A golden snap is an "approximate fit" when its offset exceeds a quarter module
+ * (`m / 4`); at or below ¼M it reads "clean fit" (FR-GOLD-04).
+ */
+export function isApproximateFit(snapOffset: number, m: number): boolean {
+  return snapOffset > m / 4;
+}
+
 // ---------------------------------------------------------------------------
 // Room grid fit — FR-GRID-01/02/03/04
 // ---------------------------------------------------------------------------

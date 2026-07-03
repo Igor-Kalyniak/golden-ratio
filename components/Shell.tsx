@@ -6,6 +6,7 @@ import { ApartmentForm } from './ApartmentForm';
 import { BandDiagram } from './BandDiagram';
 import { LanguageToggle } from './LanguageToggle';
 import { ModuleSummary } from './ModuleSummary';
+import { PerRoomResults } from './PerRoomResults';
 import { RoomList } from './RoomList';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -109,6 +110,8 @@ export function Shell({
                 module={state.module}
                 opening={state.opening}
               />
+              {/* Per-room result cards (change 9); grid-fit (10) + walkway (11) add blocks. */}
+              <PerRoomResults rooms={state.rooms} module={state.module} />
             </div>
           ) : (
             <div className="grid min-h-[160px] place-items-center rounded-xl border border-dashed border-line2 bg-panel2 p-6 text-center text-sm text-muted">
