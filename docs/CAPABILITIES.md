@@ -13,7 +13,11 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` + 14 `viz-2d` + 15 `viz-3d` shipped; only 16 `brand-logo` remains** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **ALL 16 capabilities are shipped (2026-07-03) — the full backlog is complete.** Epic A (core
+> calculator, 1–11) + Epic B (2D/3D mode + both visualizers + logo, 12–16) are all archived under
+> `openspec/changes/archive/`, specs synced to `openspec/specs/`. 99 `node:test` cases green; every
+> change passed the advisory `ship-capability` loop (propose → --strict → apply → 3 fresh Checkers →
+> QA → archive). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -64,8 +68,9 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > (thin wrapper: WebGL detect + `dynamic({ssr:false})` + `Viz2D` fallback) add the lazy 3D
 > visualizer; `lib/calculations.ts` gained the pure `layoutRoom3D`. **Three.js is confined to the
 > lazy `Viz3DScene` chunk** — the 2D path + first paint carry no 3D dep (NFR-BUNDLE-01 verified).
-> **Only 16 `brand-logo` remains.** `TC-STACK-01` is `accepted`; changes 1–15 are `shipped`;
-> only 16 is `proposed`.
+> Change 16: [components/Logo.tsx](../components/Logo.tsx) + [app/icon.svg](../app/icon.svg) add the
+> golden-ratio brand mark (header + favicon), replacing the placeholder. **All 16 shipped.**
+> `TC-STACK-01` is `accepted`; **changes 1–16 are all `shipped` — nothing remains `proposed`.**
 
 ---
 
@@ -539,7 +544,16 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   cleanly.
 - **Kickoff:** `openspec new change viz-3d`
 
-#### 16. `brand-logo` — golden-ratio SVG logo *(Must, iter 2 · parallelizable)*
+#### 16. `brand-logo` — golden-ratio SVG logo *(Must, iter 2 · parallelizable)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-brand-logo/](../openspec/changes/archive/2026-07-03-brand-logo/);
+  spec synced to `openspec/specs/brand-logo/spec.md`. Suite 99/99 (unchanged — no engine change),
+  build ✓, tsc ✓, lint ✓; review **all-clean (0 findings)** from all three Checkers. QA 1/1
+  implemented & spec-compliant, 0/1 automated (static SVG markup — no unit test possible, ADR-0001;
+  runtime-verified). `components/Logo.tsx` (DESIGN §7 mark verbatim, `currentColor`, Server
+  Component) replaces the header placeholder via `text-accent`; `app/icon.svg` is the auto-registered
+  favicon (explicit accent hex, since `currentColor` has no CSS context in a favicon). No new
+  dependency. **The final change — the full 16-capability backlog is now shipped.**
 - **Covers:** `FR-LOGO-01`.
 - **Delivers:** an SVG logo (nested φ:1 rectangles + golden-spiral arc, `currentColor`,
   transparent ground) left of the header title, scaling to a favicon; no raster assets,

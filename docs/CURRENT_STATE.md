@@ -6,24 +6,28 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T21:35:00+03:00
-- **Last action:** **Shipped capability 15 `viz-3d`** end-to-end via the `ship-capability` advisory
-  loop — the lazy 3D module visualizer and the plan's **only Three.js consumer**.
-  [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) is the heavy `@react-three/fiber` canvas
-  (one box per room L×W×ceiling to scale, an accent opening band, exactly one M³ cube, OrbitControls
-  + reduced-motion-aware auto-rotate/float); [components/Viz3D.tsx](../components/Viz3D.tsx) is a thin
-  wrapper that detects WebGL (`useSyncExternalStore`), lazy-loads the scene via
-  `dynamic(() => import('./Viz3DScene'), { ssr:false })` with a loading state, and **falls back to
-  the shipped `<Viz2D>`** with a `webgl` message when unsupported (`FR-VIZ3D-06`).
-  [lib/calculations.ts](../lib/calculations.ts) gained the pure `layoutRoom3D`;
-  [components/Shell.tsx](../components/Shell.tsx) renders `<Viz3D>` in the `mode === '3d'` branch.
-  **`NFR-BUNDLE-01` verified**: `@react-three`/`three` is imported only in `Viz3DScene`, which the
-  build splits into a separate ~880K chunk absent from first-load JS — the 2D path carries no
-  Three.js. Archived to
-  [openspec/changes/archive/2026-07-03-viz-3d/](../openspec/changes/archive/2026-07-03-viz-3d/);
-  requirements synced to `openspec/specs/viz-3d/spec.md`.
-  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`, 13 `mode-toggle`, 14 `viz-2d`.)
-- **Status:**
+- **Last updated:** 2026-07-03T22:20:00+03:00
+- **Last action:** **Shipped capability 16 `brand-logo`** end-to-end via the `ship-capability`
+  advisory loop — **the final change; the full 16-capability backlog is now complete.**
+  [components/Logo.tsx](../components/Logo.tsx) is a Server Component rendering the DESIGN §7
+  golden-ratio mark verbatim (nested φ:1 rects + golden-spiral arcs, `currentColor`, transparent,
+  `aria-hidden`); [components/Shell.tsx](../components/Shell.tsx) swaps the header placeholder for
+  `<Logo className="shrink-0 text-accent">` (so `currentColor` resolves to `--accent` and inverts in
+  dark); [app/icon.svg](../app/icon.svg) is the auto-registered favicon (same mark, explicit accent
+  hex since `currentColor` has no CSS context in a favicon). No new dependency; no engine/state/i18n
+  change. Runtime-verified: the header renders the SVG (placeholder gone) and `/icon.svg` serves 200
+  with `<link rel="icon">` auto-injected. Archived to
+  [openspec/changes/archive/2026-07-03-brand-logo/](../openspec/changes/archive/2026-07-03-brand-logo/);
+  requirements synced to `openspec/specs/brand-logo/spec.md`.
+  (Prior: shipped 1–11 **Epic A complete**, 12–15 Epic B visualizers/mode.)
+- **Status: 🎉 ALL 16 CAPABILITIES SHIPPED — the full backlog is complete.** Every change in
+  [docs/CAPABILITIES.md](CAPABILITIES.md) §3 is archived under `openspec/changes/archive/` with its
+  spec synced to `openspec/specs/`; suite **99/99**, build ✓, tsc ✓, lint ✓. Per-capability detail
+  below.
+  - Done — **`brand-logo`** (FR-LOGO-01): golden-ratio header mark (`Logo.tsx`, `currentColor`) +
+    `app/icon.svg` favicon. Suite 99/99 (no engine change), build ✓, tsc ✓, lint ✓. Review
+    **all-clean (0 findings)**. QA 1/1 implemented & spec-compliant, 0/1 automated (static SVG —
+    no unit test possible, ADR-0001; runtime-verified). No new dependency.
   - Done — **`viz-3d`** (FR-VIZ3D-01/02/03/04/05/06, NFR-BUNDLE-01, NFR-PERF-03, TC-STACK-04,
     NFR-A11Y-03): lazy 3D visualizer + WebGL fallback + pure `layoutRoom3D`. Suite **99/99** (+5
     tests), build ✓, tsc ✓, lint ✓. Review **1 medium + 5 low (0 crit/high)** — **3 resolved
@@ -125,26 +129,24 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** **Epic A complete** (1–11); **Epic B all but done** — 12 `module-2d` +
-  13 `mode-toggle` + 14 `viz-2d` + 15 `viz-3d` shipped. **One change remains** — the final one in
-  [docs/CAPABILITIES.md](CAPABILITIES.md) §3:
-  - **16 `brand-logo`** (`FR-LOGO-01`) — **the last change; ships the whole backlog.** An SVG
-    golden-ratio mark (nested φ:1 rectangles + a golden-spiral arc, `currentColor`, transparent
-    ground) replacing the header logo placeholder in
-    [components/Shell.tsx](../components/Shell.tsx) (the `aria-hidden` bordered `<span>`, ~line 38),
-    scaling down to a favicon. No raster assets, **no new dependency**, pure inline SVG. Depends only
-    on `app-shell` (✓). Smallest, lowest-risk change — a clean closer. Run
-    `/ship-capability brand-logo`.
-  - **After 16:** the full 16-capability backlog is shipped — Epic A (trustworthy bilingual
-    calculator) + Epic B (2D/3D mode, both visualizers, logo). Remaining open items are the
-    triage-only low findings below (none blocking).
-  - **`room-input` CR-001 — closed (won't-extract):** `mode-toggle`/`viz-2d`/`viz-3d` added no new
-    editable number field, and `brand-logo` won't either. The 3rd `NumberField` consumer never
-    materialized, so the shared-field extraction stays intentionally un-done (only 2 consumers).
+- **Next steps:** **🎉 The full 16-capability backlog is shipped** — Epic A (trustworthy bilingual
+  calculator: inputs → module summary → bands + per-room golden/grid/walkway) + Epic B (2D⇄3D mode,
+  both read-only visualizers, brand logo). No capabilities remain in
+  [docs/CAPABILITIES.md](CAPABILITIES.md) §3. Every change passed the advisory `ship-capability`
+  loop; suite 99/99, build ✓, tsc ✓, lint ✓. **What's left is optional/triage-only, none blocking:**
+  - **SME open questions** (gate content/constants, not code): `OQ-01` authoritative
+    `STANDARD_MODULES` (de-risked by ADR-0002 — one-line change), `OQ-02` editable furniture depths,
+    `OQ-04` default room dims/names. Revisit with the SME; each is an additive constant/input edit.
+  - **`room-input` CR-001 — closed (won't-extract):** no change ever added a 3rd editable
+    number-field consumer, so the shared-`NumberField` extraction stays intentionally un-done (only
+    `ApartmentForm` + `RoomList`). Drop unless a future feature adds a numeric input.
   - **`viz-3d` NFR-PERF-03 (acknowledged low):** no explicit room cap on the 3D scene; a hard cap
-    belongs in `room-input`/app-state if a room-count ceiling is ever exercised. Not blocking.
-  **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
-  folding into a later change rather than a standalone fix:
+    belongs in `room-input`/app-state if a room-count ceiling is ever exercised.
+  - **Possible follow-ups** (not in scope, would be new changes): an automated a11y/visual/DOM test
+    layer (ADR-0001 left all component rendering manual), and resolving the `design-system`
+    NFR-A11Y-02 sub-AA token finding below (a design-source decision).
+  **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), for
+  triage — none block the shipped product:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
     `ApartmentForm`. Extract a shared field component **when a 3rd consumer appears** — deferred by
     design (YAGNI; avoids churning the archived `apartment-input`). *(module-summary added no new
