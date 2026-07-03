@@ -9,6 +9,7 @@ import {
   nearestStandardModule,
   snap,
   suggestModule,
+  suggestModule2D,
   computeModuleRuler,
   moduleWarning,
   computeVerticalBands,
@@ -73,6 +74,52 @@ test('suggestModule: coprime heights snap to a standard module, residual surface
   assert.equal(s.suggested, 100); // not a literal 1mm module
   assert.equal(s.residual, 99); // full distance, always visible
   assert.equal(s.alternatives.length, 2);
+});
+
+// --- suggestModule2D (FR-MODULE2D-01/02) -----------------------------------
+
+test('suggestModule2D: single room → gcd(length, width)', () => {
+  const s = suggestModule2D([{ length: 4200, width: 3500 }]);
+  assert.equal(s.rawGcd, 700); // gcd(4200, 3500)
+  assert.equal(s.suggested, 700);
+  assert.equal(s.residual, 0);
+});
+
+test('suggestModule2D: folds the GCD across every room’s length & width', () => {
+  const s = suggestModule2D([
+    { length: 4200, width: 3500 },
+    { length: 3800, width: 2500 },
+    { length: 2150, width: 1500 },
+  ]);
+  assert.equal(s.rawGcd, 50); // gcd of all six dimensions
+  assert.equal(s.suggested, 100); // nearest standard module to 50
+  assert.equal(s.residual, 50); // surfaced, not silent
+});
+
+test('suggestModule2D: fold is order-independent (GCD associativity)', () => {
+  const a = suggestModule2D([
+    { length: 4200, width: 3500 },
+    { length: 3800, width: 2500 },
+  ]);
+  const b = suggestModule2D([
+    { length: 2500, width: 3800 },
+    { length: 3500, width: 4200 },
+  ]);
+  assert.equal(a.rawGcd, b.rawGcd);
+});
+
+test('suggestModule2D: non-standard GCD snaps to a standard module, residual surfaced', () => {
+  const s = suggestModule2D([{ length: 1250, width: 1250 }]); // gcd = 1250
+  assert.ok((STANDARD_MODULES as readonly number[]).includes(s.suggested));
+  assert.notEqual(s.suggested, s.rawGcd);
+  assert.ok(s.residual > 0);
+});
+
+test('suggestModule2D: empty list folds to rawGcd 0, snaps to smallest module (residual surfaced)', () => {
+  const s = suggestModule2D([]);
+  assert.equal(s.rawGcd, 0);
+  assert.equal(s.suggested, 100); // nearestStandardModule(0) — no "|| 100" magic
+  assert.equal(s.residual, 100); // honest, not hidden as 0
 });
 
 // --- computeModuleRuler (FR-MODULE-04) -------------------------------------

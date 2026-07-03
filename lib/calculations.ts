@@ -214,21 +214,46 @@ export function isValidDimension(dim: number): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Module suggestion — FR-MODULE-01, ADR-0002
+// Module suggestion — FR-MODULE-01, FR-MODULE2D-01, ADR-0002
 // ---------------------------------------------------------------------------
 
+/** Room length × width (mm) — a structural subset of `Room`, so the engine stays app-state-free. */
+export interface RoomDimensions {
+  length: number;
+  width: number;
+}
+
 /**
- * Suggest a module from ceiling & opening heights.
- * `residual` is always returned so a poor snap is visible, never silent.
+ * Build a `ModuleSuggestion` from a raw GCD: snap to the nearest standard module, surface the
+ * residual (always, so a poor snap is visible — ADR-0002), and offer the two nearest alternatives.
+ * Shared by the 3D (`suggestModule`) and 2D (`suggestModule2D`) paths so they cannot drift.
  */
-export function suggestModule(ceiling: number, opening: number): ModuleSuggestion {
-  const rawGcd = gcd(ceiling, opening);
+function suggestionFromGcd(rawGcd: number): ModuleSuggestion {
   const suggested = nearestStandardModule(rawGcd);
   const residual = Math.abs(rawGcd - suggested);
   const alternatives = STANDARD_MODULES.filter((m) => m !== suggested)
     .sort((a, b) => Math.abs(a - rawGcd) - Math.abs(b - rawGcd))
     .slice(0, 2);
   return { rawGcd, suggested, alternatives, residual };
+}
+
+/**
+ * Suggest a module from ceiling & opening heights (3D mode) — FR-MODULE-01.
+ * `residual` is always returned so a poor snap is visible, never silent.
+ */
+export function suggestModule(ceiling: number, opening: number): ModuleSuggestion {
+  return suggestionFromGcd(gcd(ceiling, opening));
+}
+
+/**
+ * Suggest a module from room dimensions (2D mode) — FR-MODULE2D-01. `rawGcd` is the GCD folded
+ * across every room's length and width (a single room → `gcd(length, width)`); the result is
+ * snapped to the nearest standard module with the residual surfaced. The caller passes the valid
+ * rooms; an empty list folds to `rawGcd = 0` (snaps to the smallest standard module).
+ */
+export function suggestModule2D(rooms: readonly RoomDimensions[]): ModuleSuggestion {
+  const rawGcd = rooms.reduce((acc, room) => gcd(gcd(acc, room.length), room.width), 0);
+  return suggestionFromGcd(rawGcd);
 }
 
 // ---------------------------------------------------------------------------
