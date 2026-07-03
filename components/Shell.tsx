@@ -1,18 +1,33 @@
 'use client';
 
 import { useI18n } from '../lib/i18n-context';
+import { type AppState } from '../lib/app-state';
+import { ApartmentForm } from './ApartmentForm';
 import { LanguageToggle } from './LanguageToggle';
 import { ThemeToggle } from './ThemeToggle';
 
+interface ShellProps {
+  state: AppState;
+  showResults: boolean;
+  onCeilingChange: (value: number) => void;
+  onOpeningChange: (value: number) => void;
+  onModuleChange: (value: number) => void;
+}
+
 /**
  * Presentational shell (DESIGN §4): sticky header + responsive two-column body. A descendant
- * of `LanguageProvider`, so it resolves every string through `t()`. The input column and
- * results region are slots that later capabilities fill (apartment 5, rooms 6, results 7–11);
- * this component owns their arrangement and the validity gate (FR-SHELL-04). `showResults` is
- * the derived result flowing down as a prop (TC-ARCH-01); the editable state + setter arrive
- * with the input capabilities (5/6).
+ * of `LanguageProvider`, so it resolves every string through `t()`. The apartment slot is
+ * filled by `ApartmentForm` (change 5); the rooms slot remains a placeholder for change 6.
+ * The results region is a slot for changes 7–11, gated on validity (FR-SHELL-04).
+ * `state`/`showResults` flow down as props (TC-ARCH-01) from `Calculator`, the state owner.
  */
-export function Shell({ showResults }: { showResults: boolean }) {
+export function Shell({
+  state,
+  showResults,
+  onCeilingChange,
+  onOpeningChange,
+  onModuleChange,
+}: ShellProps) {
   const { t } = useI18n();
 
   return (
@@ -45,17 +60,21 @@ export function Shell({ showResults }: { showResults: boolean }) {
 
       {/* Body: stacked on small screens, two columns on wide (FR-SHELL-02, NFR-RESP-01). */}
       <main className="mx-auto grid w-full max-w-[1400px] flex-1 grid-cols-1 gap-6 p-5 lg:grid-cols-[minmax(320px,400px)_1fr] lg:items-start">
-        {/* Input column slot — apartment fields (5) + room list (6) fill this. */}
+        {/* Input column slot — apartment fields (5, below) + room list (6) fill this. */}
         <section aria-label={t('inputs')} className="lg:sticky lg:top-[var(--header-h)]">
-          <div className="rounded-xl border border-line bg-panel p-4">
-            <h2 className="mb-3 text-sm font-semibold">{t('inputs')}</h2>
-            <div className="space-y-3 text-sm text-muted">
-              <div className="rounded-lg border border-dashed border-line2 p-3">
-                {t('apartment')}
-              </div>
-              <div className="rounded-lg border border-dashed border-line2 p-3">
-                {t('rooms')}
-              </div>
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold">{t('inputs')}</h2>
+            <ApartmentForm
+              ceiling={state.ceiling}
+              opening={state.opening}
+              module={state.module}
+              onCeilingChange={onCeilingChange}
+              onOpeningChange={onOpeningChange}
+              onModuleChange={onModuleChange}
+            />
+            {/* Room list — change 6. */}
+            <div className="rounded-lg border border-dashed border-line2 p-3 text-sm text-muted">
+              {t('rooms')}
             </div>
           </div>
         </section>

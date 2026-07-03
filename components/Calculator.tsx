@@ -1,9 +1,16 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { LanguageProvider } from '../lib/i18n-context';
-import { DEFAULT_STATE, showResults, type AppState } from '../lib/app-state';
+import {
+  DEFAULT_STATE,
+  showResults,
+  withCeiling,
+  withModule,
+  withOpening,
+  type AppState,
+} from '../lib/app-state';
 import { Shell } from './Shell';
 
 /**
@@ -12,16 +19,37 @@ import { Shell } from './Shell';
  * compute path (NFR-PERF-01). Mounts the shipped `LanguageProvider`; the string-consuming UI
  * lives in `Shell` (a provider descendant), so this component does not call `useI18n` itself.
  *
- * The setter is introduced when the apartment fields (change 5) and room list (change 6) wire
- * real editing; for the empty shell the default state is valid, so results render.
+ * Apartment-field edits (change 5) go through the pure reducers in `lib/app-state.ts` so the
+ * "module follows the suggestion until overridden" rule (FR-APT-03) is a single, tested unit
+ * rather than duplicated inline logic. The room-list setter (change 6) extends this the same
+ * way.
  */
 export function Calculator() {
-  const [state] = useState<AppState>(DEFAULT_STATE);
+  const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const results = useMemo(() => showResults(state), [state]);
+
+  const onCeilingChange = useCallback(
+    (ceiling: number) => setState((prev) => withCeiling(prev, ceiling)),
+    [],
+  );
+  const onOpeningChange = useCallback(
+    (opening: number) => setState((prev) => withOpening(prev, opening)),
+    [],
+  );
+  const onModuleChange = useCallback(
+    (module: number) => setState((prev) => withModule(prev, module)),
+    [],
+  );
 
   return (
     <LanguageProvider>
-      <Shell showResults={results} />
+      <Shell
+        state={state}
+        showResults={results}
+        onCeilingChange={onCeilingChange}
+        onOpeningChange={onOpeningChange}
+        onModuleChange={onModuleChange}
+      />
     </LanguageProvider>
   );
 }

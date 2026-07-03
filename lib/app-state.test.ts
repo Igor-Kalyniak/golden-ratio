@@ -3,11 +3,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { suggestModule } from './calculations.ts';
 import {
   DEFAULT_STATE,
   isApartmentValid,
   isRoomValid,
   showResults,
+  withCeiling,
+  withModule,
+  withOpening,
   type AppState,
   type Room,
 } from './app-state.ts';
@@ -69,6 +73,54 @@ test('showResults: true when at least one of several rooms is valid', () => {
     showResults(state({ rooms: [room({ length: 10 }), room({ id: 'r2' })] })),
     true,
   );
+});
+
+// --- Apartment reducers (FR-APT-03) -----------------------------------------
+
+test('default state: module is the live suggestion and untouched', () => {
+  assert.equal(DEFAULT_STATE.moduleTouched, false);
+  assert.equal(
+    DEFAULT_STATE.module,
+    suggestModule(DEFAULT_STATE.ceiling, DEFAULT_STATE.opening).suggested,
+  );
+});
+
+test('withCeiling: untouched module follows the new suggestion', () => {
+  const next = withCeiling(DEFAULT_STATE, 3500);
+  assert.equal(next.ceiling, 3500);
+  assert.equal(next.module, suggestModule(3500, DEFAULT_STATE.opening).suggested);
+  assert.equal(next.moduleTouched, false);
+});
+
+test('withOpening: untouched module follows the new suggestion', () => {
+  const next = withOpening(DEFAULT_STATE, 2400);
+  assert.equal(next.opening, 2400);
+  assert.equal(next.module, suggestModule(DEFAULT_STATE.ceiling, 2400).suggested);
+});
+
+test('withModule: sets the value and marks it touched', () => {
+  const next = withModule(DEFAULT_STATE, 350);
+  assert.equal(next.module, 350);
+  assert.equal(next.moduleTouched, true);
+});
+
+test('a touched module is sticky across ceiling/opening edits', () => {
+  const touched = withModule(DEFAULT_STATE, 350);
+  const afterCeiling = withCeiling(touched, 4200);
+  assert.equal(afterCeiling.ceiling, 4200);
+  assert.equal(afterCeiling.module, 350, 'ceiling edit must not clobber the override');
+  assert.equal(afterCeiling.moduleTouched, true);
+
+  const afterOpening = withOpening(afterCeiling, 1900);
+  assert.equal(afterOpening.module, 350, 'opening edit must not clobber the override');
+});
+
+test('reducers are pure — do not mutate the input state', () => {
+  const before = { ...DEFAULT_STATE };
+  withCeiling(DEFAULT_STATE, 3000);
+  withOpening(DEFAULT_STATE, 2000);
+  withModule(DEFAULT_STATE, 600);
+  assert.deepEqual(DEFAULT_STATE, before);
 });
 
 // --- Purity (no framework imports in lib/app-state.ts) ---------------------

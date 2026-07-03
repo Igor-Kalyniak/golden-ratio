@@ -1,12 +1,13 @@
 /**
- * Application state shape and the pure validity gate for the shell (FR-SHELL-04).
+ * Application state shape, the pure validity gate for the shell (FR-SHELL-04), and the
+ * apartment-field reducers (FR-APT-03).
  *
- * Framework-free (no `react`/`next`/DOM) so the results gate is unit-testable. The React
- * state owner is `components/Calculator.tsx`; this module only defines the shape and the
- * synchronous predicates it derives from the engine's validation bounds (NFR-PERF-01).
+ * Framework-free (no `react`/`next`/DOM) so the gate and reducers are unit-testable. The
+ * React state owner is `components/Calculator.tsx`; this module only defines the shape and
+ * the synchronous predicates/reducers it derives from the engine's validation bounds
+ * (NFR-PERF-01).
  *
- * The apartment fields (change 5) and room-list CRUD (change 6) extend how this state is
- * edited; here it is only defined, defaulted, and validated.
+ * The room-list CRUD (change 6) further extends how this state is edited.
  */
 
 import {
@@ -14,6 +15,7 @@ import {
   isValidCeiling,
   isValidDimension,
   isValidOpening,
+  suggestModule,
 } from './calculations.ts';
 
 /** Room name bounds (FR-ROOM-03). */
@@ -35,6 +37,11 @@ export interface AppState {
   opening: number;
   /** mm; one of STANDARD_MODULES (FR-APT-03). */
   module: number;
+  /**
+   * Whether the user has explicitly picked `module` (vs. it still following the live
+   * suggestion). Drives the auto-follow rule in `withCeiling`/`withOpening` (FR-APT-03).
+   */
+  moduleTouched: boolean;
   rooms: Room[];
 }
 
@@ -43,6 +50,7 @@ export const DEFAULT_STATE: AppState = {
   ceiling: 2800,
   opening: 2100,
   module: 700,
+  moduleTouched: false,
   rooms: [{ id: 'room-1', name: 'Room 1', length: 3000, width: 2400 }],
 };
 
@@ -72,4 +80,31 @@ export function isApartmentValid(state: AppState): boolean {
  */
 export function showResults(state: AppState): boolean {
   return isApartmentValid(state) && state.rooms.some(isRoomValid);
+}
+
+// ---------------------------------------------------------------------------
+// Apartment-field reducers (FR-APT-03) — pure, synchronous (FR-APT-05).
+//
+// The module tracks `suggestModule(ceiling, opening).suggested` while `moduleTouched`
+// is false. Selecting a module directly sets `moduleTouched = true`, after which
+// ceiling/opening edits no longer change it — the override is sticky.
+// ---------------------------------------------------------------------------
+
+/** Update the ceiling; re-suggests the module only while it hasn't been overridden. */
+export function withCeiling(state: AppState, ceiling: number): AppState {
+  const next = { ...state, ceiling };
+  if (state.moduleTouched) return next;
+  return { ...next, module: suggestModule(ceiling, next.opening).suggested };
+}
+
+/** Update the opening; re-suggests the module only while it hasn't been overridden. */
+export function withOpening(state: AppState, opening: number): AppState {
+  const next = { ...state, opening };
+  if (state.moduleTouched) return next;
+  return { ...next, module: suggestModule(next.ceiling, opening).suggested };
+}
+
+/** Set the module directly; marks it as user-touched so it stops auto-following. */
+export function withModule(state: AppState, module: number): AppState {
+  return { ...state, module, moduleTouched: true };
 }
