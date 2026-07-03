@@ -1,0 +1,45 @@
+{
+  "change": "design-system",
+  "generated_at": "2026-07-03T01:05:00+03:00",
+  "base_sha": "1fb35149653847f9852e178c1146a07a67088586",
+  "head_sha": "dd371caca6f4f51bbd10c81e818306c21de097da",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 1 },
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Verbatim token port is exact (24 color + 2 font tokens, both themes), Tailwind 4 @custom-variant/@theme-inline wiring correct and building, fonts self-hosted and consumed; only a low advisory on sub-AA faint/accent contrast for downstream usage.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "a11y",
+          "requirement_ids": ["NFR-A11Y-02"],
+          "file": "app/globals.css",
+          "line": 19,
+          "summary": "--faint (#9a9a91 on --bg #fbfbfa) is ~2.7:1 and --accent-on-bg ~3.7:1, both below WCAG AA for normal text; these pairs were not in the design.md verified set (fg/bg, fg/panel, muted/bg all pass). Values are a correct verbatim port of the frozen DESIGN §3 tokens, so this is inherited from the design, not a porting error. No component consumes --faint yet.",
+          "recommendation": "Track as a token-usage constraint: downstream components must not use --faint (or accent-colored) text for meaningful small copy, or must pair it with a non-color cue and/or a larger size. Do NOT silently mutate the frozen DESIGN §3 value here; if a fix is wanted it is a design-source decision tuned in globals.css only. Surfaced in CURRENT_STATE + the QA test plan.",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "openspec validate --strict PASS; TC-STACK-02 / TC-STACK-03 / NFR-A11Y-02 all implemented + covered — tokens verbatim from DESIGN §3, next/font @font-face emits literal Inter/JetBrains Mono names so var(--sans/--mono) self-host correctly, dark: reconciled via @custom-variant on [data-theme=\"dark\"], focus/reduced-motion present, build + app/ lint + 25 tests green, no scope drift.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "CSS token foundation + font/theme wiring only; next/font self-hosts (no runtime Google Fonts request / IP leak), no network/storage/trackers/cookies/sinks, no new deps — BC-PRIVACY-01 / TC-DATA-01 hold. suppressHydrationWarning use is benign.",
+      "findings": []
+    }
+  ]
+}
