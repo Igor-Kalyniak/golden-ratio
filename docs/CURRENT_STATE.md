@@ -6,31 +6,35 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T02:20:00+03:00
-- **Last action:** **Shipped capability 4 `app-shell`** end-to-end via the `ship-capability`
-  advisory loop. The app now renders a real shell: [app/page.tsx](../app/page.tsx) is a
-  Server Component rendering the single [components/Calculator.tsx](../components/Calculator.tsx)
-  client boundary (owns `AppState`, mounts `LanguageProvider`, derives `showResults` via
-  `useMemo`); [components/Shell.tsx](../components/Shell.tsx) is the sticky header + responsive
-  two-column layout with the top-right language toggle, a theme toggle, and the
-  validity-gated results region; [components/ThemeToggle.tsx](../components/ThemeToggle.tsx)
-  flips `html[data-theme]`; pure [lib/app-state.ts](../lib/app-state.ts) holds the
-  `showResults` gate. Archived to
-  [openspec/changes/archive/2026-07-03-app-shell/](../openspec/changes/archive/2026-07-03-app-shell/);
-  5 requirements synced to `openspec/specs/app-shell/spec.md`.
-  (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`.)
+- **Last updated:** 2026-07-03T11:20:00+03:00
+- **Last action:** **Shipped capability 5 `apartment-input`** end-to-end via the
+  `ship-capability` advisory loop. The apartment card now fills the shell's input slot:
+  [components/ApartmentForm.tsx](../components/ApartmentForm.tsx) renders ceiling / opening
+  number fields (range hint, `mm` suffix, inline `role="alert"` errors, `aria-invalid` +
+  `aria-describedby`) and a module `<select>` over `STANDARD_MODULES` annotating the live
+  suggestion. [lib/app-state.ts](../lib/app-state.ts) gained `moduleTouched` + pure reducers
+  `withCeiling`/`withOpening`/`withModule` (module follows the suggestion until the user
+  overrides, then sticky — FR-APT-03); [components/Calculator.tsx](../components/Calculator.tsx)
+  wires the setters. Archived to
+  [openspec/changes/archive/2026-07-03-apartment-input/](../openspec/changes/archive/2026-07-03-apartment-input/);
+  5 requirements synced to `openspec/specs/apartment-input/spec.md`.
+  (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`.)
 - **Status:**
-  - Done — **`app-shell`** (FR-SHELL-01/02/03/04, TC-CLIENT-01, TC-ARCH-01, NFR-RESP-01,
-    NFR-A11Y-01, NFR-PERF-01): server page + single `Calculator` client boundary/state owner,
-    `LanguageProvider` mounted, responsive header + `minmax(320,400) 1fr` grid, validity-gated
-    `aria-live` results region, `ThemeToggle`. Suite **44/44** (25 engine + 9 i18n + 10
-    app-state), build ✓, tsc ✓, lint ✓. Review **clean** (0 crit/high/med, 3 low all
-    resolved). QA 9/9 implemented & spec-compliant, 2/9 automated (gate + purity; the rest
-    structural). Input column + results region are **empty slots** for changes 5–11. Added
-    i18n keys `results`/`themeLight`/`themeDark` and a `--header-h` token.
+  - Done — **`apartment-input`** (FR-APT-01/02/03/04/05): ceiling/opening/module fields +
+    inline validation, wired to `Calculator` state via pure reducers. Suite **50/50** (25
+    engine + 9 i18n + 16 app-state), build ✓, tsc ✓, lint ✓. Review **clean** (0 crit/high/med,
+    2 low resolved: CR-001 empty-field→NaN coercion, CR-002 hint `aria-describedby`). QA 5/5
+    implemented & spec-compliant, 3/5 automated (FR-APT-03 reducers fully covered; FR-APT-04/05
+    form DOM/reactivity manual per ADR-0001). **Note:** the QA subagent hit a session limit
+    mid-run — it wrote `trajectory-eval.json`; the traceability rows + test plan were completed
+    by the main loop.
+  - Done — **`app-shell`** (archived 2026-07-03): server page + single `Calculator` client
+    boundary/state owner, `LanguageProvider` mounted, responsive header + grid, validity-gated
+    results region, `ThemeToggle`. NFR-RESP-01 / NFR-A11Y-01 partial (band SVG + editable-field
+    labels arrive with later capabilities). The apartment slot is now filled; the **rooms slot
+    remains a placeholder** (change 6).
   - Done — **`i18n`** (archived 2026-07-03): context + `t()`, flat EN/UA dictionaries, live
-    `LanguageToggle`, never-translate calc labels. `LanguageProvider` is now mounted by
-    `app-shell`.
+    `LanguageToggle`, never-translate calc labels. `LanguageProvider` is mounted by `app-shell`.
   - Done — **`design-system`** (archived 2026-07-03): OKLCH token foundation, Inter/JetBrains
     Mono, dark mode. **NFR-A11Y-02 partial** (see next steps).
   - Done — **`calculation-engine`** (archived 2026-07-03): the pure engine. Runner is
@@ -38,11 +42,12 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **Phase 1
-  inputs** fill the shell's slots: **5 `apartment-input`** (needs 4 ✓ + 1 ✓ — ceiling/opening/
-  module fields + inline validation, feeding `AppState`) and **6 `room-input`** (needs 4 ✓ —
-  room list add/remove + per-room name/length/width). Both wire the `setState` the shell
-  intentionally left out. Then **7 `module-summary`** (the linchpin). **Open low findings for
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — **6 `room-input`**
+  is next (needs 4 ✓): the room list (start with one room, add/remove except the last, per-room
+  name 1–50 + length/width 500–15000 with inline validation), filling the shell's still-empty
+  rooms slot. `lib/app-state.ts` already has `Room`/`isRoomValid` and a `rooms` array; this
+  change adds the room-CRUD reducers + `RoomList` UI. Then **7 `module-summary`** (the linchpin
+  that establishes the active module every result section reads). **Open low findings for
   triage** (in the archived `review-findings.json`s):
   - `design-system` **CR-001 → NFR-A11Y-02 partial**: `--faint` (~2.7:1) and
     `--accent`-on-`--bg` (~3.7:1) are **sub-AA** — a verbatim port of the frozen DESIGN §3
