@@ -28,9 +28,11 @@ export function PerRoomResults({ rooms, module: activeModule }: PerRoomResultsPr
       <h3 className="text-sm font-semibold">{t('perRoom')}</h3>
       <div className="space-y-3">
         {validRooms.map((room) => {
-          // The header fit badge is driven by the golden snap offset (DESIGN §6.3).
-          const { snapOffset } = computeGoldenSplit(longerWall(room), activeModule);
-          const approx = isApproximateFit(snapOffset, activeModule);
+          // Compute the golden split once here; the header fit badge and the block below both
+          // read it, so the fit decision has a single source of truth (review CR-001).
+          const longer = longerWall(room);
+          const split = computeGoldenSplit(longer, activeModule);
+          const approx = isApproximateFit(split.snapOffset, activeModule);
           return (
             <article key={room.id} className="space-y-3 rounded-lg border border-line2 bg-field/40 p-3">
               <header className="flex flex-wrap items-baseline justify-between gap-2">
@@ -49,7 +51,7 @@ export function PerRoomResults({ rooms, module: activeModule }: PerRoomResultsPr
                   {t(approx ? 'approxFit' : 'cleanFit')}
                 </span>
               </header>
-              <GoldenSplitBlock room={room} module={activeModule} />
+              <GoldenSplitBlock longer={longer} split={split} approx={approx} />
             </article>
           );
         })}

@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  computeGoldenSplit,
-  isApproximateFit,
-  longerWall,
-} from '../lib/calculations';
-import { type Room } from '../lib/app-state';
+import { type GoldenSplit } from '../lib/calculations';
 import { useI18n } from '../lib/i18n-context';
 
 /** One-decimal for exact segments, integer for snapped grid values (DESIGN §6.3). */
@@ -15,15 +10,22 @@ const dec1 = (n: number) => n.toFixed(1);
  * Golden-ratio split block for one room (DESIGN §6.3): the split of the longer wall into exact
  * 0.618/0.382 segments, the ½M-snapped values, and the snap offset colored by fit. The first
  * block in the per-room card; grid-fit (10) and walkway (11) add sibling blocks. Read-only.
+ *
+ * The `split` and `approx` fit decision are computed once by the parent `PerRoomResults` (which
+ * also drives the header badge from them) and passed down, so the fit threshold has a single
+ * source of truth (review CR-001).
  */
-export function GoldenSplitBlock({ room, module: activeModule }: { room: Room; module: number }) {
+export function GoldenSplitBlock({
+  longer,
+  split,
+  approx,
+}: {
+  longer: number;
+  split: GoldenSplit;
+  approx: boolean;
+}) {
   const { t } = useI18n();
-  const longer = longerWall(room);
-  const { larger, smaller, largerSnapped, smallerSnapped, snapOffset } = computeGoldenSplit(
-    longer,
-    activeModule,
-  );
-  const approx = isApproximateFit(snapOffset, activeModule);
+  const { larger, smaller, largerSnapped, smallerSnapped, snapOffset } = split;
 
   return (
     <div className="space-y-1.5">
