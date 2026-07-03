@@ -1,0 +1,89 @@
+{
+  "change": "apartment-input",
+  "generated_at": "2026-07-03T04:10:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-APT-01",
+      "pdr_section": "PDR §Apartment input (L68)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ApartmentForm.tsx:NumberField (id=apt-ceiling, hint=rngCeiling, mm suffix)",
+        "lib/app-state.ts:DEFAULT_STATE.ceiling=2800",
+        "lib/calculations.ts:isValidCeiling",
+        "lib/app-state.test.ts:\"isApartmentValid: default apartment is valid\"",
+        "lib/app-state.test.ts:\"isApartmentValid: bad ceiling / opening / module invalidates\""
+      ],
+      "notes": "Integer ceiling field, default 2800, valid range 2000-5000. The numeric bound predicate (isValidCeiling via isApartmentValid) and the 2800 default are pinned by app-state.test.ts. The form-level rendering (number input, mm suffix, red border, role=alert) is NOT automated — no React/DOM runner (ADR-0001); verified by build+tsc+eslint clean and the manual checklist (apartment-input.md TC-2), and re-confirmed by a fresh code-reviewer (CR-001, empty-field NaN coercion, resolved)."
+    },
+    {
+      "id": "FR-APT-02",
+      "pdr_section": "PDR §Apartment input (L69)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ApartmentForm.tsx:NumberField (id=apt-opening, hint=rngOpening, invalid=isValidOpening(opening, ceiling))",
+        "lib/app-state.ts:DEFAULT_STATE.opening=2100",
+        "lib/calculations.ts:isValidOpening",
+        "lib/app-state.test.ts:\"isApartmentValid: bad ceiling / opening / module invalidates\" (opening 1700 invalid; opening 3000 > ceiling 2800 invalid)"
+      ],
+      "notes": "Integer opening field, default 2100, valid 1800-ceiling. The ceiling-relative upper bound (opening>ceiling invalidates) and the 1800 floor are pinned by isApartmentValid tests; validation is derived from the current ceiling so it is non-stale (confirmed by code-reviewer). Form rendering is manual-only (apartment-input.md TC-3), same ADR-0001 constraint as FR-APT-01."
+    },
+    {
+      "id": "FR-APT-03",
+      "pdr_section": "PDR §Apartment input (L70)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:withCeiling",
+        "lib/app-state.ts:withOpening",
+        "lib/app-state.ts:withModule",
+        "lib/app-state.ts:AppState.moduleTouched",
+        "components/ApartmentForm.tsx:select over STANDARD_MODULES showing \"{m} — suggested\"",
+        "lib/app-state.test.ts:\"default state: module is the live suggestion and untouched\"",
+        "lib/app-state.test.ts:\"withCeiling: untouched module follows the new suggestion\"",
+        "lib/app-state.test.ts:\"withOpening: untouched module follows the new suggestion\"",
+        "lib/app-state.test.ts:\"withModule: sets the value and marks it touched\"",
+        "lib/app-state.test.ts:\"a touched module is sticky across ceiling/opening edits\"",
+        "lib/app-state.test.ts:\"reducers are pure — do not mutate the input state\""
+      ],
+      "notes": "Fully automated. The three spec scenarios are each pinned: default module equals suggestModule(2800,2100)=700 and moduleTouched=false; an untouched module follows the new suggestion on ceiling/opening edits; a directly-picked module marks moduleTouched=true and is sticky across subsequent ceiling/opening edits. withModule unconditionally marks touched even when the picked value equals the current suggestion (confirmed by code-reviewer). Reducers are pure (no input mutation). The dropdown enumerates STANDARD_MODULES and annotates the live suggestion."
+    },
+    {
+      "id": "FR-APT-04",
+      "pdr_section": "PDR §Apartment input (L71)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ApartmentForm.tsx:NumberField (border-err on invalid, role=\"alert\" p#{id}-error, aria-invalid, aria-describedby=[hintId, errorId])",
+        "components/ApartmentForm.tsx:errorText from t('errCeiling')/t('errOpening') (localized)",
+        "openspec/changes/apartment-input/review-findings.json:CR-002 (hint aria-describedby, resolved)"
+      ],
+      "notes": "Inline validation: red border (border-err), localized role=alert message below the field, aria-invalid, and aria-describedby wiring both the range hint and the error id. NOT automated — no React/DOM runner (ADR-0001). Verified by build+tsc+eslint and the manual checklist (apartment-input.md TC-2/TC-3/TC-6). A fresh code-reviewer verified the a11y detail directly: CR-002 (range hint was visually but not programmatically associated) was found and resolved, so aria-describedby now exposes the allowed range to assistive tech."
+    },
+    {
+      "id": "FR-APT-05",
+      "pdr_section": "PDR §Apartment input (L72)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ApartmentForm.tsx:onChange handlers only, no <form>/submit button",
+        "components/Calculator.tsx:setter handlers wire withCeiling/withOpening/withModule into useState",
+        "lib/app-state.ts:pure synchronous reducers (NFR-PERF-01 purity test)",
+        "lib/app-state.test.ts:\"lib/app-state.ts imports no framework code\""
+      ],
+      "notes": "Reactive, no submit button — each field's onChange recomputes synchronously through pure reducers and the derived showResults useMemo. Structural / manual (apartment-input.md TC-4): the no-submit-button, same-frame-update behavior has no DOM assertion, but the synchronous pure compute path is pinned by the app-state purity test and the resolved CR-001 (empty-field NaN coercion) confirms the keystroke path handles cleared fields without a stale/0 value."
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "implemented": 5,
+    "tested": 3,
+    "spec_compliant": 5
+  }
+}
