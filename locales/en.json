@@ -87,6 +87,7 @@
   "recAcc": "One person passes; furniture doors limited.",
   "recTight": "Below ergonomic minimum — reconsider layout.",
   "visualizer": "Module visualizer",
+  "oneModule": "1 module",
   "vizNote": "Read-only — comprehension aid, to scale. Not a floor plan.",
   "webgl": "3D unavailable on this device — showing 2D plan instead.",
   "qexact": "exact",

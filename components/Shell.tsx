@@ -10,6 +10,7 @@ import { ModeToggle } from './ModeToggle';
 import { ModuleSummary } from './ModuleSummary';
 import { PerRoomResults } from './PerRoomResults';
 import { RoomList } from './RoomList';
+import { Viz2D } from './Viz2D';
 import { ThemeToggle } from './ThemeToggle';
 
 interface ShellProps {
@@ -126,6 +127,9 @@ export function Shell({
                   opening={state.opening}
                 />
               )}
+              {/* 2D module visualizer (change 14) — read-only, 2D-mode only; the 3D scene is
+                  viz-3d (15). */}
+              {state.mode === '2d' && <Viz2D rooms={state.rooms} module={state.module} />}
               {/* Per-room result cards (change 9); grid-fit (10) + walkway (11) add blocks. */}
               <PerRoomResults rooms={state.rooms} module={state.module} />
             </div>

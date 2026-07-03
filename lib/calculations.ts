@@ -471,3 +471,39 @@ export function walkwayMeterBars(rating: WalkwayRating): 1 | 2 | 3 {
   if (rating === 'acceptable') return 2;
   return 1;
 }
+
+// ---------------------------------------------------------------------------
+// 2D visualizer geometry — FR-VIZ2D-01/02/03
+// ---------------------------------------------------------------------------
+
+export interface Room2DLayout {
+  /** Whole module cells that fit along the length: floor(length / m). */
+  cols: number;
+  /** Whole module cells that fit along the width: floor(width / m). */
+  rows: number;
+  /** Leftover length past the last whole column (mm); 0 when length divides evenly. */
+  rightStrip: number;
+  /** Leftover width past the last whole row (mm); 0 when width divides evenly. */
+  bottomStrip: number;
+  /** The single highlighted M×M cell, bottom-left (0-based col/row). */
+  highlight: { col: number; row: number };
+}
+
+/**
+ * Render-ready 2D-visualizer grid layout for a room (FR-VIZ2D-02/03), in module/mm space —
+ * the component multiplies by one shared mm→viewBox scale. Tiles `floor(dim/m)` WHOLE cells
+ * (the modules that physically fit inside the rectangle) with the leftover surfaced as an edge
+ * strip; this "fit-inside" count is intentionally distinct from `computeRoomGrid`'s nearest
+ * (`round`) count used for the grid-fit quality result. Exactly one cell is highlighted.
+ */
+export function layoutRoom2D(length: number, width: number, m: number): Room2DLayout {
+  const cols = Math.floor(length / m);
+  const rows = Math.floor(width / m);
+  return {
+    cols,
+    rows,
+    rightStrip: length - cols * m,
+    bottomStrip: width - rows * m,
+    highlight: { col: 0, row: Math.max(0, rows - 1) },
+  };
+}

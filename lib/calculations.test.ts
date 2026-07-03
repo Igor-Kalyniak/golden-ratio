@@ -22,6 +22,7 @@ import {
   computeWalkways,
   rateWalkway,
   walkwayMeterBars,
+  layoutRoom2D,
   isValidCeiling,
   isValidOpening,
   isValidDimension,
@@ -414,6 +415,46 @@ test('walkway facing preset can go negative and reads tight', () => {
   assert.equal(w.available, -200);
   assert.equal(w.rating, 'tight');
   assert.equal(w.recommendation, 'walkway.tight');
+});
+
+// --- layoutRoom2D (FR-VIZ2D-02/03) -----------------------------------------
+
+test('layoutRoom2D: exact fit → whole cells, no strips', () => {
+  const l = layoutRoom2D(3000, 2400, 600); // 5 × 4 exact
+  assert.equal(l.cols, 5);
+  assert.equal(l.rows, 4);
+  assert.equal(l.rightStrip, 0);
+  assert.equal(l.bottomStrip, 0);
+});
+
+test('layoutRoom2D: remainders surface as edge strips', () => {
+  const l = layoutRoom2D(3200, 2500, 600); // floor 5 (rem 200) × floor 4 (rem 100)
+  assert.equal(l.cols, 5);
+  assert.equal(l.rows, 4);
+  assert.equal(l.rightStrip, 200);
+  assert.equal(l.bottomStrip, 100);
+});
+
+test('layoutRoom2D: cols/rows are floor(dim/m), not round', () => {
+  // 3599/600 = 5.998 → floor 5 (round would give 6); the visualizer tiles whole cells inside.
+  const l = layoutRoom2D(3599, 3599, 600);
+  assert.equal(l.cols, 5);
+  assert.equal(l.rows, 5);
+  assert.equal(l.rightStrip, 599);
+});
+
+test('layoutRoom2D: exactly one highlighted cell, bottom-left', () => {
+  const l = layoutRoom2D(3000, 2400, 600);
+  assert.deepEqual(l.highlight, { col: 0, row: 3 }); // rows-1
+});
+
+test('layoutRoom2D: room smaller than a module → rows 0, highlight row 0, no negative strip', () => {
+  const l = layoutRoom2D(500, 500, 600); // smaller than one module
+  assert.equal(l.cols, 0);
+  assert.equal(l.rows, 0);
+  assert.deepEqual(l.highlight, { col: 0, row: 0 }); // max(0, rows-1)
+  assert.equal(l.rightStrip, 500);
+  assert.equal(l.bottomStrip, 500);
 });
 
 // --- Validation bounds -----------------------------------------------------
