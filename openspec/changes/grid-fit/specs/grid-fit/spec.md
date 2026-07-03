@@ -15,7 +15,8 @@ Each valid room's grid-fit block SHALL show the room as `lengthModules × widthM
 #### Scenario: Signed remainders
 
 - **WHEN** a room is 3800 × 2500 with module 700
-- **THEN** the block shows `5 × 4` modules with remainders `−300` (length) and `+300` (width)
+- **THEN** the block shows `5 × 4` modules with remainders `+300` (length, `3800 − 5·700`) and
+  `−300` (width, `2500 − 4·700`)
 
 ### Requirement: Round-up / round-down annotation follows the sign convention
 
@@ -26,13 +27,13 @@ produce no annotation. (`FR-GRID-03`)
 
 #### Scenario: Positive remainder rounds down
 
-- **WHEN** the width remainder is `+300`
-- **THEN** the annotation reads `round down on width`
+- **WHEN** the length remainder is `+300` (dimension over the grid)
+- **THEN** the annotation reads `round down on length`
 
 #### Scenario: Negative remainder rounds up
 
-- **WHEN** the length remainder is `−300`
-- **THEN** the annotation reads `round up on length`
+- **WHEN** the width remainder is `−300` (dimension under the grid)
+- **THEN** the annotation reads `round up on width`
 
 #### Scenario: Zero remainder has no annotation
 
@@ -54,7 +55,7 @@ dimension 1 mm short of a module SHALL read `close`, not `poor`. (`FR-GRID-04`, 
 
 #### Scenario: Poor when a remainder exceeds a quarter module
 
-- **WHEN** a room is 3800 × 2500 with module 700 (remainder −300 > ¼M = 175)
+- **WHEN** a room is 3800 × 2500 with module 700 (remainders +300 / −300, magnitude 300 > ¼M = 175)
 - **THEN** the quality badge reads `poor`
 
 #### Scenario: Badge does not rely on color alone

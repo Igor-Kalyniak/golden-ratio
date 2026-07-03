@@ -17,6 +17,7 @@ import {
   longerWall,
   isApproximateFit,
   computeRoomGrid,
+  gridRoundDirection,
   computeWalkways,
   rateWalkway,
   isValidCeiling,
@@ -296,6 +297,20 @@ test('computeRoomGrid: exactly ¼M remainder still reads close (boundary)', () =
   const r = computeRoomGrid(2100 + 175, 700, 700); // length rem = +175 = M/4
   assert.equal(r.lengthRemainder, 175);
   assert.equal(r.quality, 'close');
+});
+
+// --- gridRoundDirection (FR-GRID-03 sign convention) -----------------------
+
+test('gridRoundDirection: positive over grid rounds down, negative under rounds up', () => {
+  assert.equal(gridRoundDirection(300), 'roundDown'); // over the grid line
+  assert.equal(gridRoundDirection(-300), 'roundUp'); // under the grid line
+  assert.equal(gridRoundDirection(0), null); // exact — no rounding
+});
+
+test('gridRoundDirection: matches the signed remainders of the kitchen worked example', () => {
+  const r = computeRoomGrid(3800, 2500, 700); // engine: length +300, width −300
+  assert.equal(gridRoundDirection(r.lengthRemainder), 'roundDown'); // +300 (over grid) → down
+  assert.equal(gridRoundDirection(r.widthRemainder), 'roundUp'); // −300 (under grid) → up
 });
 
 // --- computeWalkways (FR-WALK-01/02/03, BC-WALK-01) ------------------------

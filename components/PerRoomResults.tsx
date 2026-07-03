@@ -8,6 +8,7 @@ import {
 import { isRoomValid, type Room } from '../lib/app-state';
 import { useI18n } from '../lib/i18n-context';
 import { GoldenSplitBlock } from './GoldenSplitBlock';
+import { GridFitBlock } from './GridFitBlock';
 
 interface PerRoomResultsProps {
   rooms: Room[];
@@ -52,6 +53,7 @@ export function PerRoomResults({ rooms, module: activeModule }: PerRoomResultsPr
                 </span>
               </header>
               <GoldenSplitBlock longer={longer} split={split} approx={approx} />
+              <GridFitBlock room={room} module={activeModule} />
             </article>
           );
         })}

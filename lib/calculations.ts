@@ -153,7 +153,7 @@ export interface GoldenSplit {
 export interface RoomGrid {
   lengthModules: number;
   widthModules: number;
-  /** Signed nearest-distance remainder (negative ⇒ round down, positive ⇒ round up). */
+  /** Signed nearest-distance remainder (positive ⇒ over grid, round down; negative ⇒ under grid, round up — FR-GRID-03). */
   lengthRemainder: number;
   widthRemainder: number;
   quality: GridQuality;
@@ -398,6 +398,17 @@ export function computeRoomGrid(length: number, width: number, m: number): RoomG
     quality = 'poor';
   }
   return { lengthModules, widthModules, lengthRemainder, widthRemainder, quality };
+}
+
+/**
+ * The direction to round a dimension to reach the grid, from its signed remainder (FR-GRID-03):
+ * a positive remainder sits over the grid line (`'roundDown'`), a negative one under it
+ * (`'roundUp'`), and zero needs no rounding (`null`). Locale-independent key the UI maps via `t()`.
+ */
+export function gridRoundDirection(remainder: number): 'roundDown' | 'roundUp' | null {
+  if (remainder > 0) return 'roundDown';
+  if (remainder < 0) return 'roundUp';
+  return null;
 }
 
 // ---------------------------------------------------------------------------
