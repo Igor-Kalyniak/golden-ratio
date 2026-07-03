@@ -12,15 +12,16 @@ between the requirement IDs in the PDR and the changes you scaffold with
 - **Each OpenSpec change** = proposal + design + tasks for one capability, traced back
   to the PDR IDs listed in its card below.
 
-> Scope note: the Next.js app is scaffolded (`app/layout.tsx`, `page.tsx`, `globals.css`)
-> but still default boilerplate; `locales/` does not exist yet. **Change 1
-> `calculation-engine` is shipped** (2026-07-03): [lib/calculations.ts](../lib/calculations.ts)
-> + its `node:test` suite exist, and the test runner is wired as `node --test lib/*.test.ts`
-> using Node's **native TS type-stripping** — the `tsx` loader from
-> [ADR-0001](adr/0001-test-runner.md) was **dropped as redundant** on Node 22.22 (ADR
-> amended 2026-07-03). `@react-three/fiber` + `@react-three/drei` + `three` are already
-> installed. `TC-STACK-01` is `accepted`; change 1 is `shipped`; everything else is
-> `proposed`.
+> Scope note: **Changes 1 `calculation-engine` and 2 `design-system` are shipped**
+> (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts) + its `node:test`
+> suite; runner is `node --test lib/*.test.ts` (Node **native TS type-stripping** — the
+> `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped as redundant** on Node
+> 22.22, ADR amended 2026-07-03). Change 2: [app/globals.css](../app/globals.css) rewritten
+> to the DESIGN §3 OKLCH token system (light/dark, `@theme inline`, motion, focus) and
+> [app/layout.tsx](../app/layout.tsx) self-hosts Inter + JetBrains Mono via `next/font`
+> (Geist removed). `page.tsx` is still create-next-app boilerplate; `locales/` does not exist
+> yet. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
+> `TC-STACK-01` is `accepted`; changes 1–2 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -205,7 +206,13 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
   `residual` surfaced ([ADR-0002](adr/0002-standard-modules-swappable-constant.md)).
 - **Kickoff:** `openspec new change calculation-engine`
 
-#### 2. `design-system` — visual foundation *(Must)*
+#### 2. `design-system` — visual foundation *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-design-system/](../openspec/changes/archive/2026-07-03-design-system/);
+  spec synced to `openspec/specs/design-system/spec.md`. Build ✓, `eslint app/` ✓; review
+  clean (0 crit/high/med, 1 low). **Caveat:** NFR-A11Y-02 is *partial* — body/label/muted
+  text passes AA in both themes, but the frozen `--faint` / `--accent`-on-`--bg` tokens are
+  sub-AA (CR-001), tracked as a downstream token-usage constraint.
 - **Covers:** `TC-STACK-02`, `TC-STACK-03`, `NFR-A11Y-02`.
 - **Delivers:** rewrite `app/globals.css` with the OKLCH light/dark tokens, Inter /
   JetBrains Mono wiring (mono-for-numbers rule), dark-mode variants, base type scale;
