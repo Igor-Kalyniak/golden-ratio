@@ -30,9 +30,14 @@ export type CalcLabel = (typeof CALC_LABELS)[number];
 /**
  * Build a `t(key)` translator over one dictionary. A missing key falls back to the key
  * itself (never `undefined`) so a gap is visible in the UI rather than blank.
+ *
+ * Generic over the key type: passing a concrete dictionary (e.g. `en`) narrows `K` to that
+ * dictionary's keys, giving call sites compile-time key checking; it defaults to `string`.
  */
-export function createTranslator(dict: Dictionary): (key: string) => string {
-  return (key: string): string => dict[key] ?? key;
+export function createTranslator<K extends string = string>(
+  dict: Record<K, string>,
+): (key: K) => string {
+  return (key: K): string => dict[key] ?? (key as string);
 }
 
 /** Keys present in `base` but missing from `other` — for dictionary-parity checks. */

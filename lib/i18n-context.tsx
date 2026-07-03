@@ -4,20 +4,18 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 
 import en from '../locales/en.json';
 import ua from '../locales/ua.json';
-import {
-  createTranslator,
-  DEFAULT_LOCALE,
-  type Dictionary,
-  type Locale,
-} from './i18n';
+import { createTranslator, DEFAULT_LOCALE, type Locale } from './i18n';
 
-const DICTIONARIES: Record<Locale, Dictionary> = { en, ua };
+/** The valid translation keys, derived from the EN dictionary (UA has the same key set). */
+export type TranslationKey = keyof typeof en;
+
+const DICTIONARIES: Record<Locale, Record<TranslationKey, string>> = { en, ua };
 
 interface I18nValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   /** Translate a key in the active locale; falls back to the key when missing. */
-  t: (key: string) => string;
+  t: (key: TranslationKey) => string;
 }
 
 const I18nContext = createContext<I18nValue | null>(null);

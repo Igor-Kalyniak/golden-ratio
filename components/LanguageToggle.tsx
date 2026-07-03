@@ -11,12 +11,12 @@ const LABELS: Record<Locale, string> = { en: 'EN', ua: 'UA' };
  * `aria-pressed`.
  */
 export function LanguageToggle() {
-  const { locale, setLocale } = useI18n();
+  const { locale, setLocale, t } = useI18n();
 
   return (
     <div
       role="group"
-      aria-label="Language"
+      aria-label={t('language')}
       className="inline-flex items-center gap-0.5 rounded-full border border-line bg-panel2 p-0.5 text-sm font-medium"
     >
       {LOCALES.map((loc) => {
