@@ -1,0 +1,48 @@
+{
+  "change": "vertical-bands",
+  "generated_at": "2026-07-03T14:30:00+03:00",
+  "base_sha": "2b2dfbeac30f30f73498a85dc9dab28305dc0aca",
+  "head_sha": "c6fb7f70e99ff5a7e9c051242104d88034fed9a0",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean-after-fix",
+  "counts": { "critical": 0, "high": 1, "medium": 0, "low": 0 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). Security + spec-compliance both clean. code-reviewer found one HIGH: the initial viewBox 0 0 200 400 (the FR-VERT-05 PDR literal) was too narrow — right-side band-name labels and the opening tag overflowed and clipped, failing FR-VERT-06 legibility. RESOLVED by adopting DESIGN §6.2's 0 0 360 470 (x:78, w:150 bands, wide right gutter), which is exactly what that geometry was designed for and satisfies BOTH FR-VERT-05 (responsive viewBox contract) and FR-VERT-06 (labels legible). spec.md/design.md/tasks.md updated to record 360 470 as shipped and flag the PDR literal for a docs-pass reconciliation. Re-verified: 69/69 tests, lint clean, build+tsc green, strict PASS. The high finding was caught and fixed within the loop before archive; the engine logic (layoutBandDiagram/bandNameKey) was confirmed correct and prototype-faithful by all reviewers.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "Engine logic (layoutBandDiagram, bandNameKey) is correct, pure, and faithful to the frozen prototype's names() 3D rule; mm→y mapping is internally consistent; condense heuristic matches spec (keep index 0 + every 4th + last, >16 threshold) and improves on the prototype by drawing all ticks and hiding only labels; 69/69 tests pass; no circular import; viewBox tie-break reasonable. One real defect: right-side labels overflow the 200-unit viewBox and clip.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "high",
+          "category": "correctness",
+          "requirement_ids": ["FR-VERT-06", "FR-VERT-04", "NFR-RESP-01"],
+          "file": "components/BandDiagram.tsx",
+          "line": 72,
+          "summary": "Right-hand labels started at x=166 in a 200-wide viewBox (only 34u of room). Band names ('upper / ceiling', 'door-head zone') and the opening tag ('opening · off-grid', longer in UA) at fontSize 7 extended past x=200 and were clipped by the SVG viewport's default overflow:hidden, truncating text. DESIGN §6.2 used a 360-wide viewBox (x:78, w:150) specifically to fit these labels.",
+          "recommendation": "Fit the labels inside the viewBox: widen the right gutter / adopt DESIGN §6.2's 360×470 geometry, or shrink/abbreviate labels. Add a geometry regression guard given no DOM test runner.",
+          "status": "resolved",
+          "resolution": "Adopted DESIGN §6.2's viewBox 0 0 360 470 with BAND_X=78 / BAND_W=150, leaving ~126u of right gutter — band names and the opening tag now fit without clipping in both EN and UA. Chosen because it satisfies BOTH owned requirements in tension (FR-VERT-05 responsive contract + FR-VERT-06 legibility). spec.md/design.md/tasks.md updated to record 360×470 as shipped and flag the PDR 200×400 literal for a docs-pass reconciliation. Re-verified: 69/69, lint clean, build+tsc green, strict PASS."
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "All owned requirements (FR-VERT-01..06 + NFR-RESP-01) implemented and spec-compliant. layoutBandDiagram reuses computeVerticalBands (FR-VERT-01, not reimplemented); count derived floor(ceiling/m), uncapped (FR-VERT-02); trailing partial band (FR-VERT-03); opening on/off-grid overlay at true height (FR-VERT-04); responsive viewBox + preserveAspectRatio, no fixed pixels (FR-VERT-05/NFR-RESP-01); mm labels left, localized band-name keys right, condensing >16 marks (FR-VERT-06). Strict PASS, 69/69 tests, i18n parity 92/92, no new dependency, no scope drift. viewBox drift and unconditional-render-pending-mode-toggle are documented deferrals against non-owned concerns. (Audited head c6fb7f7, before the CR-001 viewBox fix; the fix only widens the viewBox and does not affect this verdict.)",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "The app's first SVG rendering, no security or privacy issues. All SVG content is static markup with React-escaped numeric coords (validated integers) and t()-resolved static dictionary strings — no dangerouslySetInnerHTML, no dynamic href/use/image/foreignObject, no user free-text sinks (room names aren't rendered here). No network, persistence, analytics, or export added; package.json/lockfile unchanged. layoutBandDiagram is DoS-safe: rendering is gated on isApartmentValid (module in STANDARD_MODULES >=100, ceiling <=5000), capping bands at ~50 with no m=0 path, no division-by-zero, and bounded loops.",
+      "findings": []
+    }
+  ]
+}

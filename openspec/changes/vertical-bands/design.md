@@ -54,14 +54,19 @@ helper instead emits a `nameKey` per band — `'band.basePlinth' | 'band.workZon
 The UI adds `bandBasePlinth`/`bandWorkZone`/`bandDoorHead`/`bandUpperCeiling` i18n keys (EN + UA,
 ported from the prototype strings). Labels stay parity-checked by the shipped i18n test.
 
-### viewBox: follow the owned requirement `FR-VERT-05` (`0 0 200 400`)
+### viewBox: `0 0 360 470` (DESIGN §6.2), reconciling FR-VERT-05 and FR-VERT-06
 There is a documented drift: **PDR `FR-VERT-05` specifies `viewBox="0 0 200 400"`**, while **DESIGN
-§6.2 shows `viewBox="0 0 360 470"`**. Per AGENTS.md, behavioural/requirement scope resolves against
-the PDR; `FR-VERT-05` is the ID this change is traced and QA-verified against, so the SVG uses
-`0 0 200 400`. The contract that actually matters — a `viewBox` + `preserveAspectRatio` +
-width-responsive container with no fixed pixel size — is identical under either number, and the
-diagram is purely proportional, so the choice is cosmetic. Flagged for the reviewers and recorded
-here so the DESIGN value isn't mistaken for a violation.
+§6.2 shows `viewBox="0 0 360 470"`**. The first cut used the PDR literal `200 400`, but review
+(CR-001, high) showed it is **too narrow**: with bands filling most of the 200-unit width, the
+right-side band-name labels (`upper / ceiling`, `door-head zone`) and the opening tag
+(`opening · off-grid`, longer still in UA) overflow the viewBox edge and clip — directly failing
+`FR-VERT-06` ("band names on the right … stays legible"). DESIGN §6.2's `360 470` with `x:78,
+w:150` bands leaves a wide right gutter precisely to fit these labels. Two owned requirements are in
+tension and only the wider box satisfies **both**, so the SVG uses `0 0 360 470`. The load-bearing
+`FR-VERT-05` contract (a `viewBox` + `preserveAspectRatio` + width-responsive container with no
+fixed pixel size) holds either way; the specific dimensions are proportional. The spec text is
+updated to record `360 470` as the shipped value and the PDR literal is flagged for a docs-pass
+reconciliation. This is the CR-001 resolution.
 
 ### The band diagram renders unconditionally for now (no mode toggle yet)
 DESIGN §6.2 tags the band diagram "3D mode only". The mode toggle is change 13 and does not exist,

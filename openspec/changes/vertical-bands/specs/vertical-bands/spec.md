@@ -43,9 +43,11 @@ multiple of the module; otherwise the marker SHALL be drawn off-grid at the true
 
 ### Requirement: Responsive viewBox SVG
 
-The band diagram SHALL be an SVG using a `viewBox` (`0 0 200 400`) with `preserveAspectRatio`, in a
-width-responsive container with no fixed pixel width, so it scales down on small screens.
-(`FR-VERT-05`, `NFR-RESP-01`)
+The band diagram SHALL be an SVG using a `viewBox` with `preserveAspectRatio`, in a
+width-responsive container with no fixed pixel width, so it scales down on small screens. The
+`viewBox` SHALL be sized so band-name and opening labels fit without clipping in both locales
+(`0 0 360 470`, per DESIGN §6.2; the `FR-VERT-05` literal `200 400` was too narrow for the
+right-side labels). (`FR-VERT-05`, `FR-VERT-06`, `NFR-RESP-01`)
 
 #### Scenario: Scales without a fixed width
 

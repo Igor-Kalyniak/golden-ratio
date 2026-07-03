@@ -17,13 +17,16 @@ const BAND_NAME_I18N: Record<BandNameKey, TranslationKey> = {
   'band.upperCeiling': 'bandUpperCeiling',
 };
 
-// viewBox geometry (FR-VERT-05): proportional, width-responsive, no fixed pixel size.
-const VB_W = 200;
-const VB_H = 400;
-const PAD_T = 12;
-const PAD_B = 12;
-const BAND_X = 64;
-const BAND_W = 96;
+// viewBox geometry (FR-VERT-05 + DESIGN §6.2): proportional, width-responsive, no fixed pixel
+// size. 360×470 (DESIGN) leaves a wide right gutter (bands end at x=228) so band-name and
+// opening labels fit without clipping in either locale — satisfies the FR-VERT-06 legibility
+// requirement, which the narrower PDR literal (200×400) could not.
+const VB_W = 360;
+const VB_H = 470;
+const PAD_T = 14;
+const PAD_B = 14;
+const BAND_X = 78;
+const BAND_W = 150;
 
 /**
  * Vertical band diagram (DESIGN §6.2) — a width-responsive `viewBox` SVG showing the ceiling

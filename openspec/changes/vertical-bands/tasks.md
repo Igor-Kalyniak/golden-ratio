@@ -17,8 +17,9 @@
 
 ## 3. UI: band diagram (`components/BandDiagram.tsx`, `'use client'`)
 
-- [x] 3.1 Width-responsive SVG `viewBox="0 0 200 400"` + `preserveAspectRatio`, no fixed pixel
-  width/height on the element (`FR-VERT-05`, `NFR-RESP-01`).
+- [x] 3.1 Width-responsive SVG `viewBox="0 0 360 470"` (DESIGN §6.2; wide enough for right-side
+  labels — see design.md viewBox decision) + `preserveAspectRatio`, no fixed pixel width/height on
+  the element (`FR-VERT-05`, `NFR-RESP-01`).
 - [x] 3.2 Render full bands bottom-to-top with alternating fills (`--inset`/`--panel2`); the
   partial band dashed (`--accent-bg`) tagged `partial · {span} mm` (`FR-VERT-03`).
 - [x] 3.3 mm marks up the left edge (hide labels flagged `condensedOut`); band names on the right
