@@ -1,0 +1,258 @@
+{
+  "change": "calculation-engine",
+  "generated_at": "2026-07-03T00:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-MODULE-01",
+      "pdr_section": "Module engine",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:suggestModule",
+        "lib/calculations.ts:gcd",
+        "lib/calculations.ts:nearestStandardModule",
+        "lib/calculations.test.ts:\"suggestModule: worked example 2800/2100 → M=700\"",
+        "lib/calculations.test.ts:\"suggestModule: coprime heights snap to a standard module, residual surfaced\"",
+        "lib/calculations.test.ts:\"nearestStandardModule: snaps to nearest, resolves the 250mm gap\""
+      ],
+      "notes": "Returns { rawGcd, suggested, alternatives, residual }; suggested is rawGcd snapped to nearest STANDARD_MODULES. Worked example 2800/2100 → M=700, residual 0, alternatives [600,350]. Coprime 2801/2100 → rawGcd 1 snaps to 100 with residual 99 surfaced (BC coprime edge)."
+    },
+    {
+      "id": "FR-VERT-01",
+      "pdr_section": "Vertical bands",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeVerticalBands",
+        "lib/calculations.test.ts:\"computeVerticalBands: ceiling not divisible leaves top remainder\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: opening alignment\""
+      ],
+      "notes": "Returns { bands, topRemainder, openingAligned, openingBand } exactly as specified."
+    },
+    {
+      "id": "FR-VERT-02",
+      "pdr_section": "Vertical bands",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeVerticalBands",
+        "lib/calculations.test.ts:\"computeVerticalBands: large band count derived, not capped\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: minimal 2-band case\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: ceiling not divisible leaves top remainder\""
+      ],
+      "notes": "Band count = floor(ceiling / m), variable not hardcoded (verified at 50 bands for 5000/100 and 2 bands for 2000/700). Doc caveat: PDR FR-VERT-02 main row was reconciled to floor (CR-004/SC-001 resolved), but the PDR boundary-conditions table (docs/PDR.md line 274, FR-VERT-02/03 row) still reads round(ceiling / m) — lingering doc drift; the code is correct (floor)."
+    },
+    {
+      "id": "FR-VERT-03",
+      "pdr_section": "Vertical bands",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeVerticalBands",
+        "lib/calculations.test.ts:\"computeVerticalBands: ceiling not divisible leaves top remainder\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: minimal 2-band case\""
+      ],
+      "notes": "topRemainder = ceiling - bands*m reported (50 for 2850/700, 600 for 2000/700). SVG partial-band rendering (FR-VERT-05/06) is not owned here."
+    },
+    {
+      "id": "FR-VERT-04",
+      "pdr_section": "Vertical bands",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeVerticalBands",
+        "lib/calculations.test.ts:\"computeVerticalBands: opening alignment\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: no opening → not aligned, null band\""
+      ],
+      "notes": "Engine portion only: openingAligned = (opening % m === 0) and openingBand = ceil(opening/m). Verified true/band 3 for 2100@700 and false for 2050@700. The off-grid dashed marker rendering is a UI/renderer concern, not owned by this change."
+    },
+    {
+      "id": "FR-GOLD-01",
+      "pdr_section": "Golden split",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeGoldenSplit",
+        "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\""
+      ],
+      "notes": "Returns { larger, smaller, largerSnapped, smallerSnapped, snapOffset } exactly as specified."
+    },
+    {
+      "id": "FR-GOLD-02",
+      "pdr_section": "Golden split",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeGoldenSplit",
+        "lib/calculations.ts:snap",
+        "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\"",
+        "lib/calculations.test.ts:\"computeGoldenSplit: kitchen longer wall 3800\"",
+        "lib/calculations.test.ts:\"computeGoldenSplit: bathroom longer wall 2150\""
+      ],
+      "notes": "larger = length*0.618, smaller = length*0.382; largerSnapped = snap to nearest m/2, smallerSnapped = length - largerSnapped. Worked-example numbers match SKILL: 4200 → larger 2595.6, snapped 2450, offset 145.6."
+    },
+    {
+      "id": "FR-GOLD-03",
+      "pdr_section": "Golden split",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeGoldenSplit",
+        "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\""
+      ],
+      "notes": "Engine contract only: computeGoldenSplit takes a single wall length; selecting the LONGER wall of a room is a documented caller responsibility (see the doc comment 'The caller applies this to the longer wall of a room'). No engine-level test can assert the selection because the engine does not perform it — tests pass the already-chosen longer wall (4200, 3800, 2150). Marked tested:false honestly; the longer-wall selection must be pinned by the consuming UI capability. Manual case TC-4 covers it."
+    },
+    {
+      "id": "FR-GRID-01",
+      "pdr_section": "Room grid fit",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeRoomGrid",
+        "lib/calculations.test.ts:\"computeRoomGrid: exact fit (living room)\""
+      ],
+      "notes": "Returns { lengthModules, widthModules, lengthRemainder, widthRemainder, quality } exactly as specified."
+    },
+    {
+      "id": "FR-GRID-02",
+      "pdr_section": "Room grid fit",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeRoomGrid",
+        "lib/calculations.test.ts:\"computeRoomGrid: poor fit (kitchen), signed remainders\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: 1mm short reads close, not poor\""
+      ],
+      "notes": "Module counts use Math.round(dimension/m) (nearest), not floor — verified: 3800/700 → 5 modules, 4199/700 → 6 modules."
+    },
+    {
+      "id": "FR-GRID-03",
+      "pdr_section": "Room grid fit",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeRoomGrid",
+        "lib/calculations.test.ts:\"computeRoomGrid: poor fit (kitchen), signed remainders\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: 1mm short reads close, not poor\""
+      ],
+      "notes": "Signed nearest-distance remainder d - round(d/m)*m: kitchen 3800 → +300, 2500 → -300; 4199 → -1. PDR FR-GRID-03 and SKILL kitchen sign typo were reconciled to the signed formula (SC-002 resolved)."
+    },
+    {
+      "id": "FR-GRID-04",
+      "pdr_section": "Room grid fit",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeRoomGrid",
+        "lib/calculations.test.ts:\"computeRoomGrid: exact fit (living room)\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: close fit (bathroom)\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: poor fit (kitchen), signed remainders\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: exactly ¼M remainder still reads close (boundary)\""
+      ],
+      "notes": "quality: exact (both 0), close (both |rem| ≤ m/4), poor otherwise. 1mm-short reads close; the exact ¼M (175 for m=700) boundary is inclusive-close (tested)."
+    },
+    {
+      "id": "FR-WALK-01",
+      "pdr_section": "Walkway clearance",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeWalkways",
+        "lib/calculations.test.ts:\"computeWalkways: worked-example ratings\"",
+        "lib/calculations.test.ts:\"computeWalkways: recommendation is a locale-independent key, not English prose\""
+      ],
+      "notes": "Returns { available, rating, recommendation }. CR-001 (medium, resolved): recommendation is now a locale-independent i18n key ('walkway.comfortable'|'.acceptable'|'.tight') rather than hardcoded English prose, keeping the engine language-agnostic (NFR-PURE-01) — pinned by a dedicated test."
+    },
+    {
+      "id": "FR-WALK-02",
+      "pdr_section": "Walkway clearance",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:computeWalkways",
+        "lib/calculations.ts:FURNITURE_DEPTHS",
+        "lib/calculations.test.ts:\"computeWalkways: worked-example ratings\"",
+        "lib/calculations.test.ts:\"computeWalkways: opposite depth subtracted\""
+      ],
+      "notes": "available = roomWidth - furnitureDepth - (oppositeDepth ?? 0); verified 3500-600 = 2900 and 3500-600-600 = 2300. Standard depths 600 (wardrobe/kitchen) and 900 (sofa) exposed as FURNITURE_DEPTHS."
+    },
+    {
+      "id": "FR-WALK-03",
+      "pdr_section": "Walkway clearance",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:rateWalkway",
+        "lib/calculations.ts:WALKWAY_THRESHOLDS",
+        "lib/calculations.test.ts:\"computeWalkways: thresholds are fixed mm, independent of module\"",
+        "lib/calculations.test.ts:\"computeWalkways: worked-example ratings\""
+      ],
+      "notes": "Fixed mm thresholds decoupled from M (BC-WALK-01): ≥900 comfortable, ≥600 acceptable, <600 tight. Boundaries verified: 899→acceptable, 900→comfortable, 599→tight, 600→acceptable."
+    },
+    {
+      "id": "NFR-PURE-01",
+      "pdr_section": "Non-functional / purity",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts",
+        "lib/calculations.test.ts:\"calculations.ts imports no framework code\""
+      ],
+      "notes": "Module has zero next/*, react, or DOM-global references; asserted by a source-scan test. SEC-001 (low, OPEN): computeVerticalBands/computeRoomGrid/computeGoldenSplit/snap divide by m without guarding m<=0 (Infinity/NaN if ever called with m=0). Not reachable today — m always comes from nearestStandardModule (>=100) over validated inputs; no security/DoS impact. Defensive-robustness only."
+    },
+    {
+      "id": "NFR-TEST-01",
+      "pdr_section": "Non-functional / testability",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.test.ts",
+        "lib/calculations.test.ts:\"computeVerticalBands: large band count derived, not capped\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: opening alignment\"",
+        "lib/calculations.test.ts:\"computeRoomGrid: 1mm short reads close, not poor\"",
+        "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\""
+      ],
+      "notes": "25/25 tests green via `node --test lib/calculations.test.ts` (native TS type-stripping, tsx removed per amended ADR-0001). Every exported function has normal + boundary + edge coverage (variable band counts, off-grid openings, 1mm-short dimensions, snap residuals, coprime heights). CR-002 (resolved) reconciled the spec wording to native node:test. CR-003 (low, OPEN): package.json lacks \"type\":\"module\" so the runner emits a MODULE_TYPELESS_PACKAGE_JSON warning — cosmetic, suite still passes green; deferred to avoid destabilizing the Next 16 build."
+    },
+    {
+      "id": "NFR-PERF-01",
+      "pdr_section": "Non-functional / performance",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts"
+      ],
+      "notes": "Every export is a synchronous pure function — no async, no Promises, no effects, no I/O — so results can update on the same frame as input change. The same-frame UI update is an integration property of the consuming render capability and is not assertable at the engine level; marked tested:false honestly. Structurally guaranteed by the code shape and the NFR-PURE-01 source scan."
+    },
+    {
+      "id": "NFR-PERF-02",
+      "pdr_section": "Non-functional / performance",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts"
+      ],
+      "notes": "Recompute budget <16 ms for ≤20 rooms is met by construction — the engine is O(rooms) constant-work arithmetic (a handful of multiplies/rounds per room; gcd is bounded on two <=5000 integers). No asserting timing test exists (confirmed by SC-004); none is mandated by a spec scenario. Not measured in this session. A benchmark harness is specified as manual/automated case TC-5 in the test plan to close the observation gap."
+    }
+  ],
+  "summary": { "total": 19, "implemented": 19, "tested": 16, "spec_compliant": 19 }
+}

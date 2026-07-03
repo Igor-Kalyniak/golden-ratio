@@ -271,7 +271,7 @@ Explicit behaviours for the boundary conditions the engine must handle. These ar
 | Scenario | Expected behavior | Ref |
 | -------- | ----------------- | --- |
 | Ceiling and opening are coprime (`rawGcd = 1`) | Suggestion snaps to nearest standard module; UI shows residual and alternatives rather than a literal 1 mm module | FR-MODULE-01/03 |
-| Ceiling not divisible by module | Last partial band shown as `topRemainder`; band count is `round(ceiling / m)` | FR-VERT-02/03 |
+| Ceiling not divisible by module | Last partial band shown as `topRemainder`; band count is `floor(ceiling / m)` | FR-VERT-02/03 |
 | Opening height does not fall on a band boundary | `openingAligned = false`; off-grid dashed marker at true height | FR-VERT-04 |
 | Very large band count (50+) | Labels condensed/grouped; SVG stays legible and responsive | FR-VERT-05/06 |
 | Room dimension 1 mm short of a module | Reads `close`, not `poor` (nearest-distance, not modulo) | FR-GRID-03/04 |
