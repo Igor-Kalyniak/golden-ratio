@@ -6,25 +6,29 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T14:45:00+03:00
-- **Last action:** **Shipped capability 8 `vertical-bands`** end-to-end via the `ship-capability`
-  advisory loop. The **results region now shows the height-band diagram** below the Module Summary:
-  [components/BandDiagram.tsx](../components/BandDiagram.tsx) is a width-responsive `viewBox` SVG —
-  `floor(ceiling/m)` full bands bottom-to-top with alternating fills, a dashed partial band for the
-  `topRemainder`, mm marks up the left (condensed at high counts), localized band names on the
-  right, and the opening as a dashed accent rule tagged on/off-grid.
-  [lib/calculations.ts](../lib/calculations.ts) gained the pure `layoutBandDiagram(ceiling,m,opening?)`
-  helper (render-ready layout in mm space + band-name keys + mark-condense flag) so
-  `FR-VERT-02/03/04/06` are unit-tested; [components/Shell.tsx](../components/Shell.tsx) renders it
-  after `ModuleSummary`. **Review caught a real HIGH defect** — the first cut used the PDR
-  `FR-VERT-05` literal `viewBox 0 0 200 400`, which clipped the right-side labels (failing
-  `FR-VERT-06`); resolved in-loop by adopting DESIGN §6.2's `0 0 360 470`, the only geometry
-  satisfying both requirements. Archived to
-  [openspec/changes/archive/2026-07-03-vertical-bands/](../openspec/changes/archive/2026-07-03-vertical-bands/);
-  requirements synced to `openspec/specs/vertical-bands/spec.md`.
+- **Last updated:** 2026-07-03T15:45:00+03:00
+- **Last action:** **Shipped capability 9 `golden-ratio`** end-to-end via the `ship-capability`
+  advisory loop. The **results region now shows per-room cards** below the band diagram:
+  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) maps each valid room to a card
+  (header: name + `l × w mm` + a `clean fit` ✓ / `approximate fit` ≈ badge driven by the golden
+  offset, text+glyph not color-only), and [components/GoldenSplitBlock.tsx](../components/GoldenSplitBlock.tsx)
+  renders the golden split of the longer wall — exact 0.618/0.382, ½M-snapped (accent), and
+  `snapOffset` colored by fit. [lib/calculations.ts](../lib/calculations.ts) gained the pure
+  `longerWall(room)` (`FR-GOLD-03`) and `isApproximateFit(offset, m)` (`FR-GOLD-04`, offset > ¼M)
+  helpers; `computeGoldenSplit` reused unchanged. This introduces the **per-room card scaffold**
+  (DESIGN §6.3) that grid-fit (10) + walkway (11) extend. Archived to
+  [openspec/changes/archive/2026-07-03-golden-ratio/](../openspec/changes/archive/2026-07-03-golden-ratio/);
+  requirements synced to `openspec/specs/golden-ratio/spec.md`.
   (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`, 6 `room-input`, 7 `module-summary`.)
+  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`.)
 - **Status:**
+  - Done — **`golden-ratio`** (FR-GOLD-01/02/03/04): per-room card scaffold + golden-split block.
+    Suite **72/72** (+3 tests), build ✓, tsc ✓, lint ✓. Review **all-clean** (0 crit/high/med, 1
+    low resolved — golden split computed once in `PerRoomResults` and passed to `GoldenSplitBlock`
+    as props, single source of truth). QA 4/4 implemented, tested & spec-compliant (`longerWall`/
+    `isApproximateFit`/`computeGoldenSplit` unit-tested — `FR-GOLD-03` now has a tested home,
+    closing change 1's manual-only gap; card DOM manual per ADR-0001). The per-room card is the
+    shared scaffold for grid-fit (10) + walkway (11).
   - Done — **`vertical-bands`** (FR-VERT-01/02/03/04/05/06, NFR-RESP-01): height-band SVG + pure
     `layoutBandDiagram`. Suite **69/69** (+8 layout tests), build ✓, tsc ✓, lint ✓. Review found
     **1 high, resolved in-loop** — CR-001: the `200×400` viewBox clipped right-side band-name/
@@ -71,20 +75,21 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — three **per-room**
-  result sections remain, each independent (needs 7 ✓ + 1 ✓ + the room list 6 ✓): **9 `golden-ratio`**
-  (per-room longer-wall split, exact/½M-snapped + approximate-fit flag when offset > ¼M —
-  `FR-GOLD-*`), **10 `grid-fit`** (modules×modules via `round(dim/m)`, signed remainders,
-  `exact`/`close`/`poor` quality badge that never relies on color alone — `FR-GRID-*`,
-  `NFR-A11Y-02`), **11 `walkway`** (fixed-mm clearance ratings decoupled from M — `FR-WALK-*`,
-  `BC-WALK-01`, `Should`). The engine functions
-  (`computeGoldenSplit`/`computeRoomGrid`/`computeWalkways`) already shipped in change 1, so these
-  are thin presentation layers that map one card per valid room (DESIGN §6.3). `golden-ratio` (9)
-  is the natural next pick. **Likely 3rd field consumer** — none of 9/10/11 add editable number
-  fields (they read room state), so `room-input` CR-001 (shared-field extraction) stays deferred
-  until the 2D/3D input reorganization (13). **Watch:** `grid-fit` (10) owns `NFR-A11Y-02`
-  (partial) — its quality badge must carry a text/icon cue, not color alone, and must avoid
-  `--faint`/accent for small meaningful text (see the design-system finding below).
+- **Next steps:** Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order — two **per-room**
+  result blocks remain, each extending the **shared per-room card** that `golden-ratio` (9)
+  established in [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) (add a sibling
+  block next to `<GoldenSplitBlock>`): **10 `grid-fit`** (modules×modules via `round(dim/m)`, signed
+  remainders, `exact`/`close`/`poor` quality badge that never relies on color alone — `FR-GRID-*`,
+  `NFR-A11Y-02`; engine `computeRoomGrid` shipped in change 1), then **11 `walkway`** (fixed-mm
+  clearance ratings decoupled from M, 3-bar meter per row — `FR-WALK-*`, `BC-WALK-01`, `Should`;
+  engine `computeWalkways`/`rateWalkway` shipped in change 1). Both are thin presentation layers.
+  `grid-fit` (10) is the natural next pick. **Watch:** `grid-fit` owns `NFR-A11Y-02` (partial) — its
+  quality badge must carry a text/icon cue, not color alone (follow the `golden-ratio` fit-badge
+  pattern: glyph + label), and must avoid `--faint`/accent for small meaningful text (see the
+  design-system finding below).
+  **Likely 3rd field consumer** — none of 10/11 add editable number fields (they read room state),
+  so `room-input` CR-001 (shared-field extraction) stays deferred until the 2D/3D input
+  reorganization (13).
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and

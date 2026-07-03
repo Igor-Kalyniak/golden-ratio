@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, and 8 `vertical-bands` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, and 9 `golden-ratio` are shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -38,11 +38,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > `lib/calculations.ts` gained `computeModuleRuler`/`moduleWarning` + `RULER_FACTORS`. Change 8:
 > [components/BandDiagram.tsx](../components/BandDiagram.tsx) adds the height-band SVG (responsive
 > `viewBox 0 0 360 470`, full + partial bands, mm marks, band names, opening on/off-grid marker)
-> and `lib/calculations.ts` gained the pure `layoutBandDiagram` + band-layout types. The
-> **results region now shows the Module Summary + band diagram**; per-room result sections
-> (golden/grid/walkway) + visualizer slots await changes 9–15. `@react-three/fiber` +
-> `@react-three/drei` + `three` are already installed. `TC-STACK-01` is `accepted`; changes 1–8
-> are `shipped`; everything else is `proposed`.
+> and `lib/calculations.ts` gained the pure `layoutBandDiagram` + band-layout types. Change 9:
+> [components/PerRoomResults.tsx](../components/PerRoomResults.tsx) +
+> [components/GoldenSplitBlock.tsx](../components/GoldenSplitBlock.tsx) add the per-room card
+> scaffold + golden-split block, and `lib/calculations.ts` gained `longerWall`/`isApproximateFit`.
+> The **results region now shows the Module Summary + band diagram + per-room golden split**; the
+> grid-fit (10) and walkway (11) blocks extend the same per-room card, and visualizer slots await
+> 12–15. `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
+> is `accepted`; changes 1–9 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -360,10 +363,19 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** 2-band and 50+-band cases both render legibly and responsively.
 - **Kickoff:** `openspec new change vertical-bands`
 
-#### 9. `golden-ratio` — per-room golden split *(Must)*
+#### 9. `golden-ratio` — per-room golden split *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-golden-ratio/](../openspec/changes/archive/2026-07-03-golden-ratio/);
+  spec synced to `openspec/specs/golden-ratio/spec.md`. Suite 72/72, build ✓, tsc ✓, lint ✓; review
+  **all-clean** (0 crit/high/med, 1 low resolved — golden split now computed once in
+  `PerRoomResults` and passed to `GoldenSplitBlock`, single source of truth). QA 4/4 implemented,
+  tested & spec-compliant (`longerWall`/`isApproximateFit`/`computeGoldenSplit` unit-tested; card
+  DOM manual per ADR-0001). Introduces the **per-room card scaffold** (DESIGN §6.3, one card per
+  valid room) that `grid-fit` (10) and `walkway` (11) extend with their blocks.
 - **Covers:** `FR-GOLD-01/02/03/04`.
-- **Delivers:** golden split applied to the **longer** wall; shows exact, ½M-snapped, and
-  `snapOffset`; flags "approximate fit" when offset > ¼M.
+- **Delivers:** golden split applied to the **longer** wall (`longerWall = max(l,w)`); shows exact
+  (0.618/0.382), ½M-snapped, and `snapOffset`; flags "approximate fit" (`isApproximateFit`:
+  offset > ¼M, strict) via a text+glyph header badge.
 - **Depends on:** `module-summary`, `room-input`, `calculation-engine`.
 - **Why here:** independent result section; parallel with 8/10.
 - **Done when:** exact + snapped values shown per room; large-offset rooms flagged.
