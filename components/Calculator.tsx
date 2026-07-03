@@ -6,13 +6,16 @@ import { LanguageProvider } from '../lib/i18n-context';
 import {
   addRoom,
   DEFAULT_STATE,
+  moduleSuggestion,
   removeRoom,
   showResults,
   updateRoom,
   withCeiling,
+  withMode,
   withModule,
   withOpening,
   type AppState,
+  type Mode,
   type Room,
 } from '../lib/app-state';
 import { Shell } from './Shell';
@@ -31,7 +34,14 @@ import { Shell } from './Shell';
 export function Calculator() {
   const [state, setState] = useState<AppState>(DEFAULT_STATE);
   const results = useMemo(() => showResults(state), [state]);
+  // The mode-appropriate module suggestion (heights in 3D, room dims in 2D), computed once and
+  // flowed down as props so leaves never recompute it (TC-ARCH-01).
+  const suggestion = useMemo(() => moduleSuggestion(state), [state]);
 
+  const onModeChange = useCallback(
+    (mode: Mode) => setState((prev) => withMode(prev, mode)),
+    [],
+  );
   const onCeilingChange = useCallback(
     (ceiling: number) => setState((prev) => withCeiling(prev, ceiling)),
     [],
@@ -61,6 +71,8 @@ export function Calculator() {
       <Shell
         state={state}
         showResults={results}
+        suggestion={suggestion}
+        onModeChange={onModeChange}
         onCeilingChange={onCeilingChange}
         onOpeningChange={onOpeningChange}
         onModuleChange={onModuleChange}

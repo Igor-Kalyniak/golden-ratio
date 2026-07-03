@@ -1,12 +1,16 @@
 'use client';
 
-import { STANDARD_MODULES, isValidCeiling, isValidOpening, suggestModule } from '../lib/calculations';
+import { STANDARD_MODULES, isValidCeiling, isValidOpening } from '../lib/calculations';
+import { type Mode } from '../lib/app-state';
 import { useI18n } from '../lib/i18n-context';
 
 interface ApartmentFormProps {
+  mode: Mode;
   ceiling: number;
   opening: number;
   module: number;
+  /** The mode-appropriate suggested module (heights in 3D, room dims in 2D). */
+  suggested: number;
   onCeilingChange: (value: number) => void;
   onOpeningChange: (value: number) => void;
   onModuleChange: (value: number) => void;
@@ -14,13 +18,16 @@ interface ApartmentFormProps {
 
 /**
  * The apartment card (DESIGN §5.2): ceiling, opening, and module fields. Reactive — no
- * submit button, every change recomputes synchronously (FR-APT-05). Fills the apartment
- * slot in `Shell`; the room list is a separate, untouched slot (change 6).
+ * submit button, every change recomputes synchronously (FR-APT-05). In 2D mode the height
+ * fields are hidden (FR-MODE-02) and only the shared module `<select>` remains; the suggested
+ * option is annotated from the mode-appropriate `suggested` prop.
  */
 export function ApartmentForm({
+  mode,
   ceiling,
   opening,
   module: activeModule,
+  suggested,
   onCeilingChange,
   onOpeningChange,
   onModuleChange,
@@ -28,28 +35,31 @@ export function ApartmentForm({
   const { t } = useI18n();
   const ceilingInvalid = !isValidCeiling(ceiling);
   const openingInvalid = !isValidOpening(opening, ceiling);
-  const suggested = suggestModule(ceiling, opening).suggested;
 
   return (
     <div className="space-y-3.5 rounded-xl border border-line bg-panel p-4">
-      <NumberField
-        id="apt-ceiling"
-        label={t('ceiling')}
-        hint={t('rngCeiling')}
-        value={ceiling}
-        invalid={ceilingInvalid}
-        errorText={t('errCeiling')}
-        onChange={onCeilingChange}
-      />
-      <NumberField
-        id="apt-opening"
-        label={t('opening')}
-        hint={t('rngOpening')}
-        value={opening}
-        invalid={openingInvalid}
-        errorText={t('errOpening')}
-        onChange={onOpeningChange}
-      />
+      {mode === '3d' && (
+        <>
+          <NumberField
+            id="apt-ceiling"
+            label={t('ceiling')}
+            hint={t('rngCeiling')}
+            value={ceiling}
+            invalid={ceilingInvalid}
+            errorText={t('errCeiling')}
+            onChange={onCeilingChange}
+          />
+          <NumberField
+            id="apt-opening"
+            label={t('opening')}
+            hint={t('rngOpening')}
+            value={opening}
+            invalid={openingInvalid}
+            errorText={t('errOpening')}
+            onChange={onOpeningChange}
+          />
+        </>
+      )}
 
       <div>
         <div className="mb-1 flex items-baseline gap-2">

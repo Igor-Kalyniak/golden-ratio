@@ -6,6 +6,7 @@
   "subtitle": "Proportional planning instrument · all values in mm",
   "live": "updates live",
   "inputs": "Inputs",
+  "mode": "Mode",
   "apartment": "Apartment",
   "ceiling": "Ceiling height",
   "opening": "Opening height",

@@ -3,15 +3,19 @@
 import {
   computeModuleRuler,
   moduleWarning,
-  suggestModule,
+  type ModuleSuggestion,
 } from '../lib/calculations';
+import { type Mode } from '../lib/app-state';
 import { useI18n, type TranslationKey } from '../lib/i18n-context';
 
 interface ModuleSummaryProps {
+  mode: Mode;
   /** The active module — the user's selection (default `suggested`), never the raw GCD. */
   module: number;
   ceiling: number;
   opening: number;
+  /** The mode-appropriate suggestion (heights in 3D, room dims in 2D), computed by the owner. */
+  suggestion: ModuleSuggestion;
 }
 
 /** Ruler "typical use" i18n keys, index-aligned to CALC_LABELS / RULER_FACTORS (¼M…4M). */
@@ -28,12 +32,19 @@ const RULER_USE_KEYS: TranslationKey[] = [
 /**
  * Module Summary (DESIGN §6.1) — the first result section and the linchpin that surfaces the
  * active module every downstream result reads (FR-MODULE-02, BC-MODULE-01). Read-only: it
- * displays `state.module` verbatim and only calls `suggestModule` to render the traceability
- * hint; it never edits state (the selector lives in the apartment card).
+ * displays `state.module` verbatim and renders the traceability hint from the mode-appropriate
+ * `suggestion` prop; it never edits state (the selector lives in the apartment card). In 2D the
+ * hint reads `GCD(rooms) → …` (FR-MODE-02); in 3D `GCD(ceiling, opening) → …` (FR-MODE-03).
  */
-export function ModuleSummary({ module: activeModule, ceiling, opening }: ModuleSummaryProps) {
+export function ModuleSummary({
+  mode,
+  module: activeModule,
+  ceiling,
+  opening,
+  suggestion,
+}: ModuleSummaryProps) {
   const { t } = useI18n();
-  const { rawGcd, suggested, residual, alternatives } = suggestModule(ceiling, opening);
+  const { rawGcd, suggested, residual, alternatives } = suggestion;
   const ruler = computeModuleRuler(activeModule);
   const warning = moduleWarning(activeModule);
 
@@ -53,9 +64,12 @@ export function ModuleSummary({ module: activeModule, ceiling, opening }: Module
 
         <div className="flex flex-col justify-center gap-2 text-sm">
           <p className="text-muted">
-            <span className="text-fg2">{t('suggestedFrom')}</span>
+            <span className="text-fg2">
+              {mode === '2d' ? t('suggestedFromRooms') : t('suggestedFrom')}
+            </span>
             <span className="ml-1 font-mono text-fg">
-              GCD({ceiling}, {opening}) = {rawGcd} → {t('snappedTo')} {suggested}
+              GCD({mode === '2d' ? t('rooms') : `${ceiling}, ${opening}`}) = {rawGcd} →{' '}
+              {t('snappedTo')} {suggested}
             </span>
           </p>
           <div className="flex flex-wrap items-center gap-2">

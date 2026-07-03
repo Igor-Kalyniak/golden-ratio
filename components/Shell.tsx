@@ -1,10 +1,12 @@
 'use client';
 
 import { useI18n } from '../lib/i18n-context';
-import { type AppState, type Room } from '../lib/app-state';
+import { type AppState, type Mode, type Room } from '../lib/app-state';
+import { type ModuleSuggestion } from '../lib/calculations';
 import { ApartmentForm } from './ApartmentForm';
 import { BandDiagram } from './BandDiagram';
 import { LanguageToggle } from './LanguageToggle';
+import { ModeToggle } from './ModeToggle';
 import { ModuleSummary } from './ModuleSummary';
 import { PerRoomResults } from './PerRoomResults';
 import { RoomList } from './RoomList';
@@ -13,6 +15,9 @@ import { ThemeToggle } from './ThemeToggle';
 interface ShellProps {
   state: AppState;
   showResults: boolean;
+  /** Mode-appropriate module suggestion, computed by `Calculator` (TC-ARCH-01). */
+  suggestion: ModuleSuggestion;
+  onModeChange: (mode: Mode) => void;
   onCeilingChange: (value: number) => void;
   onOpeningChange: (value: number) => void;
   onModuleChange: (value: number) => void;
@@ -25,13 +30,16 @@ interface ShellProps {
  * Presentational shell (DESIGN §4): sticky header + responsive two-column body. A descendant
  * of `LanguageProvider`, so it resolves every string through `t()`. The apartment slot is
  * filled by `ApartmentForm` (change 5) and the rooms slot by `RoomList` (change 6).
- * The results region opens with `ModuleSummary` (change 7); bands/per-room/visualizer
- * (changes 8–15) render below it, all gated on validity (FR-SHELL-04).
+ * A `ModeToggle` (change 13) sits atop the input column; 2D mode hides the height fields and the
+ * band diagram (FR-MODE-02). The results region opens with `ModuleSummary` (change 7);
+ * bands/per-room/visualizer (changes 8–15) render below it, all gated on validity (FR-SHELL-04).
  * `state`/`showResults` flow down as props (TC-ARCH-01) from `Calculator`, the state owner.
  */
 export function Shell({
   state,
   showResults,
+  suggestion,
+  onModeChange,
   onCeilingChange,
   onOpeningChange,
   onModuleChange,
@@ -74,11 +82,16 @@ export function Shell({
         {/* Input column slot — apartment fields (5, below) + room list (6) fill this. */}
         <section aria-label={t('inputs')} className="lg:sticky lg:top-[var(--header-h)]">
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold">{t('inputs')}</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold">{t('inputs')}</h2>
+              <ModeToggle mode={state.mode} onModeChange={onModeChange} />
+            </div>
             <ApartmentForm
+              mode={state.mode}
               ceiling={state.ceiling}
               opening={state.opening}
               module={state.module}
+              suggested={suggestion.suggested}
               onCeilingChange={onCeilingChange}
               onOpeningChange={onOpeningChange}
               onModuleChange={onModuleChange}
@@ -99,17 +112,20 @@ export function Shell({
               {/* Module Summary is the first result section (change 7); bands, per-room, and
                   the visualizer (changes 8–15) follow below it. */}
               <ModuleSummary
+                mode={state.mode}
                 module={state.module}
                 ceiling={state.ceiling}
                 opening={state.opening}
+                suggestion={suggestion}
               />
-              {/* Band diagram is a 3D-mode result (DESIGN §6.2); renders unconditionally until
-                  mode-toggle (change 13) gates it on mode === '3d'. */}
-              <BandDiagram
-                ceiling={state.ceiling}
-                module={state.module}
-                opening={state.opening}
-              />
+              {/* Band diagram is a 3D-only result (DESIGN §6.2, FR-MODE-02) — hidden in 2D. */}
+              {state.mode === '3d' && (
+                <BandDiagram
+                  ceiling={state.ceiling}
+                  module={state.module}
+                  opening={state.opening}
+                />
+              )}
               {/* Per-room result cards (change 9); grid-fit (10) + walkway (11) add blocks. */}
               <PerRoomResults rooms={state.rooms} module={state.module} />
             </div>

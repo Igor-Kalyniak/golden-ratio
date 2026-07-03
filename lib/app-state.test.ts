@@ -3,16 +3,18 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { suggestModule } from './calculations.ts';
+import { suggestModule, suggestModule2D } from './calculations.ts';
 import {
   addRoom,
   DEFAULT_STATE,
   isApartmentValid,
   isRoomValid,
+  moduleSuggestion,
   removeRoom,
   showResults,
   updateRoom,
   withCeiling,
+  withMode,
   withModule,
   withOpening,
   type AppState,
@@ -177,6 +179,63 @@ test('room reducers are pure — do not mutate the input state', () => {
   removeRoom(base, base.rooms[0].id);
   updateRoom(base, base.rooms[0].id, { name: 'X' });
   assert.deepEqual(base, snapshot);
+});
+
+// --- Mode toggle (FR-MODE-01/02/03/04/05) ----------------------------------
+
+test('default mode is 3d', () => {
+  assert.equal(DEFAULT_STATE.mode, '3d');
+});
+
+test('moduleSuggestion: 3D uses heights, 2D uses room dimensions', () => {
+  const in3d = moduleSuggestion(DEFAULT_STATE);
+  assert.deepEqual(in3d, suggestModule(DEFAULT_STATE.ceiling, DEFAULT_STATE.opening));
+  const in2d = moduleSuggestion(state({ mode: '2d' }));
+  assert.deepEqual(in2d, suggestModule2D(DEFAULT_STATE.rooms.filter(isRoomValid)));
+});
+
+test('withMode: untouched module re-derives from the new mode’s source', () => {
+  // Default room 3000×2400 → gcd 600 → suggested 600 in 2D; heights suggest 700 in 3D.
+  const next = withMode(DEFAULT_STATE, '2d');
+  assert.equal(next.mode, '2d');
+  assert.equal(next.module, suggestModule2D(DEFAULT_STATE.rooms.filter(isRoomValid)).suggested);
+  assert.equal(next.moduleTouched, false);
+});
+
+test('withMode: a touched module is sticky across a mode switch', () => {
+  const touched = withModule(DEFAULT_STATE, 350);
+  const next = withMode(touched, '2d');
+  assert.equal(next.mode, '2d');
+  assert.equal(next.module, 350, 'override survives the switch');
+  assert.equal(next.moduleTouched, true);
+});
+
+test('withMode: switching preserves rooms and heights (shared state)', () => {
+  const next = withMode(DEFAULT_STATE, '2d');
+  assert.deepEqual(next.rooms, DEFAULT_STATE.rooms);
+  assert.equal(next.ceiling, DEFAULT_STATE.ceiling);
+  assert.equal(next.opening, DEFAULT_STATE.opening);
+});
+
+test('room edits resync the untouched module in 2D but not in 3D', () => {
+  // In 2D, updating a room dimension re-derives the suggestion from rooms.
+  const in2d = state({ mode: '2d' });
+  const edited2d = updateRoom(in2d, in2d.rooms[0].id, { length: 3500, width: 3500 });
+  assert.equal(
+    edited2d.module,
+    suggestModule2D([{ length: 3500, width: 3500 }]).suggested,
+  );
+  // In 3D, the same edit leaves the height-derived module unchanged.
+  const edited3d = updateRoom(DEFAULT_STATE, DEFAULT_STATE.rooms[0].id, { length: 3500 });
+  assert.equal(edited3d.module, DEFAULT_STATE.module);
+});
+
+test('isApartmentValid: 2D ignores hidden heights; 3D still checks them', () => {
+  // A bad opening is invalid in 3D but irrelevant in 2D.
+  assert.equal(isApartmentValid(state({ opening: 1700 })), false); // 3D default
+  assert.equal(isApartmentValid(state({ mode: '2d', opening: 1700 })), true); // 2D ignores it
+  // A non-standard module is invalid in both modes.
+  assert.equal(isApartmentValid(state({ mode: '2d', module: 999 })), false);
 });
 
 // --- Purity (no framework imports in lib/app-state.ts) ---------------------

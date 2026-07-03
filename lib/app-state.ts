@@ -16,10 +16,15 @@ import {
   isValidDimension,
   isValidOpening,
   suggestModule,
+  suggestModule2D,
+  type ModuleSuggestion,
 } from './calculations.ts';
 
 /** Room name bounds (FR-ROOM-03). */
 export const ROOM_NAME = { min: 1, max: 50 } as const;
+
+/** Calculation mode (FR-MODE-01): `3d` uses heights, `2d` uses room dimensions. */
+export type Mode = '2d' | '3d';
 
 export interface Room {
   id: string;
@@ -31,22 +36,25 @@ export interface Room {
 }
 
 export interface AppState {
-  /** mm; valid 2000–5000 (FR-APT-01). */
+  /** Calculation mode; in-memory only, never persisted (FR-MODE-05, BC-PRIVACY-01). */
+  mode: Mode;
+  /** mm; valid 2000–5000 (FR-APT-01). Used in 3D mode; hidden in 2D. */
   ceiling: number;
-  /** mm; valid 1800–ceiling (FR-APT-02). */
+  /** mm; valid 1800–ceiling (FR-APT-02). Used in 3D mode; hidden in 2D. */
   opening: number;
   /** mm; one of STANDARD_MODULES (FR-APT-03). */
   module: number;
   /**
    * Whether the user has explicitly picked `module` (vs. it still following the live
-   * suggestion). Drives the auto-follow rule in `withCeiling`/`withOpening` (FR-APT-03).
+   * suggestion). Drives the auto-follow rule in the reducers (FR-APT-03, FR-MODE-04).
    */
   moduleTouched: boolean;
   rooms: Room[];
 }
 
-/** Valid starting state so the shell shows the results region by default. */
+/** Valid starting state so the shell shows the results region by default. Default mode 3D. */
 export const DEFAULT_STATE: AppState = {
+  mode: '3d',
   ceiling: 2800,
   opening: 2100,
   module: 700,
@@ -65,13 +73,27 @@ export function isRoomValid(room: Room): boolean {
   );
 }
 
-/** The apartment fields are valid when ceiling, opening, and module are all in range. */
+/**
+ * Apartment validity, mode-aware (FR-MODE-02/03). The module must always be a standard value; in
+ * 3D the ceiling and opening must also be in range, but in 2D those fields are hidden and
+ * irrelevant, so only the module is required.
+ */
 export function isApartmentValid(state: AppState): boolean {
-  return (
-    isValidCeiling(state.ceiling) &&
-    isValidOpening(state.opening, state.ceiling) &&
-    (STANDARD_MODULES as readonly number[]).includes(state.module)
-  );
+  const moduleOk = (STANDARD_MODULES as readonly number[]).includes(state.module);
+  if (state.mode === '2d') return moduleOk;
+  return isValidCeiling(state.ceiling) && isValidOpening(state.opening, state.ceiling) && moduleOk;
+}
+
+/**
+ * The mode-appropriate module suggestion (FR-MODE-02/03): from ceiling & opening heights in 3D,
+ * from the GCD folded across the valid rooms' dimensions in 2D. The single source the untouched
+ * module tracks and the Module Summary hint renders.
+ */
+export function moduleSuggestion(state: AppState): ModuleSuggestion {
+  if (state.mode === '2d') {
+    return suggestModule2D(state.rooms.filter(isRoomValid));
+  }
+  return suggestModule(state.ceiling, state.opening);
 }
 
 /**
@@ -83,25 +105,34 @@ export function showResults(state: AppState): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Apartment-field reducers (FR-APT-03) — pure, synchronous (FR-APT-05).
+// Apartment-field & mode reducers (FR-APT-03, FR-MODE-02/03/04) — pure, synchronous.
 //
-// The module tracks `suggestModule(ceiling, opening).suggested` while `moduleTouched`
-// is false. Selecting a module directly sets `moduleTouched = true`, after which
-// ceiling/opening edits no longer change it — the override is sticky.
+// The module tracks the mode-appropriate `moduleSuggestion(state).suggested` while
+// `moduleTouched` is false. Selecting a module directly sets `moduleTouched = true`, after
+// which suggestion-input edits (heights in 3D, room dims in 2D, or a mode switch) no longer
+// change it — the override is sticky. Every mutating reducer funnels through `resyncModule`
+// so the rule lives in one place and 2D/3D cannot drift.
 // ---------------------------------------------------------------------------
+
+/** Re-point an untouched module at the current mode's suggestion; a touched module is left alone. */
+function resyncModule(state: AppState): AppState {
+  if (state.moduleTouched) return state;
+  return { ...state, module: moduleSuggestion(state).suggested };
+}
+
+/** Switch calculation mode; re-suggests the module from the new mode's source if untouched. */
+export function withMode(state: AppState, mode: Mode): AppState {
+  return resyncModule({ ...state, mode });
+}
 
 /** Update the ceiling; re-suggests the module only while it hasn't been overridden. */
 export function withCeiling(state: AppState, ceiling: number): AppState {
-  const next = { ...state, ceiling };
-  if (state.moduleTouched) return next;
-  return { ...next, module: suggestModule(ceiling, next.opening).suggested };
+  return resyncModule({ ...state, ceiling });
 }
 
 /** Update the opening; re-suggests the module only while it hasn't been overridden. */
 export function withOpening(state: AppState, opening: number): AppState {
-  const next = { ...state, opening };
-  if (state.moduleTouched) return next;
-  return { ...next, module: suggestModule(next.ceiling, opening).suggested };
+  return resyncModule({ ...state, opening });
 }
 
 /** Set the module directly; marks it as user-touched so it stops auto-following. */
@@ -125,6 +156,9 @@ export function newRoomId(): string {
   return `room-${nextRoomSeq++}`;
 }
 
+// Room reducers funnel through `resyncModule` so an untouched module tracks the 2D room-dimension
+// suggestion (FR-MODE-02); in 3D the suggestion reads heights, so the resync is a no-op.
+
 /** Append a defaulted room; existing rooms unchanged (FR-ROOM-01, DESIGN §5.3). */
 export function addRoom(state: AppState): AppState {
   const room: Room = {
@@ -133,7 +167,7 @@ export function addRoom(state: AppState): AppState {
     length: 3000,
     width: 2400,
   };
-  return { ...state, rooms: [...state.rooms, room] };
+  return resyncModule({ ...state, rooms: [...state.rooms, room] });
 }
 
 /**
@@ -142,7 +176,7 @@ export function addRoom(state: AppState): AppState {
  */
 export function removeRoom(state: AppState, id: string): AppState {
   if (state.rooms.length <= 1) return state;
-  return { ...state, rooms: state.rooms.filter((room) => room.id !== id) };
+  return resyncModule({ ...state, rooms: state.rooms.filter((room) => room.id !== id) });
 }
 
 /** Patch a single room's editable fields, matched by id (FR-ROOM-03). */
@@ -151,8 +185,8 @@ export function updateRoom(
   id: string,
   patch: Partial<Pick<Room, 'name' | 'length' | 'width'>>,
 ): AppState {
-  return {
+  return resyncModule({
     ...state,
     rooms: state.rooms.map((room) => (room.id === id ? { ...room, ...patch } : room)),
-  };
+  });
 }
