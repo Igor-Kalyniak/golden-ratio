@@ -1,0 +1,35 @@
+{
+  "change": "grid-fit",
+  "generated_at": "2026-07-03T16:30:00+03:00",
+  "base_sha": "ed2c1dddde52ded142440c47e855c3e155275062",
+  "head_sha": "5e08f4a438a91331626b6efb4fbbed4e528e9094",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean with zero findings. The crux — the FR-GRID-03 sign convention — was verified internally consistent across gridRoundDirection (+→roundDown/over grid, −→roundUp/under grid), computeRoomGrid's returned signs (kitchen 3800×2500 → length +300, width −300), the corrected RoomGrid doc comment (previously reversed), the frozen prototype (prototype.dc.html:677), and spec.md (which uses the engine's actual signs, not the reversed DESIGN §6.3 table). Note: during Apply the Maker caught + fixed a test/spec that had copied DESIGN §6.3's reversed kitchen signs (−300/+300); the shipped values match the authoritative engine (+300/−300). NFR-A11Y-02 badge is label+glyph (not color alone), using good/warn/err tokens (AA), avoiding the sub-AA --faint/accent tokens. No new i18n keys, no new dependency, no scope drift into walkway (11). 74/74 tests.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "grid-fit presentation + round-direction helper are correct: sign convention matches FR-GRID-03 and the frozen prototype, the stale RoomGrid comment is fixed (returned values were always correct — comment-only), zero remainder yields no annotation, signed() renders +/− correctly, the a11y quality badge is label+glyph with aria-hidden glyph (not color alone) and avoids --faint/accent, helper is pure, block is read-only, no circular import, both locales carry all keys. The two badges per card (header golden + grid quality) are per DESIGN §6.3. Weighed and dismissed a non-defect: signed() uses ASCII '-' vs the prototype's U+2212 (no alignment/value impact in mono).",
+      "findings": []
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "grid-fit fully delivers FR-GRID-01/02/03/04/05 + NFR-A11Y-02. computeRoomGrid (ch1) reused unchanged; new gridRoundDirection encodes the FR-GRID-03 sign convention and is internally consistent with computeRoomGrid's returned signs (kitchen length +300 / width −300), the corrected doc comment, and spec.md scenarios (engine's actual signs, not DESIGN §6.3's reversed table). exact/close/poor with the 1mm-short→close boundary tested; badge label+glyph (never color alone). No walkway logic, no new i18n keys (all 10 pre-shipped in en/ua), no new dependency. Strict PASS, 74/74 tests, all tasks code-backed.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Pure numeric-rendering component (GridFitBlock) + a two-comparison helper (gridRoundDirection) + a doc-comment fix. Renders only computeRoomGrid numbers, signed remainders, a decorative aria-hidden glyph, and t()-resolved dictionary strings — all React-escaped; no dangerouslySetInnerHTML/HTML/SVG sink, no user free-text (room.name is in the change-9 card header, not this block). No network/storage/analytics/export. package.json/lockfile unchanged. Fixed arithmetic, no loops, module >= 100 rules out division-by-zero. No issues.",
+      "findings": []
+    }
+  ]
+}
