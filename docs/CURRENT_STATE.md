@@ -6,9 +6,24 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T22:20:00+03:00
-- **Last action:** **Shipped capability 16 `brand-logo`** end-to-end via the `ship-capability`
-  advisory loop — **the final change; the full 16-capability backlog is now complete.**
+- **Last updated:** 2026-07-04T12:00:00+03:00
+- **Last action:** **Shipped capability 17 `viz-3d-grid`** (iteration 3) end-to-end via the
+  `ship-capability` advisory loop — the 3D **module-lattice + remainder-slab** parity with the 2D
+  visualizer. [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) now draws a faint M³ lattice
+  on the floor + two corner faces (via `<lineSegments>`) and thin warn-tone remainder slabs on the
+  off-grid far faces; [lib/calculations.ts](../lib/calculations.ts) gained per-axis remainders on
+  `layoutRoom3D` (`lengthRemainder`/`widthRemainder`/`heightRemainder`) + a shared pure
+  `interiorModuleLines(dimension, m)` helper (one tested rule for both the 2D grid and 3D lattice).
+  Line count capped by `MAX_LATTICE_DIVISIONS = 40` (NFR-PERF-03). Added **`FR-VIZ3D-07`** to
+  [docs/PDR.md](PDR.md). Suite **107/107**, build ✓, tsc ✓, lint clean. Review **all-clean** (0
+  crit/high/med; 1 low CR-001 coverage **resolved in-loop** by the `interiorModuleLines` extraction +
+  5 tests). QA 1/1 implemented, tested & spec-compliant (canvas render manual per ADR-0001).
+  **NFR-BUNDLE-01 re-verified**: `@react-three`/`three` still imported only in `Viz3DScene.tsx`; no
+  new dependency. Archived to
+  [openspec/changes/archive/2026-07-04-viz-3d-grid/](../openspec/changes/archive/2026-07-04-viz-3d-grid/);
+  spec synced to `openspec/specs/viz-3d-grid/spec.md` (17/17 specs valid).
+  (Prior: shipped 16 `brand-logo` — **the full 16-capability iteration-2 backlog.**)
+- **Superseded — the 2026-07-03 "Shipped capability 16 `brand-logo`" note below.**
   [components/Logo.tsx](../components/Logo.tsx) is a Server Component rendering the DESIGN §7
   golden-ratio mark verbatim (nested φ:1 rects + golden-spiral arcs, `currentColor`, transparent,
   `aria-hidden`); [components/Shell.tsx](../components/Shell.tsx) swaps the header placeholder for
@@ -20,10 +35,19 @@
   [openspec/changes/archive/2026-07-03-brand-logo/](../openspec/changes/archive/2026-07-03-brand-logo/);
   requirements synced to `openspec/specs/brand-logo/spec.md`.
   (Prior: shipped 1–11 **Epic A complete**, 12–15 Epic B visualizers/mode.)
-- **Status: 🎉 ALL 16 CAPABILITIES SHIPPED — the full backlog is complete.** Every change in
-  [docs/CAPABILITIES.md](CAPABILITIES.md) §3 is archived under `openspec/changes/archive/` with its
-  spec synced to `openspec/specs/`; suite **99/99**, build ✓, tsc ✓, lint ✓. Per-capability detail
-  below.
+- **Status: 🎉 ALL 17 CAPABILITIES SHIPPED — the full backlog (Epic A + Epic B iter 2 + iter 3) is
+  complete.** Every change in [docs/CAPABILITIES.md](CAPABILITIES.md) §3 is archived under
+  `openspec/changes/archive/` with its spec synced to `openspec/specs/` (17/17 specs valid); suite
+  **107/107**, build ✓, tsc ✓, lint ✓. Per-capability detail below.
+  - Done — **`viz-3d-grid`** (FR-VIZ3D-07; re-verifies NFR-BUNDLE-01/TC-STACK-04/NFR-PERF-03/
+    NFR-A11Y-03/BC-VALUE-01): faint M³ lattice + signed remainder slabs in the 3D scene, for 2D↔3D
+    parity. `layoutRoom3D` per-axis remainders + shared pure `interiorModuleLines`; `Viz3DScene`
+    `<lineSegments>` lattice (floor + 2 corner faces) + far-face slabs, capped at
+    `MAX_LATTICE_DIVISIONS = 40`. Suite **107/107** (+8 tests), build ✓, tsc ✓, lint clean. Review
+    **all-clean** from all 3 fresh Checkers (0 crit/high/med); 1 low (CR-001, coverage) **resolved
+    in-loop** by extracting `interiorModuleLines` (+5 tests). QA 1/1 implemented, tested (pure grid
+    math) & spec-compliant; canvas render manual per ADR-0001. NFR-BUNDLE-01 re-verified — three.js
+    still confined to the lazy `Viz3DScene` chunk; no new dependency.
   - Done — **`brand-logo`** (FR-LOGO-01): golden-ratio header mark (`Logo.tsx`, `currentColor`) +
     `app/icon.svg` favicon. Suite 99/99 (no engine change), build ✓, tsc ✓, lint ✓. Review
     **all-clean (0 findings)**. QA 1/1 implemented & spec-compliant, 0/1 automated (static SVG —
@@ -129,11 +153,12 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** **🎉 The full 16-capability backlog is shipped** — Epic A (trustworthy bilingual
-  calculator: inputs → module summary → bands + per-room golden/grid/walkway) + Epic B (2D⇄3D mode,
-  both read-only visualizers, brand logo). No capabilities remain in
-  [docs/CAPABILITIES.md](CAPABILITIES.md) §3. Every change passed the advisory `ship-capability`
-  loop; suite 99/99, build ✓, tsc ✓, lint ✓. **What's left is optional/triage-only, none blocking:**
+- **Next steps:** **🎉 The full 17-capability backlog is shipped** — Epic A (trustworthy bilingual
+  calculator: inputs → module summary → bands + per-room golden/grid/walkway) + Epic B iter 2 (2D⇄3D
+  mode, both read-only visualizers, brand logo) + iter 3 (`viz-3d-grid`: 3D module lattice for 2D↔3D
+  parity). No capabilities remain in [docs/CAPABILITIES.md](CAPABILITIES.md) §3. Every change passed
+  the advisory `ship-capability` loop; suite 107/107, build ✓, tsc ✓, lint ✓. **What's left is
+  optional/triage-only, none blocking:**
   - **SME open questions** (gate content/constants, not code): `OQ-01` authoritative
     `STANDARD_MODULES` (de-risked by ADR-0002 — one-line change), `OQ-02` editable furniture depths,
     `OQ-04` default room dims/names. Revisit with the SME; each is an additive constant/input edit.

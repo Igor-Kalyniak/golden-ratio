@@ -70,9 +70,13 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > lazy `Viz3DScene` chunk** — the 2D path + first paint carry no 3D dep (NFR-BUNDLE-01 verified).
 > Change 16: [components/Logo.tsx](../components/Logo.tsx) + [app/icon.svg](../app/icon.svg) add the
 > golden-ratio brand mark (header + favicon), replacing the placeholder. **All 16 shipped.**
-> `TC-STACK-01` is `accepted`; **changes 1–16 are all `shipped`.** A follow-up **iteration 3** change
-> — 17 `viz-3d-grid` (3D module-grid parity with the 2D visualizer, new `FR-VIZ3D-07`) — is
-> **`proposed`**; see its card in §5.
+> `TC-STACK-01` is `accepted`; **changes 1–17 are all `shipped`.** The follow-up **iteration 3** change
+> — 17 `viz-3d-grid` (3D module-grid parity with the 2D visualizer, new `FR-VIZ3D-07`) — **shipped
+> 2026-07-04**: [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) now draws a faint M³ lattice
+> (floor + two corner faces) + signed remainder slabs on the far faces, and
+> [lib/calculations.ts](../lib/calculations.ts) gained per-axis remainders on `layoutRoom3D` plus the
+> shared pure `interiorModuleLines` helper (tiles both the 2D grid and 3D lattice). Suite 107/107;
+> three.js stays confined to the lazy `Viz3DScene` chunk (NFR-BUNDLE-01 re-verified). See its card in §5.
 
 ---
 
@@ -573,7 +577,16 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 
 ### Epic B — follow-up (iteration 3)
 
-#### 17. `viz-3d-grid` — 3D module-grid parity with 2D *(Should, iter 3)* — 🔲 **proposed**
+#### 17. `viz-3d-grid` — 3D module-grid parity with 2D *(Should, iter 3)* — ✅ **shipped 2026-07-04**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-04-viz-3d-grid/](../openspec/changes/archive/2026-07-04-viz-3d-grid/);
+  spec synced to `openspec/specs/viz-3d-grid/spec.md` (17/17 specs valid). Suite **107/107** (+8
+  tests), build ✓, tsc ✓, lint clean (changed files). Review **all-clean** from all 3 fresh Checkers
+  (0 crit/high/med) — 1 low (CR-001, coverage) **resolved in-loop** by extracting the pure, tested
+  `interiorModuleLines` helper shared by the 2D grid + 3D lattice. QA 1/1 implemented, tested (pure
+  grid math) & spec-compliant; canvas render manual per ADR-0001. **NFR-BUNDLE-01 re-verified**:
+  `@react-three`/`three` still imported only in `Viz3DScene.tsx`; no new dependency. Added
+  **`FR-VIZ3D-07`** to [docs/PDR.md](PDR.md). **The final backlog change — all 17 capabilities shipped.**
 - **Goal:** bring the **3D** visualizer to visual parity with the **2D** one by drawing the
   **module grid inside the room volume**. Today [components/Viz2D.tsx](../components/Viz2D.tsx)
   tiles each room with a faint M × M grid + a signed-remainder edge strip + one highlighted
