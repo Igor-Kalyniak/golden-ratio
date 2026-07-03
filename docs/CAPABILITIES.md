@@ -12,16 +12,20 @@ between the requirement IDs in the PDR and the changes you scaffold with
 - **Each OpenSpec change** = proposal + design + tasks for one capability, traced back
   to the PDR IDs listed in its card below.
 
-> Scope note: **Changes 1 `calculation-engine` and 2 `design-system` are shipped**
+> Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, and 3 `i18n` are shipped**
 > (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts) + its `node:test`
 > suite; runner is `node --test lib/*.test.ts` (Node **native TS type-stripping** — the
 > `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped as redundant** on Node
 > 22.22, ADR amended 2026-07-03). Change 2: [app/globals.css](../app/globals.css) rewritten
 > to the DESIGN §3 OKLCH token system (light/dark, `@theme inline`, motion, focus) and
 > [app/layout.tsx](../app/layout.tsx) self-hosts Inter + JetBrains Mono via `next/font`
-> (Geist removed). `page.tsx` is still create-next-app boilerplate; `locales/` does not exist
-> yet. `@react-three/fiber` + `@react-three/drei` + `three` are already installed.
-> `TC-STACK-01` is `accepted`; changes 1–2 are `shipped`; everything else is `proposed`.
+> (Geist removed). Change 3: [locales/en.json](../locales/en.json)+[ua.json](../locales/ua.json),
+> pure [lib/i18n.ts](../lib/i18n.ts), the `'use client'` [lib/i18n-context.tsx](../lib/i18n-context.tsx)
+> (`LanguageProvider`/`useI18n`), and [components/LanguageToggle.tsx](../components/LanguageToggle.tsx).
+> `page.tsx` is still create-next-app boilerplate and no page mounts the i18n provider yet
+> (that is `app-shell`). `@react-three/fiber` + `@react-three/drei` + `three` are already
+> installed. `TC-STACK-01` is `accepted`; changes 1–3 are `shipped`; everything else is
+> `proposed`.
 
 ---
 
@@ -223,7 +227,13 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** AA contrast holds in both themes; numeric values render in mono.
 - **Kickoff:** `openspec new change design-system`
 
-#### 3. `i18n` — bilingual UA/EN plumbing *(Must)*
+#### 3. `i18n` — bilingual UA/EN plumbing *(Must)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-i18n/](../openspec/changes/archive/2026-07-03-i18n/);
+  spec synced to `openspec/specs/i18n/spec.md`. Suite 34/34, build ✓, tsc ✓, lint ✓; review
+  clean (0 crit/high/med, 2 low resolved). QA 4/4 implemented & spec-compliant. The
+  `LanguageProvider` is not yet mounted — `app-shell` (4) mounts it and places the toggle
+  (`FR-SHELL-03`).
 - **Covers:** `FR-I18N-01/02/03`, `TC-I18N-01`.
 - **Delivers:** `LanguageContext` (`locale` + `t(key)`), `locales/en.json` +
   `locales/ua.json` (flat dictionaries), the never-translate rule for calc labels
