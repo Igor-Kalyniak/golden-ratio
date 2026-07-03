@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -51,9 +51,11 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > (three furniture presets, fixed-mm ratings + bar meter) as the per-room card's third block, and
 > `lib/calculations.ts` gained `walkwayMeterBars`. **The per-room card and Epic A (the core
 > calculator) are now complete** — full input surface + module summary + band diagram + per-room
-> golden/grid/walkway results. **Epic B** (iteration 2 — visualizers + logo, changes 12–16) is
-> next. `@react-three/fiber` + `@react-three/drei` + `three` are already installed. `TC-STACK-01`
-> is `accepted`; changes 1–11 are `shipped`; everything else is `proposed`.
+> golden/grid/walkway results. **Epic B** (iteration 2 — visualizers + logo) is underway: change 12
+> [`suggestModule2D`](../lib/calculations.ts) (the pure 2D-mode module derivation) is shipped; the
+> mode toggle (13), visualizers (14/15), and logo (16) remain. `@react-three/fiber` +
+> `@react-three/drei` + `three` are already installed (for `viz-3d`, 15). `TC-STACK-01` is
+> `accepted`; changes 1–12 are `shipped`; everything else is `proposed`.
 
 ---
 
@@ -432,11 +434,22 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 
 ### Epic B — Mode toggle + Visualizers + Logo (iteration 2)
 
-#### 12. `module-2d` — module from room dimensions *(Must, iter 2)*
+#### 12. `module-2d` — module from room dimensions *(Must, iter 2)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-module-2d/](../openspec/changes/archive/2026-07-03-module-2d/);
+  spec synced to `openspec/specs/module-2d/spec.md`. Suite 82/82, build ✓, tsc ✓, lint ✓; review
+  **all-clean (0 findings)** from all three Checkers. QA 2/2 implemented, tested & spec-compliant
+  (pure engine, fully automated). First change of **Epic B**. Also extracted a shared internal
+  `suggestionFromGcd` so `suggestModule` (3D) and `suggestModule2D` (2D) can't drift — a
+  behaviour-preserving refactor (existing `suggestModule` tests still green). `FR-MODULE2D-02`'s
+  data contract (suggested is always a `STANDARD_MODULES` value, never the raw GCD) ships here; its
+  active-module **selection + 2D/3D mode wiring is `mode-toggle` (13)**.
 - **Covers:** `FR-MODULE2D-01/02`.
-- **Delivers:** `suggestModule2D(rooms)` — GCD over every room's length & width (single
-  room → `gcd(l, w)`), snapped to `STANDARD_MODULES`, with `alternatives`/`residual`;
-  the 2D-mode active module that drives golden split, grid fit, and the 2D visualizer.
+- **Delivers:** `suggestModule2D(rooms)` — GCD folded over every room's length & width (single
+  room → `gcd(l, w)`, empty → 0 → smallest module with surfaced residual), snapped to
+  `STANDARD_MODULES`, with `alternatives`/`residual`; the 2D-mode module source that will drive
+  golden split, grid fit, and the 2D visualizer. Takes a structural `RoomDimensions` so the engine
+  stays app-state-independent.
 - **Depends on:** `calculation-engine`.
 - **Why here:** pure engine extension; prerequisite for 2D-mode calculations.
 - **Done when:** unit-tested like the rest of the engine; matches worked examples.

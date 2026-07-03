@@ -6,25 +6,29 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T17:45:00+03:00
-- **Last action:** **Shipped capability 11 `walkway`** end-to-end via the `ship-capability` advisory
-  loop — **this completes the per-room card and Epic A (the core calculator, changes 1–11).** The
-  per-room card gained its **third/final block**:
-  [components/WalkwayBlock.tsx](../components/WalkwayBlock.tsx) shows three furniture-preset rows
-  (wardrobe/kitchen 600, sofa/bed 900, facing units 1200) over each room's width — the available
-  clearance (`width − depth`), a **fixed-mm** comfort rating (≥900 comfortable / ≥600 acceptable /
-  <600 tight, **never scaling with M** — `BC-WALK-01`), a 3-bar meter, and the localized guidance
-  sentence from the engine's `recommendation` key. [lib/calculations.ts](../lib/calculations.ts)
-  gained the pure `walkwayMeterBars(rating)` helper; `computeWalkways`/`rateWalkway`/
-  `FURNITURE_DEPTHS` reused unchanged. Rendered as the 3rd block in
-  [components/PerRoomResults.tsx](../components/PerRoomResults.tsx). `BC-WALK-01` is structurally
-  airtight — `WalkwayBlock` takes **no module prop**. Archived to
-  [openspec/changes/archive/2026-07-03-walkway/](../openspec/changes/archive/2026-07-03-walkway/);
-  requirements synced to `openspec/specs/walkway/spec.md`.
-  (Prior: shipped 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-  5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`,
-  10 `grid-fit`.)
+- **Last updated:** 2026-07-03T18:45:00+03:00
+- **Last action:** **Shipped capability 12 `module-2d`** end-to-end via the `ship-capability`
+  advisory loop — the **first change of Epic B** (2D⇄3D visualizers). This is a **pure engine
+  extension**, no UI: [lib/calculations.ts](../lib/calculations.ts) gained
+  `suggestModule2D(rooms)` — the 2D-mode module derived by folding `gcd` across **every room's
+  length & width** (single room → `gcd(l,w)`; empty → 0 → smallest module, residual surfaced),
+  returning the same `ModuleSuggestion` shape as `suggestModule`. It takes a structural
+  `RoomDimensions` (`{length,width}`) so the engine stays app-state-independent. Also extracted a
+  shared internal `suggestionFromGcd(rawGcd)` — now used by **both** `suggestModule` (3D) and
+  `suggestModule2D` (2D) so their snap/residual/alternatives semantics can't drift; a
+  behaviour-preserving refactor (existing `suggestModule` tests still green). `FR-MODULE2D-02`'s
+  data contract (suggested is always a standard module, never the raw GCD) ships here; its
+  active-module **selection + 2D/3D mode wiring is `mode-toggle` (13)**. Archived to
+  [openspec/changes/archive/2026-07-03-module-2d/](../openspec/changes/archive/2026-07-03-module-2d/);
+  requirements synced to `openspec/specs/module-2d/spec.md`.
+  (Prior: shipped 1–11; **Epic A complete**.)
 - **Status:**
+  - Done — **`module-2d`** (FR-MODULE2D-01/02, first of Epic B): pure `suggestModule2D(rooms)` +
+    the shared `suggestionFromGcd` extraction. Suite **82/82** (+5 tests), build ✓, tsc ✓, lint ✓.
+    Review **all-clean (0 findings)** from all three Checkers. QA 2/2 implemented, tested &
+    spec-compliant (pure engine, fully automated — no UI). `FR-MODULE2D-02`'s selection/mode wiring
+    is honestly deferred to `mode-toggle` (13); the data-contract half is delivered + tested here.
+    Nothing imports `suggestModule2D` yet, so the change is inert at runtime until 13.
   - Done — **`walkway`** (FR-WALK-01/02/03/04, BC-WALK-01): per-room walkway-clearance block +
     `walkwayMeterBars`. Suite **77/77** (+3 tests), build ✓, tsc ✓, lint ✓. Review **all-clean
     (0 findings)** from all three Checkers. QA 5/5 implemented & spec-compliant, 4/5 automated
@@ -93,19 +97,20 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** **Epic A (the core calculator, changes 1–11) is complete** — a working,
-  trustworthy, bilingual calculator: full input surface (apartment + rooms) → module summary + band
-  diagram + per-room golden/grid/walkway results, all reactive, all in-memory. **Epic B (iteration 2
-  — visualizers + logo)** is next in [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order and is
-  *additive* (Epic A ships without it):
-  - **12 `module-2d`** (`FR-MODULE2D-01/02`) — pure engine extension: `suggestModule2D(rooms)` (GCD
-    folded across every room's L&W, snapped). Unit-tested like the rest of the engine; the natural
-    next pick (no UI, lowest risk). Needs 1 ✓.
-  - **13 `mode-toggle`** (`FR-MODE-*`, `NFR-A11Y-03`) — 2D⇄3D segmented toggle; 2D hides height
-    fields + suggests module from room dims (12), 3D uses heights (7); shared state preserved,
-    in-memory only. Reorganizes the input column; needs 5+6+7+12. **This is where `room-input`
-    CR-001 (shared `NumberField`/`InlineError` extraction) should finally land** — the 2D/3D input
-    reorg is the 3rd-consumer moment.
+- **Next steps:** **Epic A complete** (changes 1–11); **Epic B underway** — 12 `module-2d` shipped.
+  Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is *additive*; Epic A ships
+  without it):
+  - **13 `mode-toggle`** (`FR-MODE-01/02/03/04/05`, `BC-PRIVACY-01`, `NFR-A11Y-03`) — **next pick**:
+    a 2D⇄3D segmented toggle (default 3D). 2D **hides** the height fields and sources the module
+    from room dims via `suggestModule2D` (12, now shipped); 3D uses heights via `suggestModule` (7).
+    Shared state (rooms, names, dims, selected module) preserved across switches; mode is in-memory
+    only, never persisted. Keyboard-operable with a clear selected state. Reorganizes the input
+    column; needs 5+6+7+12 (all ✓). **This is where `room-input` CR-001 (shared
+    `NumberField`/`InlineError` extraction) should finally land** — the 2D/3D input reorg is the
+    3rd-consumer moment. Wiring note: the active-module *default* becomes
+    `mode === '2d' ? suggestModule2D(validRooms).suggested : suggestModule(ceiling,opening).suggested`,
+    reusing the existing `module`/`moduleTouched` state; the band diagram (8) should gate on
+    `mode === '3d'` (it currently renders unconditionally — a documented deferral from change 8).
   - **14 `viz-2d`** (`FR-VIZ2D-*`) then **15 `viz-3d`** (`FR-VIZ3D-*`, lazy `@react-three/fiber`) —
     the read-only visualizers; 2D is the 3D fallback so it comes first. **16 `brand-logo`**
     (`FR-LOGO-01`) is parallelizable any time after `app-shell` (replaces the header placeholder).
