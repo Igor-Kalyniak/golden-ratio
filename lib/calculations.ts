@@ -436,3 +436,13 @@ export function computeWalkways(
   const recommendation: WalkwayRecommendationKey = `walkway.${rating}`;
   return { available, rating, recommendation };
 }
+
+/**
+ * Filled-bar count for the walkway rating meter (FR-WALK-04): comfortable = 3, acceptable = 2,
+ * tight = 1. One tested definition shared by the UI so the meter can't drift from the rating.
+ */
+export function walkwayMeterBars(rating: WalkwayRating): 1 | 2 | 3 {
+  if (rating === 'comfortable') return 3;
+  if (rating === 'acceptable') return 2;
+  return 1;
+}

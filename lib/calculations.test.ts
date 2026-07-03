@@ -20,6 +20,7 @@ import {
   gridRoundDirection,
   computeWalkways,
   rateWalkway,
+  walkwayMeterBars,
   isValidCeiling,
   isValidOpening,
   isValidDimension,
@@ -342,6 +343,30 @@ test('computeWalkways: thresholds are fixed mm, independent of module', () => {
   assert.equal(rateWalkway(900), 'comfortable');
   assert.equal(rateWalkway(599), 'tight');
   assert.equal(rateWalkway(600), 'acceptable');
+});
+
+// --- walkwayMeterBars + preset rows (FR-WALK-04) ---------------------------
+
+test('walkwayMeterBars: comfortable 3, acceptable 2, tight 1', () => {
+  assert.equal(walkwayMeterBars('comfortable'), 3);
+  assert.equal(walkwayMeterBars('acceptable'), 2);
+  assert.equal(walkwayMeterBars('tight'), 1);
+});
+
+test('walkway preset rows: a 3500-wide room clears all three presets comfortably', () => {
+  assert.equal(computeWalkways(3500, 600).available, 2900); // wardrobe/kitchen
+  assert.equal(computeWalkways(3500, 900).available, 2600); // sofa/bed
+  assert.equal(computeWalkways(3500, 1200).available, 2300); // facing units
+  for (const d of [600, 900, 1200]) {
+    assert.equal(computeWalkways(3500, d).rating, 'comfortable');
+  }
+});
+
+test('walkway facing preset can go negative and reads tight', () => {
+  const w = computeWalkways(1000, 1200); // two facing 600 units don't fit
+  assert.equal(w.available, -200);
+  assert.equal(w.rating, 'tight');
+  assert.equal(w.recommendation, 'walkway.tight');
 });
 
 // --- Validation bounds -----------------------------------------------------
