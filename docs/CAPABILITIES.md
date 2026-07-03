@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` + 14 `viz-2d` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` + 14 `viz-2d` + 15 `viz-3d` shipped; only 16 `brand-logo` remains** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -58,10 +58,14 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > `moduleSuggestion`/`withMode` in [lib/app-state.ts](../lib/app-state.ts). Change 14:
 > [components/Viz2D.tsx](../components/Viz2D.tsx) adds the read-only 2D SVG plan visualizer
 > (to-scale room rects, faint M×M grid, remainder strip, one highlighted `cellpulse` cell) rendered
-> in 2D mode, and `lib/calculations.ts` gained the pure `layoutRoom2D`. The 3D visualizer (15) and
-> logo (16) remain. `@react-three/fiber` + `@react-three/drei` + `three` are already installed
-> (for `viz-3d`, 15). `TC-STACK-01` is `accepted`; changes 1–14 are `shipped`; everything else is
-> `proposed`.
+> in 2D mode, and `lib/calculations.ts` gained the pure `layoutRoom2D`. Change 15:
+> [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) (the heavy `@react-three/fiber` canvas —
+> boxes per room, opening band, one M³ cube, OrbitControls) + [components/Viz3D.tsx](../components/Viz3D.tsx)
+> (thin wrapper: WebGL detect + `dynamic({ssr:false})` + `Viz2D` fallback) add the lazy 3D
+> visualizer; `lib/calculations.ts` gained the pure `layoutRoom3D`. **Three.js is confined to the
+> lazy `Viz3DScene` chunk** — the 2D path + first paint carry no 3D dep (NFR-BUNDLE-01 verified).
+> **Only 16 `brand-logo` remains.** `TC-STACK-01` is `accepted`; changes 1–15 are `shipped`;
+> only 16 is `proposed`.
 
 ---
 
@@ -507,7 +511,20 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** redraw stays within the < 16 ms budget; reduced-motion respected.
 - **Kickoff:** `openspec new change viz-2d`
 
-#### 15. `viz-3d` — lazy 3D module visualizer *(Should, iter 2)*
+#### 15. `viz-3d` — lazy 3D module visualizer *(Should, iter 2)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-viz-3d/](../openspec/changes/archive/2026-07-03-viz-3d/);
+  spec synced to `openspec/specs/viz-3d/spec.md`. Suite 99/99, build ✓, tsc ✓, lint ✓; review
+  found **1 medium + 5 low (0 crit/high)** — 3 resolved in-loop, 2 acknowledged. QA 10/10
+  implemented & spec-compliant, 3/10 automated (`layoutRoom3D`; canvas/controls/fallback manual per
+  ADR-0001). **NFR-BUNDLE-01 verified**: `@react-three`/`three` is imported **only** in
+  `components/Viz3DScene.tsx` (the sole importer), loaded via `dynamic(() => import, {ssr:false})`
+  from the thin `Viz3D` wrapper; the production build splits Three into a separate ~880K chunk
+  absent from first-load JS; `package.json` unchanged. **Review catch (CR-001, medium, resolved):**
+  the 3D highlight was a hardcoded orange that contradicted the blue `--accent` and the 2D viz — now
+  samples the resolved `--accent` from CSS (re-samples on theme change). **Acknowledged (low):**
+  `NFR-PERF-03`'s "capped at high room counts" has no explicit cap — a hard room cap belongs in
+  `room-input`/app-state, deferred (documented).
 - **Covers:** `FR-VIZ3D-01/02/03/04/05/06`, `NFR-BUNDLE-01`, `NFR-PERF-03`,
   `TC-STACK-04`, `NFR-A11Y-03`.
 - **Delivers:** `@react-three/fiber` canvas lazy-loaded via `next/dynamic`

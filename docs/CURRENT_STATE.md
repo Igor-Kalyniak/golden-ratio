@@ -6,22 +6,35 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T20:35:00+03:00
-- **Last action:** **Shipped capability 14 `viz-2d`** end-to-end via the `ship-capability` advisory
-  loop — the read-only 2D SVG module visualizer, the first of the two visualizers.
-  [components/Viz2D.tsx](../components/Viz2D.tsx) draws each valid room as a to-scale plan rectangle
-  in a wrapping row (not a floor plan), tiled with a faint M×M grid, a `--warn-bg` signed-remainder
-  strip on the far edge, and **exactly one `--accent` highlighted module cell** (`cellpulse`), with a
-  `1 module` swatch + the read-only note. [lib/calculations.ts](../lib/calculations.ts) gained the
-  pure `layoutRoom2D(length,width,m)` (whole-cell `floor` tiling + strips + one highlight, in module
-  space); [components/Shell.tsx](../components/Shell.tsx) renders it **when `mode === '2d'`** (mirrors
-  the band diagram's 3D gate). Read-only by construction (no handlers/export — `BC-VALUE-01`);
-  reduced-motion honored by the global `globals.css` reset (`FR-VIZ2D-05`). Runtime-verified the 2D
-  surface via `next dev`. Archived to
-  [openspec/changes/archive/2026-07-03-viz-2d/](../openspec/changes/archive/2026-07-03-viz-2d/);
-  requirements synced to `openspec/specs/viz-2d/spec.md`.
-  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`, 13 `mode-toggle`.)
+- **Last updated:** 2026-07-03T21:35:00+03:00
+- **Last action:** **Shipped capability 15 `viz-3d`** end-to-end via the `ship-capability` advisory
+  loop — the lazy 3D module visualizer and the plan's **only Three.js consumer**.
+  [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) is the heavy `@react-three/fiber` canvas
+  (one box per room L×W×ceiling to scale, an accent opening band, exactly one M³ cube, OrbitControls
+  + reduced-motion-aware auto-rotate/float); [components/Viz3D.tsx](../components/Viz3D.tsx) is a thin
+  wrapper that detects WebGL (`useSyncExternalStore`), lazy-loads the scene via
+  `dynamic(() => import('./Viz3DScene'), { ssr:false })` with a loading state, and **falls back to
+  the shipped `<Viz2D>`** with a `webgl` message when unsupported (`FR-VIZ3D-06`).
+  [lib/calculations.ts](../lib/calculations.ts) gained the pure `layoutRoom3D`;
+  [components/Shell.tsx](../components/Shell.tsx) renders `<Viz3D>` in the `mode === '3d'` branch.
+  **`NFR-BUNDLE-01` verified**: `@react-three`/`three` is imported only in `Viz3DScene`, which the
+  build splits into a separate ~880K chunk absent from first-load JS — the 2D path carries no
+  Three.js. Archived to
+  [openspec/changes/archive/2026-07-03-viz-3d/](../openspec/changes/archive/2026-07-03-viz-3d/);
+  requirements synced to `openspec/specs/viz-3d/spec.md`.
+  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`, 13 `mode-toggle`, 14 `viz-2d`.)
 - **Status:**
+  - Done — **`viz-3d`** (FR-VIZ3D-01/02/03/04/05/06, NFR-BUNDLE-01, NFR-PERF-03, TC-STACK-04,
+    NFR-A11Y-03): lazy 3D visualizer + WebGL fallback + pure `layoutRoom3D`. Suite **99/99** (+5
+    tests), build ✓, tsc ✓, lint ✓. Review **1 medium + 5 low (0 crit/high)** — **3 resolved
+    in-loop**, 2 acknowledged. QA 10/10 implemented & spec-compliant, 3/10 automated (geometry;
+    canvas/controls/fallback manual per ADR-0001). **Review catch (CR-001, medium):** the 3D
+    highlight was a hardcoded **orange** contradicting the blue `--accent` + the 2D viz — fresh
+    Checkers caught what my build check missed; **resolved** by sampling the resolved `--accent`
+    from CSS (re-samples on theme). Also fixed: cube-clamp for sub-module rooms (CR-003), dead
+    fade-in ref (CR-002/SC-001). **Acknowledged (low):** `NFR-PERF-03` has no explicit room cap — a
+    hard cap belongs in `room-input`/app-state (documented). `NFR-BUNDLE-01` proven by the build
+    chunk split; the R3F deps were pre-installed (no dependency added).
   - Done — **`viz-2d`** (FR-VIZ2D-01/02/03/04/05, NFR-PERF-03, BC-VALUE-01): read-only 2D SVG
     visualizer + pure `layoutRoom2D`. Suite **94/94** (+5 tests), build ✓, tsc ✓, lint ✓. Review
     **clean** (0 crit/high/med, 1 low resolved — a doc-accuracy note that `griddraw` was claimed but
@@ -112,30 +125,24 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** **Epic A complete** (changes 1–11); **Epic B underway** — 12 `module-2d` +
-  13 `mode-toggle` + 14 `viz-2d` shipped. Two changes remain; continue
-  [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is *additive*; Epic A ships without it):
-  - **15 `viz-3d`** (`FR-VIZ3D-01/02/03/04/05/06`, `NFR-BUNDLE-01`, `NFR-PERF-03`, `TC-STACK-04`,
-    `NFR-A11Y-03`) — **next pick**: the lazy 3D module visualizer. One box per room (L×W×ceiling) to
-    scale, an opening band when provided, one highlighted M³ cube, OrbitControls + gentle
-    auto-rotate/float. **The heaviest, riskiest change** — the *only* one using
-    `@react-three/fiber` + `@react-three/drei` (already installed), and it **must lazy-load via
-    `next/dynamic({ ssr:false })`** so the 2D path + first paint carry no Three.js
-    (`NFR-BUNDLE-01`, `TC-STACK-04`). Must honor `prefers-reduced-motion` (disable auto-rotate/pulse)
-    and provide a **WebGL-unavailable fallback to `viz-2d`** (`FR-VIZ3D-06`, just shipped). Rendered
-    when `mode === '3d'` (where `viz-2d` is gated to 2D). Needs 14 ✓ + 13 ✓. **Consider adding a
-    `three-3d` skill** under `.agents/skills/` before starting (AGENTS.md flags this).
-  - **16 `brand-logo`** (`FR-LOGO-01`) — parallelizable any time: an SVG golden-ratio mark replacing
-    the header placeholder (`components/Shell.tsx` line ~38). Depends only on `app-shell`. Smallest
-    remaining change; a good low-risk closer for Epic B.
-  - **`room-input` CR-001 — effectively closed:** `mode-toggle` and `viz-2d` both added no new
-    editable number field, and neither `viz-3d` nor `brand-logo` will. The 3rd `NumberField` consumer
-    never materialized, so the shared-field extraction stays intentionally un-done ("only 2
-    consumers"). Not blocking; drop unless a future change adds a numeric input.
-  - **Watch (`viz-3d`):** lazy-load via `next/dynamic ssr:false` so the 2D path carries no Three.js
-    (`NFR-BUNDLE-01`, `TC-STACK-04`); honor `prefers-reduced-motion`; WebGL-off → fall back to
-    `viz-2d` (`FR-VIZ3D-06`). A `three-3d` skill may be added under `.agents/skills/` when
-    3D work begins.
+- **Next steps:** **Epic A complete** (1–11); **Epic B all but done** — 12 `module-2d` +
+  13 `mode-toggle` + 14 `viz-2d` + 15 `viz-3d` shipped. **One change remains** — the final one in
+  [docs/CAPABILITIES.md](CAPABILITIES.md) §3:
+  - **16 `brand-logo`** (`FR-LOGO-01`) — **the last change; ships the whole backlog.** An SVG
+    golden-ratio mark (nested φ:1 rectangles + a golden-spiral arc, `currentColor`, transparent
+    ground) replacing the header logo placeholder in
+    [components/Shell.tsx](../components/Shell.tsx) (the `aria-hidden` bordered `<span>`, ~line 38),
+    scaling down to a favicon. No raster assets, **no new dependency**, pure inline SVG. Depends only
+    on `app-shell` (✓). Smallest, lowest-risk change — a clean closer. Run
+    `/ship-capability brand-logo`.
+  - **After 16:** the full 16-capability backlog is shipped — Epic A (trustworthy bilingual
+    calculator) + Epic B (2D/3D mode, both visualizers, logo). Remaining open items are the
+    triage-only low findings below (none blocking).
+  - **`room-input` CR-001 — closed (won't-extract):** `mode-toggle`/`viz-2d`/`viz-3d` added no new
+    editable number field, and `brand-logo` won't either. The 3rd `NumberField` consumer never
+    materialized, so the shared-field extraction stays intentionally un-done (only 2 consumers).
+  - **`viz-3d` NFR-PERF-03 (acknowledged low):** no explicit room cap on the 3D scene; a hard cap
+    belongs in `room-input`/app-state if a room-count ceiling is ever exercised. Not blocking.
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), worth
   folding into a later change rather than a standalone fix:
   - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
