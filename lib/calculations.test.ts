@@ -23,6 +23,7 @@ import {
   rateWalkway,
   walkwayMeterBars,
   layoutRoom2D,
+  layoutRoom3D,
   isValidCeiling,
   isValidOpening,
   isValidDimension,
@@ -455,6 +456,37 @@ test('layoutRoom2D: room smaller than a module → rows 0, highlight row 0, no n
   assert.deepEqual(l.highlight, { col: 0, row: 0 }); // max(0, rows-1)
   assert.equal(l.rightStrip, 500);
   assert.equal(l.bottomStrip, 500);
+});
+
+// --- layoutRoom3D (FR-VIZ3D-01/02/03) --------------------------------------
+
+test('layoutRoom3D: box extents equal the room dimensions', () => {
+  const l = layoutRoom3D(4200, 3500, 2800, 700, 2100);
+  assert.equal(l.l, 4200);
+  assert.equal(l.w, 3500);
+  assert.equal(l.h, 2800);
+});
+
+test('layoutRoom3D: cols/rows/layers are floor(dim/m)', () => {
+  const l = layoutRoom3D(4200, 3500, 2800, 700, 2100);
+  assert.equal(l.cols, 6); // 4200/700
+  assert.equal(l.rows, 5); // 3500/700
+  assert.equal(l.layers, 4); // 2800/700
+});
+
+test('layoutRoom3D: exactly one M³ cube at the room corner', () => {
+  const l = layoutRoom3D(4200, 3500, 2800, 700);
+  assert.deepEqual(l.cube, { x: 0, y: 0, z: 0 });
+});
+
+test('layoutRoom3D: openingY set for a valid opening', () => {
+  assert.equal(layoutRoom3D(4200, 3500, 2800, 700, 2100).openingY, 2100);
+});
+
+test('layoutRoom3D: openingY null when omitted or above the ceiling (FR-VIZ3D-02)', () => {
+  assert.equal(layoutRoom3D(4200, 3500, 2800, 700).openingY, null); // omitted
+  assert.equal(layoutRoom3D(4200, 3500, 2800, 700, 3000).openingY, null); // > ceiling
+  assert.equal(layoutRoom3D(4200, 3500, 2800, 700, 2800).openingY, 2800); // == ceiling is valid
 });
 
 // --- Validation bounds -----------------------------------------------------

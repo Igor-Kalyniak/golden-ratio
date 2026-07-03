@@ -507,3 +507,50 @@ export function layoutRoom2D(length: number, width: number, m: number): Room2DLa
     highlight: { col: 0, row: Math.max(0, rows - 1) },
   };
 }
+
+// ---------------------------------------------------------------------------
+// 3D visualizer geometry — FR-VIZ3D-01/02/03
+// ---------------------------------------------------------------------------
+
+export interface Room3DLayout {
+  /** Box extents in mm: length (x), width (z/depth), ceiling height (y). */
+  l: number;
+  w: number;
+  h: number;
+  /** Whole module cells along each axis: floor(dim / m). */
+  cols: number;
+  rows: number;
+  layers: number;
+  /** Origin (mm, room-corner-relative) of the single highlighted M³ cube. */
+  cube: { x: number; y: number; z: number };
+  /** Opening band height (mm) on a wall face, or null when omitted / above the ceiling. */
+  openingY: number | null;
+}
+
+/**
+ * Render-ready 3D-visualizer box geometry for a room (FR-VIZ3D-01/02/03), in module/mm space —
+ * the component maps it to Three.js units with one shared scale. The box is length × width ×
+ * ceiling; `cols/rows/layers` are the whole modules that fit along each axis; exactly one M³ cube
+ * is highlighted at the box's bottom-front-left corner; `openingY` is the opening height on a wall
+ * face, or null when no opening is given or it exceeds the ceiling (FR-VIZ3D-02 "omitted when
+ * blank"). Framework-free — no R3F/three import (NFR-BUNDLE-01: the 2D path stays 3D-free).
+ */
+export function layoutRoom3D(
+  length: number,
+  width: number,
+  ceiling: number,
+  m: number,
+  opening?: number,
+): Room3DLayout {
+  const openingValid = opening !== undefined && opening > 0 && opening <= ceiling;
+  return {
+    l: length,
+    w: width,
+    h: ceiling,
+    cols: Math.floor(length / m),
+    rows: Math.floor(width / m),
+    layers: Math.floor(ceiling / m),
+    cube: { x: 0, y: 0, z: 0 },
+    openingY: openingValid ? opening : null,
+  };
+}
