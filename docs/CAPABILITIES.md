@@ -13,7 +13,7 @@ between the requirement IDs in the PDR and the changes you scaffold with
   to the PDR IDs listed in its card below.
 
 > Scope note: **Changes 1 `calculation-engine`, 2 `design-system`, 3 `i18n`, 4 `app-shell`,
-> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
+> 5 `apartment-input`, 6 `room-input`, 7 `module-summary`, 8 `vertical-bands`, 9 `golden-ratio`, 10 `grid-fit`, and 11 `walkway` are shipped — **Epic A (the core calculator, changes 1–11) is complete**; **Epic B is underway — 12 `module-2d` + 13 `mode-toggle` shipped** (2026-07-03). Change 1: [lib/calculations.ts](../lib/calculations.ts)
 > + its `node:test` suite; runner is `node --test lib/*.test.ts` (Node **native TS
 > type-stripping** — the `tsx` loader from [ADR-0001](adr/0001-test-runner.md) was **dropped
 > as redundant** on Node 22.22, ADR amended 2026-07-03). Change 2:
@@ -52,10 +52,13 @@ between the requirement IDs in the PDR and the changes you scaffold with
 > `lib/calculations.ts` gained `walkwayMeterBars`. **The per-room card and Epic A (the core
 > calculator) are now complete** — full input surface + module summary + band diagram + per-room
 > golden/grid/walkway results. **Epic B** (iteration 2 — visualizers + logo) is underway: change 12
-> [`suggestModule2D`](../lib/calculations.ts) (the pure 2D-mode module derivation) is shipped; the
-> mode toggle (13), visualizers (14/15), and logo (16) remain. `@react-three/fiber` +
-> `@react-three/drei` + `three` are already installed (for `viz-3d`, 15). `TC-STACK-01` is
-> `accepted`; changes 1–12 are `shipped`; everything else is `proposed`.
+> [`suggestModule2D`](../lib/calculations.ts) (the pure 2D-mode module derivation) is shipped, and
+> change 13 [components/ModeToggle.tsx](../components/ModeToggle.tsx) wires the 2D⇄3D toggle — 2D
+> hides the height fields + band diagram and sources the module from room dims via
+> `moduleSuggestion`/`withMode` in [lib/app-state.ts](../lib/app-state.ts). The visualizers (14/15)
+> and logo (16) remain. `@react-three/fiber` + `@react-three/drei` + `three` are already installed
+> (for `viz-3d`, 15). `TC-STACK-01` is `accepted`; changes 1–13 are `shipped`; everything else is
+> `proposed`.
 
 ---
 
@@ -455,12 +458,23 @@ for its slot in the order, the signal that it's done, and the OpenSpec kickoff c
 - **Done when:** unit-tested like the rest of the engine; matches worked examples.
 - **Kickoff:** `openspec new change module-2d`
 
-#### 13. `mode-toggle` — 2D ⇄ 3D calculation mode *(Must, iter 2)*
+#### 13. `mode-toggle` — 2D ⇄ 3D calculation mode *(Must, iter 2)* — ✅ **shipped 2026-07-03**
+- **Shipped:** archived at
+  [openspec/changes/archive/2026-07-03-mode-toggle/](../openspec/changes/archive/2026-07-03-mode-toggle/);
+  spec synced to `openspec/specs/mode-toggle/spec.md`. Suite 89/89, build ✓, tsc ✓, lint ✓; review
+  **all-clean (0 findings)** from all three Checkers. QA 7/7 implemented & spec-compliant, 4/7
+  automated (state logic; toggle DOM/field-hiding/a11y manual per ADR-0001 — **runtime-verified**
+  both surfaces via the `verify` skill). **Note:** QA subagent hit a session limit before writing
+  artifacts; all three were completed by the main loop (same recovery as apartment-input).
+  Key design: a private `resyncModule` funnel routes every mutating reducer — behaviour-preserving
+  in the 3D default, mode-aware in 2D — and a touched module is sticky across a switch. The band
+  diagram is now gated on `mode === '3d'` (completing the change-8 deferral). `room-input` CR-001
+  stayed deferred (this change hid existing fields, added no new number-field consumer).
 - **Covers:** `FR-MODE-01/02/03/04/05`, `BC-PRIVACY-01`, `NFR-A11Y-03`.
-- **Delivers:** segmented toggle (default 3D); 2D hides height fields and suggests module
-  from room dims (change 12); 3D uses heights (change 7); shared state (rooms, names,
-  dims, selected module) preserved across switches; mode is in-memory only, never
-  persisted; keyboard-operable with a clear selected state.
+- **Delivers:** segmented toggle (default 3D); 2D hides height fields + the band diagram and
+  suggests the module from room dims (change 12); 3D uses heights (change 7); shared state (rooms,
+  names, dims, selected module) preserved across switches; mode is in-memory only, never persisted;
+  keyboard-operable with a clear selected state.
 - **Depends on:** `apartment-input`, `room-input`, `module-summary`, `module-2d`.
 - **Why here:** reorganizes the input column; both visualizers hang off it.
 - **Done when:** switching modes preserves rooms and reveals/hides height fields; no

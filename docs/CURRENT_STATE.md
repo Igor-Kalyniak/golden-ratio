@@ -6,23 +6,35 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-03T18:45:00+03:00
-- **Last action:** **Shipped capability 12 `module-2d`** end-to-end via the `ship-capability`
-  advisory loop — the **first change of Epic B** (2D⇄3D visualizers). This is a **pure engine
-  extension**, no UI: [lib/calculations.ts](../lib/calculations.ts) gained
-  `suggestModule2D(rooms)` — the 2D-mode module derived by folding `gcd` across **every room's
-  length & width** (single room → `gcd(l,w)`; empty → 0 → smallest module, residual surfaced),
-  returning the same `ModuleSuggestion` shape as `suggestModule`. It takes a structural
-  `RoomDimensions` (`{length,width}`) so the engine stays app-state-independent. Also extracted a
-  shared internal `suggestionFromGcd(rawGcd)` — now used by **both** `suggestModule` (3D) and
-  `suggestModule2D` (2D) so their snap/residual/alternatives semantics can't drift; a
-  behaviour-preserving refactor (existing `suggestModule` tests still green). `FR-MODULE2D-02`'s
-  data contract (suggested is always a standard module, never the raw GCD) ships here; its
-  active-module **selection + 2D/3D mode wiring is `mode-toggle` (13)**. Archived to
-  [openspec/changes/archive/2026-07-03-module-2d/](../openspec/changes/archive/2026-07-03-module-2d/);
-  requirements synced to `openspec/specs/module-2d/spec.md`.
-  (Prior: shipped 1–11; **Epic A complete**.)
+- **Last updated:** 2026-07-03T19:55:00+03:00
+- **Last action:** **Shipped capability 13 `mode-toggle`** end-to-end via the `ship-capability`
+  advisory loop — the 2D⇄3D calculation-mode pivot that makes `module-2d` (12) real.
+  [components/ModeToggle.tsx](../components/ModeToggle.tsx) is a segmented 2D/3D control (default
+  3D, `role="group"` + `aria-pressed`, keyboard-operable — `NFR-A11Y-03`).
+  [lib/app-state.ts](../lib/app-state.ts) gained `mode: Mode` (in-memory only — `FR-MODE-05`/
+  `BC-PRIVACY-01`), `moduleSuggestion(state)` (heights in 3D via `suggestModule`, room dims in 2D
+  via `suggestModule2D`), a `withMode` reducer, and a private `resyncModule` funnel that routes
+  **every** mutating reducer — behaviour-preserving in the 3D default, and in 2D the untouched
+  module tracks room-dimension edits (a **touched** module is sticky across a switch — `FR-MODE-04`);
+  `isApartmentValid` is now mode-aware. In 2D, [components/ApartmentForm.tsx](../components/ApartmentForm.tsx)
+  hides the ceiling/opening fields and [components/Shell.tsx](../components/Shell.tsx) hides the
+  band diagram (`FR-MODE-02`, completing the change-8 gating deferral);
+  [components/ModuleSummary.tsx](../components/ModuleSummary.tsx) shows the mode-appropriate hint
+  (`GCD(rooms)` / `suggested from room dimensions` in 2D). [components/Calculator.tsx](../components/Calculator.tsx)
+  computes `moduleSuggestion` once and flows it down (`TC-ARCH-01`). Runtime-verified both surfaces
+  via the `verify` skill. Archived to
+  [openspec/changes/archive/2026-07-03-mode-toggle/](../openspec/changes/archive/2026-07-03-mode-toggle/);
+  requirements synced to `openspec/specs/mode-toggle/spec.md`.
+  (Prior: shipped 1–11 **Epic A complete**, 12 `module-2d`.)
 - **Status:**
+  - Done — **`mode-toggle`** (FR-MODE-01/02/03/04/05, BC-PRIVACY-01, NFR-A11Y-03): 2D⇄3D toggle +
+    mode-driven module suggestion + `resyncModule` funnel. Suite **89/89** (+7 tests), build ✓, tsc
+    ✓, lint ✓. Review **all-clean (0 findings)** from all three Checkers. QA 7/7 implemented &
+    spec-compliant, 4/7 automated (state logic; toggle DOM/field-hiding/a11y manual per ADR-0001 —
+    runtime-verified both surfaces). **Note:** the QA subagent hit a session limit before writing
+    artifacts; all three (trajectory-eval + matrix rows + test plan) were completed by the main loop
+    (same recovery as apartment-input). The band diagram is now gated on `mode === '3d'`. The
+    "active visualizer changes" clause of FR-MODE-04 lands with `viz-2d`/`viz-3d` (14/15).
   - Done — **`module-2d`** (FR-MODULE2D-01/02, first of Epic B): pure `suggestModule2D(rooms)` +
     the shared `suggestionFromGcd` extraction. Suite **82/82** (+5 tests), build ✓, tsc ✓, lint ✓.
     Review **all-clean (0 findings)** from all three Checkers. QA 2/2 implemented, tested &
@@ -97,23 +109,23 @@
     [ADR-0001](adr/0001-test-runner.md) amended).
   - In progress — none.
   - Blocked — none. `OQ-01` still open with the SME (de-risked by ADR-0002).
-- **Next steps:** **Epic A complete** (changes 1–11); **Epic B underway** — 12 `module-2d` shipped.
-  Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is *additive*; Epic A ships
-  without it):
-  - **13 `mode-toggle`** (`FR-MODE-01/02/03/04/05`, `BC-PRIVACY-01`, `NFR-A11Y-03`) — **next pick**:
-    a 2D⇄3D segmented toggle (default 3D). 2D **hides** the height fields and sources the module
-    from room dims via `suggestModule2D` (12, now shipped); 3D uses heights via `suggestModule` (7).
-    Shared state (rooms, names, dims, selected module) preserved across switches; mode is in-memory
-    only, never persisted. Keyboard-operable with a clear selected state. Reorganizes the input
-    column; needs 5+6+7+12 (all ✓). **This is where `room-input` CR-001 (shared
-    `NumberField`/`InlineError` extraction) should finally land** — the 2D/3D input reorg is the
-    3rd-consumer moment. Wiring note: the active-module *default* becomes
-    `mode === '2d' ? suggestModule2D(validRooms).suggested : suggestModule(ceiling,opening).suggested`,
-    reusing the existing `module`/`moduleTouched` state; the band diagram (8) should gate on
-    `mode === '3d'` (it currently renders unconditionally — a documented deferral from change 8).
-  - **14 `viz-2d`** (`FR-VIZ2D-*`) then **15 `viz-3d`** (`FR-VIZ3D-*`, lazy `@react-three/fiber`) —
-    the read-only visualizers; 2D is the 3D fallback so it comes first. **16 `brand-logo`**
-    (`FR-LOGO-01`) is parallelizable any time after `app-shell` (replaces the header placeholder).
+- **Next steps:** **Epic A complete** (changes 1–11); **Epic B underway** — 12 `module-2d` +
+  13 `mode-toggle` shipped. Continue [docs/CAPABILITIES.md](CAPABILITIES.md) §3 order (Epic B is
+  *additive*; Epic A ships without it):
+  - **14 `viz-2d`** (`FR-VIZ2D-01/02/03/04/05`, `NFR-PERF-03`, `BC-VALUE-01`) — **next pick**: the
+    read-only 2D SVG plan visualizer (DESIGN §6.4). Each room a to-scale rectangle in a row/wrap
+    (not a floor plan); a faint M×M grid; the signed remainder as a thin edge strip; **exactly one
+    highlighted accent module cell**; a grid/highlight tween on input change that **snaps** under
+    `prefers-reduced-motion`. Read-only — never edits geometry, never exports (`BC-VALUE-01`). Reads
+    `state.mode`/rooms/active module (all shipped). Pure SVG + Tailwind — **no new dependency**;
+    reuses `computeRoomGrid` for the cell counts. It must land **before** `viz-3d` because the 2D
+    view is the 3D fallback (`FR-VIZ3D-06`). Needs 13 ✓ + 12 ✓.
+  - **15 `viz-3d`** (`FR-VIZ3D-*`, `NFR-BUNDLE-01`, `TC-STACK-04`) — the lazy 3D visualizer; **16
+    `brand-logo`** (`FR-LOGO-01`) is parallelizable any time (replaces the header placeholder).
+  - **`room-input` CR-001 is still open** — `mode-toggle` hid existing fields rather than adding a
+    new number-field consumer, so the shared-`NumberField` extraction did **not** trigger. `viz-2d`
+    adds no editable fields either; the 3rd consumer likely never materializes in Epic B, so this
+    can be closed as "won't extract (only 2 consumers)" or picked up opportunistically. Not blocking.
   - **Watch (Epic B):** `viz-3d` must lazy-load via `next/dynamic ssr:false` so the 2D path carries
     no Three.js (`NFR-BUNDLE-01`, `TC-STACK-04`); honor `prefers-reduced-motion`; WebGL-off → fall
     back to `viz-2d` (`FR-VIZ3D-06`). A `three-3d` skill may be added under `.agents/skills/` when
