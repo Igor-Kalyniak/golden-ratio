@@ -1,3 +1,5 @@
+# i18n proposal
+
 ## Why
 
 The product is bilingual UA/EN by definition (`TC-I18N-01`): an architect productive in one
@@ -5,7 +7,7 @@ language must be equally productive in the other. Before any user-facing string 
 app needs a lightweight translation layer — a React context holding the active locale and a
 `t(key)` lookup, two flat JSON dictionaries, and a live language toggle — so every later UI
 capability renders through `t()` from day one instead of hardcoding English. This is capability 3
-in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md), dependency-free (parallel with the
+in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md), dependency-free (parallel with the
 shipped engine and design-system). Owns `FR-I18N-01/02/03`, `TC-I18N-01`.
 
 ## What Changes

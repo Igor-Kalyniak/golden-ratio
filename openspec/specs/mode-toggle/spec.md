@@ -1,7 +1,10 @@
 # mode-toggle Specification
 
 ## Purpose
-TBD - created by archiving change mode-toggle. Update Purpose after archive.
+
+The 2D ⇄ 3D mode toggle that switches between plan (length × width) and volume (adding heights)
+inputs and re-sources the module suggestion for the active mode (`FR-MODE-01`–`FR-MODE-05`).
+
 ## Requirements
 
 ### Requirement: Segmented 2D ⇄ 3D mode toggle, default 3D
@@ -31,6 +34,7 @@ result) SHALL be hidden in 2D. (`FR-MODE-02`)
 
 - **WHEN** the mode is `'2d'`
 - **THEN** the ceiling and opening inputs are not rendered, and the module `<select>` remains
+  rendered and interactive (it is the only apartment input in 2D)
 
 #### Scenario: 2D module suggestion comes from room dimensions
 

@@ -1,3 +1,5 @@
+# mode-toggle tasks
+
 ## 1. State: mode + mode-driven suggestion (`lib/app-state.ts`)
 
 - [x] 1.1 Add `Mode = '2d' | '3d'` and `mode: Mode` to `AppState`; set `DEFAULT_STATE.mode = '3d'`.

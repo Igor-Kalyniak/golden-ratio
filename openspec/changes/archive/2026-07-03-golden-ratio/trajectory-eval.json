@@ -13,7 +13,7 @@
         "components/PerRoomResults.tsx:34 (const split = computeGoldenSplit(longer, activeModule) — the presentation layer consumes the engine fn per valid room)",
         "components/GoldenSplitBlock.tsx:28 (destructures all five fields of GoldenSplit for display)",
         "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\", \"computeGoldenSplit: kitchen longer wall 3800\", \"computeGoldenSplit: bathroom longer wall 2150\"",
-        "openspec/changes/golden-ratio/specs/golden-ratio/spec.md (Requirement: Golden split of each room's longer wall)"
+        "openspec/changes/archive/2026-07-03-golden-ratio/specs/golden-ratio/spec.md (Requirement: Golden split of each room's longer wall)"
       ],
       "notes": "The computeGoldenSplit engine function itself shipped and is fully automated in change 1 (calculation-engine) — that row stays in the matrix. golden-ratio (capability 9) owns the PRESENTATION layer that consumes it: PerRoomResults calls computeGoldenSplit(longerWall(room), module) once per valid room (single call site after the CR-001 refactor). tested: true — the return shape and all five fields are pinned by the three pre-existing computeGoldenSplit unit tests. spec_compliant confirmed by spec-compliance-auditor strict PASS."
     },
@@ -29,7 +29,7 @@
         "lib/calculations.test.ts:\"computeGoldenSplit: living-room longer wall 4200\" (larger≈2595.6, smaller≈1604.4, largerSnapped=2450, smallerSnapped=1750)",
         "lib/calculations.test.ts:\"computeGoldenSplit: kitchen longer wall 3800\" (largerSnapped=2450, smallerSnapped=1350)",
         "lib/calculations.test.ts:\"computeGoldenSplit: bathroom longer wall 2150\" (largerSnapped=1400, smallerSnapped=750)",
-        "openspec/changes/golden-ratio/specs/golden-ratio/spec.md (Requirement: Snapped values and snap offset shown; Scenario: Exact split fractions; Scenario: Snapped to the half-module grid)"
+        "openspec/changes/archive/2026-07-03-golden-ratio/specs/golden-ratio/spec.md (Requirement: Snapped values and snap offset shown; Scenario: Exact split fractions; Scenario: Snapped to the half-module grid)"
       ],
       "notes": "AUTOMATED. The 0.618/0.382 fractions and the ½M-snap (largerSnapped rounds to the nearest module/2 line, smallerSnapped is the remainder length − largerSnapped) are pinned across three worked-example lengths (4200/3800/2150 at m=700). Engine fn shipped in change 1; this change displays it. The exact-vs-snapped DOM rendering (three-column dl) is DOM-level and manual (ADR-0001), but the derived values are fully asserted."
     },
@@ -44,7 +44,7 @@
         "components/PerRoomResults.tsx:33-34 (const longer = longerWall(room); const split = computeGoldenSplit(longer, activeModule) — the split is applied to the longer wall, not a fixed dimension)",
         "lib/calculations.test.ts:\"longerWall: returns the larger dimension\" (3500×4200→4200 width-larger; 4200×3500→4200 length-larger; 3000×3000→3000 square)",
         "lib/calculations.test.ts:\"golden worked example: living room reads clean, offset ≤ ¼M\" (computeGoldenSplit(longerWall({length:4200,width:3500}), 700) — the composed longer-wall→split path)",
-        "openspec/changes/golden-ratio/specs/golden-ratio/spec.md (Scenario: Longer wall is chosen; Scenario: Square room uses the shared dimension)"
+        "openspec/changes/archive/2026-07-03-golden-ratio/specs/golden-ratio/spec.md (Scenario: Longer wall is chosen; Scenario: Square room uses the shared dimension)"
       ],
       "notes": "AUTOMATED — closes the gap left by change 1. The calculation-engine matrix row for FR-GOLD-03 was marked manual-only because the engine takes a bare length and longer-wall selection was a caller responsibility. golden-ratio now ships that caller responsibility as the pure, unit-tested longerWall helper (Math.max of the two dims), asserted for width-larger, length-larger, and square cases, and composed with computeGoldenSplit in the worked-example test. The per-room card wires longerWall→computeGoldenSplit so the split always targets max(length,width). spec_compliant confirmed by strict PASS."
     },
@@ -62,7 +62,7 @@
         "components/PerRoomResults.tsx:24,30 (validRooms = rooms.filter(isRoomValid); .map → one card per valid room only)",
         "lib/calculations.test.ts:\"isApproximateFit: true only above a quarter module\" (174→false, 175→false [exactly ¼M is clean, not >], 176→true)",
         "lib/calculations.test.ts:\"golden worked example: living room reads clean, offset ≤ ¼M\" (snapOffset≈145.6, isApproximateFit(145.6,700)===false since 145.6 ≤ 175)",
-        "openspec/changes/golden-ratio/specs/golden-ratio/spec.md (Requirement: Approximate-fit flag when the offset exceeds a quarter module; Scenario: Only valid rooms produce a card)"
+        "openspec/changes/archive/2026-07-03-golden-ratio/specs/golden-ratio/spec.md (Requirement: Approximate-fit flag when the offset exceeds a quarter module; Scenario: Only valid rooms produce a card)"
       ],
       "notes": "The approximate-fit THRESHOLD LOGIC is AUTOMATED (tested: true): the strict > m/4 boundary is pinned at 174/175/176 for m=700 (¼M=175), with the equality case asserting exactly ¼M still reads clean, and the worked example confirms living-room offset 145.6 ≤ 175 → clean. The DISPLAY half of FR-GOLD-04 — the card rendering exact + snapped + snapOffset values, the ≈/✓ cleanFit/approxFit badge, and the warn/good coloring — is DOM-level with no React/DOM runner (ADR-0001), verified manually (test-plans/golden-ratio.md TC-2/TC-3). Only-valid-rooms-render is structurally sound (filter(isRoomValid) before map) and needs no empty-state guard because showResults already gates on ≥1 valid room (code-reviewer confirmed). CR-001 (low, resolved): the split + approx flag are computed once in PerRoomResults and passed to GoldenSplitBlock, so the badge and block cannot desync — the fit decision has a single source of truth. spec_compliant confirmed by strict PASS."
     }

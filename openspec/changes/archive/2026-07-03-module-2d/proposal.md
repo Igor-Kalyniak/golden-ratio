@@ -7,7 +7,7 @@ In 2D mode the architect works from plan dimensions (length × width) with no ce
 the module is suggested from the GCD folded across every room's length and width. This is
 100% unit-testable with no UI, so it de-risks 2D mode before the toggle (13) and visualizers
 (14/15) consume it — exactly like `calculation-engine` (1) de-risked 3D. Capability 12 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its only prerequisite `calculation-engine`
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its only prerequisite `calculation-engine`
 (1) is archived. Owns `FR-MODULE2D-01` (the function) and the data-contract half of `FR-MODULE2D-02`.
 
 ## What Changes

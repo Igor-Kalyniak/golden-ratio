@@ -5,14 +5,14 @@ architect does by hand — GCD module suggestion, golden-ratio wall splits, grid
 clearances, and vertical band derivation. All of that is pure math. Building it first, with no
 UI, proves the hardest and highest-risk part of the product (`FR-MODULE-01`, `FR-VERT-*`,
 `FR-GOLD-*`, `FR-GRID-*`, `FR-WALK-*`) against known worked-example numbers and lets every later
-UI capability stay thin. This is capability **1** in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md)
+UI capability stay thin. This is capability **1** in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md)
 and depends on nothing.
 
 ## What Changes
 
 - Add `lib/calculations.ts` — a framework-free pure-math module (`NFR-PURE-01`) exporting:
   - `STANDARD_MODULES` — one swappable `const` (`[100,150,200,300,350,600,700]`), the single
-    source of truth for snapping ([ADR-0002](../../../docs/adr/0002-standard-modules-swappable-constant.md)).
+    source of truth for snapping ([ADR-0002](../../../../docs/adr/0002-standard-modules-swappable-constant.md)).
   - Shared types, validation bounds (ceiling 2000–5000, opening 1800–ceiling, dims 500–15000),
     and warning thresholds (M > 1000, M < 100).
   - Snapping helpers: `gcd`, `nearestStandardModule`, `snap`.
@@ -26,7 +26,7 @@ and depends on nothing.
     (`FR-GRID-01/02/03/04`).
   - `computeWalkways(roomWidth, furnitureDepth, oppositeDepth?)` → `{ available, rating, recommendation }`
     with fixed mm thresholds decoupled from M (`FR-WALK-01/02/03`, `BC-WALK-01`).
-- Wire the test runner — Node `node:test` + `tsx` ([ADR-0001](../../../docs/adr/0001-test-runner.md)):
+- Wire the test runner — Node `node:test` + `tsx` ([ADR-0001](../../../../docs/adr/0001-test-runner.md)):
   add `tsx` as a dev dependency and a `test` script to `package.json`.
 - Add the unit suite (`lib/*.test.ts`) covering normal, boundary, and edge cases and asserting the
   worked-example numbers (`NFR-TEST-01`).

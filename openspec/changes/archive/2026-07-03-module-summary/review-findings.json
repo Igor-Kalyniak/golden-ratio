@@ -41,7 +41,7 @@
           "severity": "low",
           "category": "spec-compliance",
           "requirement_ids": ["FR-MODULE-05"],
-          "file": "openspec/changes/module-summary/design.md",
+          "file": "openspec/changes/archive/2026-07-03-module-summary/design.md",
           "line": 60,
           "summary": "FR-MODULE-05 warning banner is wired + unit-tested but currently unreachable through the UI (STANDARD_MODULES 100..700 cannot produce >1000 or <100). Disclosure in design.md is accurate and tied to OQ-01/ADR-0002; boundary logic proven by unit tests. Same underlying observation as CR-001. Informational, not a blocker — FR-MODULE-05 is a Should requirement and the tension is transparently documented.",
           "recommendation": "No code change required. Keep OQ-01 open; the banner becomes live with no further work if STANDARD_MODULES is revised. Retain the QA manual case (temporary constant edit) to observe the banner.",

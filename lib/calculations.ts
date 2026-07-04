@@ -43,6 +43,12 @@ export const FURNITURE_DEPTHS = { wardrobeKitchen: 600, sofa: 900, facingUnits: 
 /** Fixed ergonomic walkway thresholds (mm) — BC-WALK-01: never scale with M. */
 export const WALKWAY_THRESHOLDS = { comfortable: 900, acceptable: 600 } as const;
 
+/**
+ * Golden-ratio split fractions (FR-GOLD-01): the larger part is `1/φ ≈ 0.618` of the wall and the
+ * smaller `1 − 1/φ ≈ 0.382`. Named so the split shares one source of truth with the rest of the file.
+ */
+export const GOLDEN_RATIO = { larger: 0.618, smaller: 0.382 } as const;
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -316,7 +322,11 @@ export function computeVerticalBands(ceiling: number, m: number, opening?: numbe
  * locale-independent keys the UI resolves via `t()`.
  */
 export function layoutBandDiagram(ceiling: number, m: number, opening?: number): BandDiagramLayout {
-  const { bands: fullBands, topRemainder } = computeVerticalBands(ceiling, m, opening);
+  const { bands: fullBands, topRemainder, openingAligned, openingBand } = computeVerticalBands(
+    ceiling,
+    m,
+    opening,
+  );
   const hasPartial = topRemainder > 0;
   const totalRows = fullBands + (hasPartial ? 1 : 0);
 
@@ -330,7 +340,7 @@ export function layoutBandDiagram(ceiling: number, m: number, opening?: number):
       from,
       to,
       span: to - from,
-      nameKey: bandNameKey(i, totalRows, partial, opening, m),
+      nameKey: bandNameKey(i, totalRows, partial, openingBand),
       partial,
       alt: i % 2 === 1,
     });
@@ -348,24 +358,25 @@ export function layoutBandDiagram(ceiling: number, m: number, opening?: number):
   }));
 
   const overlay =
-    opening !== undefined ? { mm: opening, aligned: opening % m === 0 } : null;
+    opening !== undefined ? { mm: opening, aligned: openingAligned } : null;
 
   return { bands, marks, opening: overlay, condensed };
 }
 
-/** Band-name key for band `i` of `total` (3D-mode rule from the frozen prototype). */
+/**
+ * Band-name key for band `i` of `total` (3D-mode rule from the frozen prototype).
+ * `openingBand` is the 1-based band the opening head lands in (from `computeVerticalBands`),
+ * so the door-head band is `openingBand - 1` — no separate alignment arithmetic here.
+ */
 function bandNameKey(
   i: number,
   total: number,
   partial: boolean,
-  opening: number | undefined,
-  m: number,
+  openingBand: number | null,
 ): BandNameKey {
   if (i === 0) return 'band.basePlinth';
   if (partial || i === total - 1) return 'band.upperCeiling';
-  if (opening !== undefined && i * m < opening && (i + 1) * m >= opening) {
-    return 'band.doorHead';
-  }
+  if (openingBand !== null && i === openingBand - 1) return 'band.doorHead';
   return 'band.workZone';
 }
 
@@ -378,8 +389,8 @@ function bandNameKey(
  * The caller applies this to the longer wall of a room.
  */
 export function computeGoldenSplit(length: number, m: number): GoldenSplit {
-  const larger = length * 0.618;
-  const smaller = length * 0.382;
+  const larger = length * GOLDEN_RATIO.larger;
+  const smaller = length * GOLDEN_RATIO.smaller;
   const largerSnapped = snap(larger, m / 2);
   const smallerSnapped = length - largerSnapped;
   const snapOffset = Math.abs(larger - largerSnapped);

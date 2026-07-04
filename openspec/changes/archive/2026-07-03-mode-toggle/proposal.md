@@ -8,7 +8,7 @@ from room dimensions (`suggestModule2D`, 12). Switching preserves all shared sta
 length/width, a user-selected module); only the height fields and the module's suggestion source
 change. Mode is in-memory only — never persisted (`BC-PRIVACY-01`). This is the pivot that
 reorganizes the input column for Epic B and turns the two module engines into one mode-driven
-experience. Capability 13 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites
+experience. Capability 13 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites
 `apartment-input` (5), `room-input` (6), `module-summary` (7), and `module-2d` (12) are archived.
 Owns `FR-MODE-01/02/03/04/05`, `BC-PRIVACY-01`, `NFR-A11Y-03`.
 

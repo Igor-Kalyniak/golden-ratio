@@ -6,7 +6,7 @@ golden-ratio SVG mark (nested φ:1 rectangles + a golden-spiral arc), tying the 
 proportional idea it computes. It also delivers a matching favicon so the mark "scales to a
 favicon" per the requirement. This is the smallest, lowest-risk change in the plan and its
 **final** one — shipping it completes the full 16-capability backlog. Capability 16 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its only prerequisite `app-shell` (4) is
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its only prerequisite `app-shell` (4) is
 archived. Owns `FR-LOGO-01`.
 
 ## What Changes

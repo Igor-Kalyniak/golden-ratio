@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Frozen Claude Design export — GENERATED, do not edit; excluded so its false-positive
+    // lint/SAST hits (no-this-in-component on React.Component methods, etc.) don't add CI noise.
+    "docs/design/export/**",
   ]),
 ]);
 

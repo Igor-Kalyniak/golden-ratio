@@ -10,7 +10,7 @@ keeps Three.js out of the 2D path and first paint (`NFR-BUNDLE-01`, `TC-STACK-04
 covers the chunk fetch, `prefers-reduced-motion` disables the motion, and when WebGL is unavailable
 the view **degrades to the shipped `<Viz2D>`** (`FR-VIZ3D-06`). Read-only throughout (`BC-VALUE-01`);
 the numeric results remain the accessible source of truth (`NFR-A11Y-03`). Capability 15 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites `viz-2d` (14) and
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites `viz-2d` (14) and
 `mode-toggle` (13) are archived, and `@react-three/fiber@9`/`@react-three/drei@10`/`three@0.185` are
 already installed. Owns `FR-VIZ3D-01/02/03/04/05/06`, `NFR-BUNDLE-01`, `NFR-PERF-03`, `TC-STACK-04`,
 `NFR-A11Y-03`.

@@ -1,10 +1,10 @@
 ## Context
 
-Capability 5 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md). `app-shell` (4) shipped
+Capability 5 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md). `app-shell` (4) shipped
 `Calculator` as the state owner with `AppState` (`ceiling`/`opening`/`module`/`rooms`) but no
 setter — the apartment slot in `Shell` is a dashed placeholder. `calculation-engine` (1) already
 provides `isValidCeiling`/`isValidOpening`/`suggestModule`/`STANDARD_MODULES`. The design source
-is [docs/DESIGN.md](../../../docs/DESIGN.md) §5.2 (apartment card) and §5.4 (validation).
+is [docs/DESIGN.md](../../../../docs/DESIGN.md) §5.2 (apartment card) and §5.4 (validation).
 
 ## Goals / Non-Goals
 

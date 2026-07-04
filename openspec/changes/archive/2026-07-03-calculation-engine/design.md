@@ -1,10 +1,10 @@
 ## Context
 
-This is capability 1 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md) and the foundation of
+This is capability 1 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md) and the foundation of
 the whole app: pure proportioning math with no UI. The repo is a scaffolded Next.js 16 / React 19 /
 TS-strict app with an empty `lib/` and no test runner wired. Two decisions were pre-resolved as ADRs:
-the test runner ([ADR-0001](../../../docs/adr/0001-test-runner.md), Node `node:test` + `tsx`) and the
-`STANDARD_MODULES` structure ([ADR-0002](../../../docs/adr/0002-standard-modules-swappable-constant.md),
+the test runner ([ADR-0001](../../../../docs/adr/0001-test-runner.md), Node `node:test` + `tsx`) and the
+`STANDARD_MODULES` structure ([ADR-0002](../../../../docs/adr/0002-standard-modules-swappable-constant.md),
 one swappable constant with `residual` always surfaced). The canonical algorithms are frozen in the
 `calculation-logic` skill (distilled from `DESIGN.md` §10, §12–13), including the worked-example
 numbers this change must reproduce.

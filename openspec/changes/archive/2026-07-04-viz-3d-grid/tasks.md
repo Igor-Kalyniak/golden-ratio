@@ -25,7 +25,7 @@
 
 ## 3. Requirement + docs
 
-- [x] 3.1 Add **`FR-VIZ3D-07`** to the 3D-visualizer table in [docs/PDR.md](../../../docs/PDR.md)
+- [x] 3.1 Add **`FR-VIZ3D-07`** to the 3D-visualizer table in [docs/PDR.md](../../../../docs/PDR.md)
   (mirroring `FR-VIZ2D-02` in 3D: "A faint M³ module lattice tiles each room box; the signed grid
   remainder reads as a thin partial slab on the far faces"), status `proposed`.
 

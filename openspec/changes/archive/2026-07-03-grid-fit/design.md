@@ -43,7 +43,7 @@ It returns a locale-independent key the UI maps via `t()` (same pattern as `Walk
 The `RoomGrid.lengthRemainder` doc comment in `lib/calculations.ts` currently reads
 `"negative ⇒ round down, positive ⇒ round up"` — the **reverse** of `FR-GRID-03`, DESIGN §6.3, and
 the shipped prototype. The *returned number* is already correct (change 1's tests pin the signed
-values, e.g. kitchen −300/+300), so no behavior changes; this is a comment-only correction so the
+values, e.g. kitchen +300/−300), so no behavior changes; this is a comment-only correction so the
 source stops contradicting the spec. Flagged explicitly for the reviewers as an intentional in-scope
 doc fix, not silent drift.
 

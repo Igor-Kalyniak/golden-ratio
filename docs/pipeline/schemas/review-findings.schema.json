@@ -14,6 +14,7 @@
     "maker": { "type": "string", "description": "Who implemented the change, e.g. 'opsx-apply (opus)'" },
     "gate_policy": { "type": "string", "enum": ["advisory", "blocking"], "default": "advisory" },
     "verdict_advisory": { "type": "string", "enum": ["clean", "concerns", "block"] },
+    "notes": { "type": "string", "description": "Optional free-text synthesis / runtime-verification narrative for the change." },
     "counts": {
       "type": "object",
       "additionalProperties": false,
@@ -35,6 +36,7 @@
           "reviewer": { "type": "string", "enum": ["code-reviewer", "spec-compliance-auditor", "security-reviewer", "code-review-cloud", "other"] },
           "model": { "type": "string" },
           "verdict": { "type": "string", "enum": ["clean", "concerns", "block"] },
+          "strict_validation": { "type": "string", "description": "Optional `openspec validate --strict` outcome for the spec-compliance auditor, e.g. 'PASS'." },
           "summary": { "type": "string" },
           "findings": {
             "type": "array",

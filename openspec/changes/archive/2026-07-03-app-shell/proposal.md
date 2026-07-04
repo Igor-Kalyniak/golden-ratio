@@ -6,7 +6,7 @@ and result plugs into: it establishes the single `'use client'` boundary (`Calcu
 `TC-CLIENT-01`), makes `Calculator` the state owner (`TC-ARCH-01`), mounts the shipped
 `LanguageProvider`, lays out the responsive input/results two-column grid (`FR-SHELL-01/02`),
 places the language toggle top-right (`FR-SHELL-03`), and gates the results panel on full input
-validity (`FR-SHELL-04`). Capability 4 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md);
+validity (`FR-SHELL-04`). Capability 4 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md);
 its prerequisites `design-system` and `i18n` are archived. Owns `FR-SHELL-01/02/03/04`,
 `TC-CLIENT-01`, `TC-ARCH-01`, `NFR-RESP-01`, `NFR-A11Y-01`, `NFR-PERF-01`.
 

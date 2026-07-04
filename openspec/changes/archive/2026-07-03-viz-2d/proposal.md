@@ -8,7 +8,7 @@ module cell** in the accent color so the architect sees the module's size at a g
 **comprehension aid, read-only** — never a floor-plan editor, never exported (`BC-VALUE-01`). This
 is the first of the two visualizers; it must land before `viz-3d` (15) because the 2D view is also
 the 3D WebGL fallback (`FR-VIZ3D-06`). Capability 14 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites `mode-toggle` (13),
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites `mode-toggle` (13),
 `module-2d` (12), and `calculation-engine` (1) are archived. Owns `FR-VIZ2D-01/02/03/04/05`,
 `NFR-PERF-03`, `BC-VALUE-01`.
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { Component, useSyncExternalStore, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 
 import { type Room } from '../lib/app-state';
@@ -40,6 +40,21 @@ function detectWebGL(): boolean {
   return webglCache;
 }
 
+/**
+ * Catches a terminal failure of the lazy 3D chunk (e.g. a chunk-load error) — which `ssr:false`
+ * does NOT guard against — and renders the 2D fallback instead of tearing down the WebGL branch and
+ * leaving the user with nothing (FR-VIZ3D-06). There is no route-level error.tsx to catch this.
+ */
+class SceneErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError(): { failed: boolean } {
+    return { failed: true };
+  }
+  render(): ReactNode {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
 // A never-changing external store: the client snapshot is the WebGL probe; the server snapshot is
 // null (renders the neutral placeholder), so hydration is consistent and there is no effect-setState.
 const subscribe = () => () => {};
@@ -63,6 +78,17 @@ export function Viz3D({ rooms, module: m, ceiling, opening }: Viz3DProps) {
   const { t } = useI18n();
   const webgl = useWebGLSupported();
 
+  // Shared graceful degradation to the shipped 2D visualizer (FR-VIZ3D-06) — used both when WebGL is
+  // unavailable and when the 3D chunk fails to load/render.
+  const twoDFallback = (
+    <div className="space-y-3">
+      <p role="status" className="rounded-lg bg-warn-bg px-3 py-2 text-sm text-warn">
+        {t('webgl')}
+      </p>
+      <Viz2D rooms={rooms} module={m} />
+    </div>
+  );
+
   return (
     <section className="space-y-3 rounded-xl border border-line bg-panel p-4">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -77,17 +103,13 @@ export function Viz3D({ rooms, module: m, ceiling, opening }: Viz3DProps) {
       <p className="text-[11px] text-faint">{t('vizNote')}</p>
 
       {webgl === false ? (
-        <div className="space-y-3">
-          <p role="status" className="rounded-lg bg-warn-bg px-3 py-2 text-sm text-warn">
-            {t('webgl')}
-          </p>
-          {/* Graceful degradation to the shipped 2D visualizer (FR-VIZ3D-06). */}
-          <Viz2D rooms={rooms} module={m} />
-        </div>
+        twoDFallback
       ) : webgl === true ? (
-        <div className="h-[320px] w-full overflow-hidden rounded-lg bg-panel2">
-          <Viz3DScene rooms={rooms} module={m} ceiling={ceiling} opening={opening} />
-        </div>
+        <SceneErrorBoundary fallback={twoDFallback}>
+          <div className="h-[320px] w-full overflow-hidden rounded-lg bg-panel2">
+            <Viz3DScene rooms={rooms} module={m} ceiling={ceiling} opening={opening} />
+          </div>
+        </SceneErrorBoundary>
       ) : (
         // WebGL support not yet determined (first client tick) — reserve space, no Three.js yet.
         <div className="grid h-[320px] place-items-center text-sm text-muted" aria-hidden="true">

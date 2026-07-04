@@ -5,6 +5,7 @@ import {
   moduleWarning,
   type ModuleSuggestion,
 } from '../lib/calculations';
+import { type CalcLabel } from '../lib/i18n';
 import { type Mode } from '../lib/app-state';
 import { useI18n, type TranslationKey } from '../lib/i18n-context';
 
@@ -18,16 +19,19 @@ interface ModuleSummaryProps {
   suggestion: ModuleSuggestion;
 }
 
-/** Ruler "typical use" i18n keys, index-aligned to CALC_LABELS / RULER_FACTORS (¼M…4M). */
-const RULER_USE_KEYS: TranslationKey[] = [
-  'useQuarterM',
-  'useHalfM',
-  'useM',
-  'useM15',
-  'useM2',
-  'useM3',
-  'useM4',
-];
+/**
+ * Ruler "typical use" i18n key per module-ruler label. Keyed by `CalcLabel` (not row index) so a
+ * reorder of RULER_FACTORS / CALC_LABELS in lib/calculations.ts can't silently mismatch the labels.
+ */
+const RULER_USE_KEYS: Record<CalcLabel, TranslationKey> = {
+  '¼M': 'useQuarterM',
+  '½M': 'useHalfM',
+  M: 'useM',
+  '1.5M': 'useM15',
+  '2M': 'useM2',
+  '3M': 'useM3',
+  '4M': 'useM4',
+};
 
 /**
  * Module Summary (DESIGN §6.1) — the first result section and the linchpin that surfaces the
@@ -115,11 +119,11 @@ export function ModuleSummary({
           </tr>
         </thead>
         <tbody>
-          {ruler.map((row, i) => (
+          {ruler.map((row) => (
             <tr key={row.label} className="border-t border-line">
               <td className="py-1 font-mono text-accent">{row.label}</td>
               <td className="py-1 font-mono text-fg">{row.size}</td>
-              <td className="py-1 text-muted">{t(RULER_USE_KEYS[i])}</td>
+              <td className="py-1 text-muted">{t(RULER_USE_KEYS[row.label])}</td>
             </tr>
           ))}
         </tbody>

@@ -64,7 +64,7 @@ constrained to `STANDARD_MODULES = [100, 150, 200, 300, 350, 600, 700]`. So with
 This is deliberate, not dead code:
 - `FR-MODULE-05` is a `Should` requirement and an explicit spec contract; implementing it now keeps
   the summary complete and correct *by construction*.
-- `STANDARD_MODULES` is a swappable constant ([ADR-0002](../../../docs/adr/0002-standard-modules-swappable-constant.md));
+- `STANDARD_MODULES` is a swappable constant ([ADR-0002](../../../../docs/adr/0002-standard-modules-swappable-constant.md));
   `OQ-01` may revise it to include values outside `100–1000`, at which point the banner becomes
   live with zero further work.
 - `moduleWarning` is still fully unit-tested at its boundaries (999/1000/1001, 99/100/101) so the

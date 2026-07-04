@@ -16,9 +16,9 @@ constraints are re-verified, not newly introduced: the lattice stays **inside th
 `Viz3DScene` chunk** so Three.js never reaches the 2D path or first paint (`NFR-BUNDLE-01`,
 `TC-STACK-04`); the line/mesh count is **capped at high room counts** (`NFR-PERF-03`); the view stays
 **read-only** (`BC-VALUE-01`); and the numeric results remain the accessible source of truth
-(`NFR-A11Y-03`). Capability 17 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its sole
+(`NFR-A11Y-03`). Capability 17 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its sole
 prerequisite `viz-3d` (15) is archived. Owns a **new `FR-VIZ3D-07`** (added to
-[docs/PDR.md](../../../docs/PDR.md), mirroring `FR-VIZ2D-02` in 3D) and re-verifies `NFR-BUNDLE-01`,
+[docs/PDR.md](../../../../docs/PDR.md), mirroring `FR-VIZ2D-02` in 3D) and re-verifies `NFR-BUNDLE-01`,
 `TC-STACK-04`, `NFR-PERF-03`, `NFR-A11Y-03`, `BC-VALUE-01`.
 
 ## What Changes

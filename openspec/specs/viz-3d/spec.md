@@ -1,7 +1,10 @@
 # viz-3d Specification
 
 ## Purpose
-TBD - created by archiving change viz-3d. Update Purpose after archive.
+
+The lazy-loaded `@react-three/fiber` 3D module visualizer — one box per room drawn to scale, with a
+graceful fallback to the 2D visualizer when WebGL is unavailable (`FR-VIZ3D-01`–`FR-VIZ3D-06`).
+
 ## Requirements
 
 ### Requirement: Per-room boxes to scale in a 3D canvas

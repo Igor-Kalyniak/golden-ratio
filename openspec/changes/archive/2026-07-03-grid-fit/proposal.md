@@ -6,7 +6,7 @@ room as `nL × nW` modules (`round(dimension / m)`), the signed remainder to the
 per dimension, a round-up/round-down annotation, and a colored `exact` / `close` / `poor` quality
 badge that carries a text + glyph cue (never color alone). The pure `computeRoomGrid` function
 already shipped (change 1); this is its presentation. Capability 10 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites `module-summary` (7),
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites `module-summary` (7),
 `room-input` (6), and `calculation-engine` (1) are archived, and the per-room card scaffold from
 `golden-ratio` (9) is in place. Owns `FR-GRID-01/02/03/04/05` and `NFR-A11Y-02` (`FR-GRID-01/02/03/04`'s
 function shipped with change 1).
@@ -25,7 +25,7 @@ function shipped with change 1).
   `golden-ratio` design anticipated (sibling block in the same slot).
 - **`lib/calculations.test.ts` extended**: assert the round-up/round-down annotation *direction*
   against the sign convention (a helper or inline mapping tested), plus the DESIGN §6.3 worked
-  examples — living room 4200×3500 → 6×5, rem 0/0, `exact`; kitchen 3800×2500 → 5×4, rem −300/+300,
+  examples — living room 4200×3500 → 6×5, rem 0/0, `exact`; kitchen 3800×2500 → 5×4, rem +300/−300,
   `poor`; bathroom 2150×1500 → 3×2, rem +50/+100, `close`; and the 1 mm-short boundary reads `close`.
 
 To keep the round-up/round-down direction unit-testable (not buried in JSX) and to fix a latent

@@ -1,7 +1,10 @@
 # calculation-engine Specification
 
 ## Purpose
-TBD - created by archiving change calculation-engine. Update Purpose after archive.
+
+The pure, framework-free proportioning math — module suggestion, snapping, golden split, grid fit,
+walkway ratings, and vertical bands — that every derived result reads from (`lib/calculations.ts`).
+
 ## Requirements
 ### Requirement: Standard modules constant and snapping helpers
 

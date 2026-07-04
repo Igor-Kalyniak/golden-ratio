@@ -1,7 +1,10 @@
 # brand-logo Specification
 
 ## Purpose
-TBD - created by archiving change brand-logo. Update Purpose after archive.
+
+The golden-ratio SVG brand mark in the header — a dependency-free `currentColor` logo (nested φ:1
+rectangles with a golden-spiral arc) that anchors the app's identity (`FR-LOGO-01`).
+
 ## Requirements
 
 ### Requirement: Golden-ratio SVG brand mark in the header

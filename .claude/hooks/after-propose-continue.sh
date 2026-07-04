@@ -26,8 +26,10 @@ case "$payload" in
 esac
 
 # 3. Is there an in-flight (non-archived) change not yet reviewed?
+# `sort` makes the pick deterministic when several active change dirs exist (find's order is
+# filesystem-dependent), so the same change is chosen every run instead of an arbitrary one.
 changes_dir="$repo_root/openspec/changes"
-active="$(find "$changes_dir" -maxdepth 1 -mindepth 1 -type d ! -name archive 2>/dev/null | head -n1 || true)"
+active="$(find "$changes_dir" -maxdepth 1 -mindepth 1 -type d ! -name archive 2>/dev/null | sort | head -n1 || true)"
 [ -n "$active" ] || exit 0                        # nothing in flight -> allow stop
 [ -f "$active/review-findings.json" ] && exit 0   # already reviewed -> let the command finish
 

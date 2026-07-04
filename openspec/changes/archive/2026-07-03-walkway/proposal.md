@@ -8,7 +8,7 @@ ergonomic mm thresholds that never scale with the module** (`≥900` comfortable
 `<600` tight). This is the "honest about ergonomics" promise: comfort is an absolute human
 dimension, not a proportional one (`BC-WALK-01`). The pure `computeWalkways`/`rateWalkway` functions
 and the `FURNITURE_DEPTHS`/`WALKWAY_THRESHOLDS` constants already shipped (change 1); this is their
-presentation. Capability 11 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its
+presentation. Capability 11 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its
 prerequisites `room-input` (6) and `calculation-engine` (1) are archived, and the per-room card
 scaffold from `golden-ratio` (9) is in place. Owns `FR-WALK-01/02/03/04` and `BC-WALK-01`
 (`FR-WALK-01/02/03`'s functions shipped with change 1).

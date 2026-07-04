@@ -1,8 +1,8 @@
 ## Context
 
-Capability 4 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md). Prerequisites `design-system`
+Capability 4 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md). Prerequisites `design-system`
 (2) and `i18n` (3) are archived; the engine (1) provides validation bounds. The design source is
-[docs/DESIGN.md](../../../docs/DESIGN.md) §4 (layout & shell, header) and the
+[docs/DESIGN.md](../../../../docs/DESIGN.md) §4 (layout & shell, header) and the
 `design-layout-components` skill. This change builds the empty, responsive shell that later
 capabilities populate — it renders no real inputs or results, only their slots and the validity
 gate.

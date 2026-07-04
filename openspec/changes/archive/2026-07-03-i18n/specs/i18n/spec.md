@@ -20,8 +20,9 @@ dictionaries — no heavy i18n library. (`FR-I18N-01`, `TC-I18N-01`)
 
 ### Requirement: All strings resolve through t() over flat JSON dictionaries
 
-Every user-facing string SHALL be addressable through `t(key)`, backed by two flat JSON
-dictionaries at `locales/en.json` and `locales/ua.json` (`Record<string, string>`). The two
+Every user-facing string — except the fixed calculation labels carved out below (`CALC_LABELS`,
+"Calculation labels are never translated") — SHALL be addressable through `t(key)`, backed by two
+flat JSON dictionaries at `locales/en.json` and `locales/ua.json` (`Record<string, string>`). The two
 dictionaries SHALL have the identical key set — no key present in one but missing from the other.
 The dictionary content SHALL be ported verbatim from the canonical export `STR` object / DESIGN
 §11. (`FR-I18N-02`)

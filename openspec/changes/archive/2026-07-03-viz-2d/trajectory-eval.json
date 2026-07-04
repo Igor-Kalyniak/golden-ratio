@@ -55,7 +55,7 @@
       "spec_compliant": true,
       "evidence": [
         "components/Viz2D.tsx (the highlighted cell carries the shipped cellpulse keyframe animation)",
-        "openspec/changes/viz-2d/proposal.md, design.md (reconciled: only cellpulse is applied; grid animate-in and rect/grid tween-on-change are MAY clauses, satisfied-by-Should via the pulse; griddraw available but intentionally not applied)"
+        "openspec/changes/archive/2026-07-03-viz-2d/proposal.md, design.md (reconciled: only cellpulse is applied; grid animate-in and rect/grid tween-on-change are MAY clauses, satisfied-by-Should via the pulse; griddraw available but intentionally not applied)"
       ],
       "notes": "Motion (Should). FR-VIZ2D-04 reads 'grid lines animate in and the highlighted cell pulses; on input change rects/grid tween'. The highlighted-cell pulse (cellpulse) IS implemented and satisfies the Should; per the spec.md the grid animate-in and the on-change tween are MAY clauses, left unimplemented — no requirement violated. tested=false: animation is a visual property with no React/DOM runner (ADR-0001). The low doc note SC-001 (proposal/design overstated griddraw as applied) was RESOLVED by correcting the docs to match the code (cellpulse-only); no code change needed. spec_compliant=true because the Should is met by the pulse."
     },

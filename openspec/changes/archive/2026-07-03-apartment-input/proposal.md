@@ -6,7 +6,7 @@ setter. `apartment-input` fills that slot: ceiling height, opening height, and a
 selector defaulting to the engine's suggestion, all reactive with inline validation. This
 produces the apartment-level state every downstream result (module summary, bands, golden
 split, grid fit) reads. Capability 5 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites `app-shell` (4) and
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites `app-shell` (4) and
 `calculation-engine` (1) are archived. Owns `FR-APT-01/02/03/04/05`.
 
 ## What Changes

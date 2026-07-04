@@ -93,10 +93,13 @@ a rating. Changing the module must leave every walkway rating unchanged. Confirm
   1. On a 1500-wide room, confirm the sofa row (900) reads **`600 mm`** rated **`acceptable`**
      (exactly the ≥ 600 boundary, inclusive) and the facing row (1200) reads **`300 mm`** rated
      **`tight`** (< 600).
-  2. **Module-independence (the BC-WALK-01 crux):** change the active module from **700** to
-     **350** (edit the module select / heights so the suggestion changes). Confirm **every walkway
-     rating and clearance for that room is unchanged** — the mm numbers and the ratings do not move.
-     The block takes no module prop, so M cannot reach a rating.
+  2. **Module-independence (the BC-WALK-01 crux):** change the **active** module from **700** to
+     **350** by picking `350` directly in the module `<select>`. Pick it in the selector — not by
+     editing heights: a manual pick is the sticky override that sets the *active* module, whereas
+     editing heights would only move the *suggestion* and could leave the active module untouched,
+     so the check would pass without proving independence. Confirm **every walkway rating and
+     clearance for that room is unchanged** — the mm numbers and the ratings do not move. The block
+     takes no module prop, so M cannot reach a rating.
   3. Confirm a comfortable clearance (e.g. the 3500-wide room's 2900 mm) stays `comfortable` before
      and after the module change.
 - **Expected result:** Ratings follow the fixed thresholds (≥ 900 comfortable, ≥ 600 acceptable,

@@ -7,7 +7,7 @@ bands plus a leftover partial band, with the opening height marked and flagged o
 The pure `computeVerticalBands` function already shipped (change 1); this change is its
 presentation layer — a width-responsive SVG plus a small pure layout helper so the band geometry,
 names, and label-condensing stay unit-testable. Capability 8 in
-[docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites `module-summary` (7) and
+[docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites `module-summary` (7) and
 `calculation-engine` (1) are archived. Owns `FR-VERT-01/02/03/04/05/06` and `NFR-RESP-01`
 (`FR-VERT-01`'s function shipped with change 1).
 
@@ -41,9 +41,11 @@ names, and label-condensing stay unit-testable. Capability 8 in
 
 Scope stays the vertical-band diagram only. The other three result sections (golden 9, grid 10,
 walkway 11), the per-room cards, and the 2D/3D mode toggle (13) are out of scope. `viewBox`
-dimensions follow the owned requirement `FR-VERT-05` literal `0 0 200 400` (see design.md — DESIGN
-§6.2's `360 470` is a prototype-specific value; both are `viewBox`-based and width-responsive, so
-the requirement's contract is met either way).
+dimensions follow DESIGN §6.2's `0 0 360 470`. The `FR-VERT-05` PDR literal `0 0 200 400` was tried
+first but **rejected**: at 200 units wide the right-side band-name and opening labels overflowed and
+clipped, failing `FR-VERT-06` legibility. `360 470` (wide right gutter) satisfies both the
+responsive-`viewBox` contract (`FR-VERT-05`) and label legibility (`FR-VERT-06`); see
+`review-findings.json` and `specs/vertical-bands/spec.md`.
 
 ## Capabilities
 

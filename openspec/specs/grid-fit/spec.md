@@ -1,7 +1,10 @@
 # grid-fit Specification
 
 ## Purpose
-TBD - created by archiving change grid-fit. Update Purpose after archive.
+
+Per-room fit of length × width to the module grid — module counts and signed nearest-grid
+remainders with an exact/close/poor quality rating (`FR-GRID-01`–`FR-GRID-05`).
+
 ## Requirements
 
 ### Requirement: Per-room grid fit shows module counts and signed remainders

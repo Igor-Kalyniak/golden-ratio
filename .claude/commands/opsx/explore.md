@@ -88,6 +88,8 @@ You have full context of the OpenSpec system. Use it naturally, don't force it.
 
 At the start, quickly check what exists:
 ```bash
+# In a registered store, pass the same --store <id> as the Store-selection contract above,
+# so this first inventory query reads the right root: openspec list --store <id> --json
 openspec list --json
 ```
 

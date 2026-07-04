@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import en from '../locales/en.json';
 import ua from '../locales/ua.json';
@@ -32,6 +32,13 @@ export function LanguageProvider({
   initialLocale?: Locale;
 }) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
+
+  // Keep the document's language in sync with the active locale so assistive tech announces the
+  // page in the right language (the static `lang` in app/layout.tsx only covers the initial paint).
+  // BCP-47: our `ua` locale id maps to the `uk` language tag.
+  useEffect(() => {
+    document.documentElement.lang = locale === 'ua' ? 'uk' : 'en';
+  }, [locale]);
 
   const value = useMemo<I18nValue>(
     () => ({ locale, setLocale, t: createTranslator(DICTIONARIES[locale]) }),

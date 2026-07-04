@@ -1,6 +1,8 @@
+# i18n design
+
 ## Context
 
-Capability 3 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md), dependency-free. The
+Capability 3 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md), dependency-free. The
 canonical strings are frozen in the export `STR` object (`docs/design/export/prototype.dc.html`
 ~L392–459) and summarized in DESIGN §11 / the `i18n-strings` skill. `TC-I18N-01` mandates a React
 context + JSON dictionaries with **no heavy i18n library**. The engine (1) and design-system (2)

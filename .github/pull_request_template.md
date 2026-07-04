@@ -23,10 +23,16 @@ https://github.com/Igor-Kalyniak/golden-ratio/blob/dev/demo/demo-ua.mp4
   `calculation-logic`, `i18n-strings`), які підвантажуються лише коли релевантні.
 - **Цикли (loop engineering).** Кожна спроможність проходила `ship-capability` loop:
   propose → validate → apply → review → QA/trajectory-eval → archive → docs — замість покрокового
-  ручного промптингу. Стан між сесіями передається через живий `docs/CURRENT_STATE.md`.
+  ручного промптингу.
+- **Жива передача стану між сесіями.** [`docs/CURRENT_STATE.md`](../docs/CURRENT_STATE.md) — живий
+  handoff-лог: наприкінці кожної сесії агента оновлюються «Last action / Status / Next steps», щоб
+  наступне вікно (людина чи агент) одразу мало контекст, що зроблено й що далі, без перечитування
+  всієї історії.
 - **Maker ≠ Checker / суб-агенти.** Код писав один агент (Maker), а рев'ю робили окремі свіжі
   суб-агенти (Checkers), які не писали цей код: `code-reviewer`, `spec-compliance-auditor`,
-  `security-reviewer`, `qa-trajectory-evaluator`.
+  `security-reviewer`, `qa-trajectory-evaluator`. Додатково — **автоматичне рев'ю PR від CodeRabbit**
+  як зовнішній Checker: усі зауваження протріажено й доведено до фіксу (або обґрунтовано відхилено),
+  з перевіркою `node --test` + `tsc` + `next build` перед прийняттям.
 - **Верифікація.** Юніт-тести `node --test` (**107/107** зелені) + **Playwright** e2e-набір проти
   прод-деплою на Vercel (**7/7**): перемикання i18n, канонічні числа з worked-example, режим 2D/3D,
   CRUD кімнат, валідація; `openspec validate --strict` для специфікацій.

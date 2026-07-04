@@ -12,7 +12,7 @@
 - **Owned requirement IDs:** `FR-MODULE2D-01, FR-MODULE2D-02`
 - **Last updated:** `2026-07-03T18:45:00+03:00`
 - **Worked example reference:** [docs/DESIGN.md](../../DESIGN.md) §10 / the spec at
-  [openspec/changes/module-2d/specs/module-2d/spec.md](../../../openspec/changes/module-2d/specs/module-2d/spec.md).
+  [openspec/specs/module-2d/spec.md](../../../openspec/specs/module-2d/spec.md).
   A single room `4200 × 3500` yields `gcd = 700` (a standard module, residual 0); the three-room set
   `4200×3500`, `3800×2500`, `2150×1500` folds to `rawGcd = 50` → `suggested = 100`, `residual = 50`.
 

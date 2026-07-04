@@ -17,7 +17,9 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 1. **If no change name provided, prompt for selection**
 
-   Run `openspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Run `openspec list --json` (in a registered store, add `--store <id>` — the same id as the
+   **Store selection** contract above — so this reads the right root) to get available changes.
+   Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that have delta specs (under `specs/` directory).
 
@@ -25,7 +27,7 @@ This is an **agent-driven** operation - you will read delta specs and directly e
 
 2. **Resolve change context**
 
-   Run:
+   Run (in a registered store, add the same `--store <id>` — see **Store selection** above):
    ```bash
    openspec status --change "<name>" --json
    ```

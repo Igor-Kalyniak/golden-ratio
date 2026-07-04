@@ -5,13 +5,13 @@ The app is still create-next-app boilerplate: `app/globals.css` ships placeholde
 Geist Mono. Every UI capability (shell, inputs, the four result sections, the visualizers)
 consumes a shared visual foundation — OKLCH color tokens, the Inter / JetBrains-Mono type
 system with the mono-for-numbers rule, dark mode, and accessible focus/contrast. Building that
-foundation **once, now** (capability 2 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md),
+foundation **once, now** (capability 2 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md),
 dependency-free) prevents every later change from re-deriving colors and fonts and keeps them
 thin. Owns `TC-STACK-02`, `TC-STACK-03`, `NFR-A11Y-02`.
 
 ## What Changes
 
-- **Rewrite `app/globals.css`** to the design source of truth ([docs/DESIGN.md](../../../docs/DESIGN.md)
+- **Rewrite `app/globals.css`** to the design source of truth ([docs/DESIGN.md](../../../../docs/DESIGN.md)
   §1–3, §8–9 / the `design-tokens` skill):
   - `@import "tailwindcss"` (Tailwind 4, utilities only — `TC-STACK-02`).
   - Light tokens on `:root` and dark tokens on `[data-theme="dark"]`: surfaces

@@ -43,7 +43,7 @@ read-only — it is still **not** a CAD editor.
 
 New files; existing files unchanged unless noted.
 
-```
+```text
 src/
 ├── components/
 │   ├── Calculator.tsx        # +mode state ('2d' | '3d'); gates inputs/results by mode

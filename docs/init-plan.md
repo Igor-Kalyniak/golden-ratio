@@ -46,10 +46,10 @@ Opt-in hook — .claude/hooks/after-propose-continue.sh wired via a Stop hook in
 
 Schema & QA templates:
 
-review-findings.json — top-level { change, generated_at, maker, reviewers[], verdict_advisory } where each finding is { id, reviewer, severity: critical|high|medium|low, category, requirement_ids[], file, line, summary, recommendation, status: open|resolved|wontfix }.
+review-findings.json — top-level { change, generated_at, maker, gate_policy, verdict_advisory, counts, reviewers[] } where each reviewer is { reviewer, verdict, findings[] } and each finding is { id, severity: critical|high|medium|low, category, summary, status: open|resolved|wontfix, requirement_ids[]?, file?, line?, recommendation? } (see docs/pipeline/schemas/review-findings.schema.json).
 docs/qa/traceability-matrix.md — table: Requirement ID | Capability | PDR § | Tasks | Automated tests | Manual plan | Status.
 docs/qa/test-plans/TEMPLATE.md + per-capability plans.
-trajectory-eval.json — per requirement ID: implemented / tested / spec_compliant / notes.
+trajectory-eval.json — per requirement ID: implemented / tested / spec_compliant / evidence[] (required, non-empty) / notes (see docs/pipeline/schemas/trajectory-eval.schema.json).
 Docs / master prompt:
 
 docs/pipeline/README.md — the loop overview + how Maker≠Checker and the advisory gate work.

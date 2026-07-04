@@ -1,7 +1,10 @@
 # golden-ratio Specification
 
 ## Purpose
-TBD - created by archiving change golden-ratio. Update Purpose after archive.
+
+The golden-ratio split of each room's longer wall, snapped to the ½M grid and rated as a clean or
+approximate fit (`FR-GOLD-01`–`FR-GOLD-04`).
+
 ## Requirements
 
 ### Requirement: Golden split of each room's longer wall

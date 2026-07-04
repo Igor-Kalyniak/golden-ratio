@@ -1,3 +1,5 @@
+# mode-toggle Specification
+
 ## ADDED Requirements
 
 ### Requirement: Segmented 2D ⇄ 3D mode toggle, default 3D

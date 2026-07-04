@@ -6,8 +6,31 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-04T20:30:00+03:00
-- **Last action:** **Added Playwright e2e + Ukrainian demo recording** (brainstorm → spec → plan →
+- **Last updated:** 2026-07-05T00:00:00+03:00
+- **Last action:** **Addressed all 52 CodeRabbit review comments on PR #2** (`dev-v3-final`), triaged
+  and applied file-only (no commit/push/thread replies). **Product code (4 substantive):** `<html
+  lang>` now tracks the locale via a `useEffect` in [lib/i18n-context.tsx](../lib/i18n-context.tsx)
+  (`ua`→`uk`); [addRoom](../lib/app-state.ts) names from the monotonic `newRoomId()` sequence (no
+  reuse after delete+add) — **closes the long-deferred `room-input` CR-003**; [Viz3D](../components/Viz3D.tsx)
+  wraps the lazy scene in a `SceneErrorBoundary` that falls back to 2D (FR-VIZ3D-06);
+  [trajectory-eval.schema.json](pipeline/schemas/trajectory-eval.schema.json) now requires non-empty
+  `requirements`/`evidence`. **Nitpicks:** extracted a shared [components/fields.tsx](../components/fields.tsx)
+  (`NumberField`/`InlineError` + `DIMENSION_HINT` from `BOUNDS`) used by `ApartmentForm` + `RoomList`
+  — **closes `room-input` CR-001** (the 3rd-consumer trigger arrived as this review); `GOLDEN_RATIO`
+  const; deduped band opening-alignment logic; `ModuleSummary` "use" keyed by `CalcLabel`;
+  `playwright.config.ts` scopes 1080p video to a `demo` project (others `retain-on-failure`).
+  **Docs/openspec (~33):** filled 8 `TBD` Purpose blocks; fixed archived relative links
+  (`../../../docs`→`../../../../docs`) across all 23 affected files; 4 archive JSON paths; markdownlint
+  H1/MD040/MD022 + an escaped `\|300\|` matrix cell; reconciled several spec/engine contracts
+  (bands `round`→`floor`, grid `+300/−300`, vertical-bands `200×400` rejected vs `360×470` shipped,
+  `t()`-vs-`CALC_LABELS`, `--faint` AA scope). **Config:** `.gitignore` `!.env.example`; ESLint
+  ignores `docs/design/export/**`; removed `.coderabbit.yaml` skills path-filters; `--store`
+  reminders in `opsx/{explore,sync}.md`; deterministic `sort` in `after-propose-continue.sh`.
+  **1 comment declined** (module-2d/proposal.md `FR-MODULE-02` is an intentional analogy to the
+  shipped 3D requirement, not a typo). Verify: unit **107/107**, `tsc` ✓, `next build` ✓, changed
+  source lint clean; the only `npm run lint` errors are pre-existing in vendored `.claude/skills/`.
+  63 files changed (+1 new `components/fields.tsx`); kept as-is (not committed/pushed).
+- **Prior action:** **Added Playwright e2e + Ukrainian demo recording** (brainstorm → spec → plan →
   subagent-driven execution → review). New `e2e/` suite targets the **production Vercel deployment
   only** (`baseURL` = `https://golden-ratio-apartment.vercel.app/`, no `webServer`, Chromium-only,
   `retries: 1`, `video: 'on'`, 1920×1080): [playwright.config.ts](../playwright.config.ts),
@@ -23,7 +46,7 @@
   [docs/superpowers/specs/2026-07-04-playwright-e2e-demo-ua-design.md](superpowers/specs/2026-07-04-playwright-e2e-demo-ua-design.md)
   / [docs/superpowers/plans/2026-07-04-playwright-e2e-demo-ua.md](superpowers/plans/2026-07-04-playwright-e2e-demo-ua.md).
   Out of scope (backlog): CI wiring; localhost target; on-screen captions.
-- **Prior action:** **Shipped capability 17 `viz-3d-grid`** (iteration 3) end-to-end via the
+- **Earlier action:** **Shipped capability 17 `viz-3d-grid`** (iteration 3) end-to-end via the
   `ship-capability` advisory loop — the 3D **module-lattice + remainder-slab** parity with the 2D
   visualizer. [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) now draws a faint M³ lattice
   on the floor + two corner faces (via `<lineSegments>`) and thin warn-tone remainder slabs on the
@@ -178,9 +201,10 @@
   - **SME open questions** (gate content/constants, not code): `OQ-01` authoritative
     `STANDARD_MODULES` (de-risked by ADR-0002 — one-line change), `OQ-02` editable furniture depths,
     `OQ-04` default room dims/names. Revisit with the SME; each is an additive constant/input edit.
-  - **`room-input` CR-001 — closed (won't-extract):** no change ever added a 3rd editable
-    number-field consumer, so the shared-`NumberField` extraction stays intentionally un-done (only
-    `ApartmentForm` + `RoomList`). Drop unless a future feature adds a numeric input.
+  - **`room-input` CR-001 — RESOLVED (2026-07-05):** the shared `NumberField`/`InlineError` was
+    extracted to [components/fields.tsx](../components/fields.tsx) (with `DIMENSION_HINT` from
+    `BOUNDS`) and adopted by both `ApartmentForm` + `RoomList` during the CodeRabbit pass — the
+    3rd-consumer trigger was the review itself flagging the duplication in both forms.
   - **`viz-3d` NFR-PERF-03 (acknowledged low):** no explicit room cap on the 3D scene; a hard cap
     belongs in `room-input`/app-state if a room-count ceiling is ever exercised.
   - **Possible follow-ups** (not in scope, would be new changes): an automated a11y/visual/DOM test
@@ -188,16 +212,15 @@
     NFR-A11Y-02 sub-AA token finding below (a design-source decision).
   **Low findings deferred from earlier changes** (in the archived `review-findings.json`s), for
   triage — none block the shipped product:
-  - `room-input` **CR-001**: `NumberField`/`InlineError` are duplicated in `RoomList` and
-    `ApartmentForm`. Extract a shared field component **when a 3rd consumer appears** — deferred by
-    design (YAGNI; avoids churning the archived `apartment-input`). *(module-summary added no new
-    number field, so still 2 consumers.)*
+  - `room-input` **CR-001** — RESOLVED (2026-07-05): `NumberField`/`InlineError` extracted to
+    `components/fields.tsx` and adopted by both `RoomList` + `ApartmentForm` (size variant + shared
+    `DIMENSION_HINT`) during the CodeRabbit pass.
   - `module-summary` **CR-001/SC-001** (resolved): the `FR-MODULE-05` warning banner is
     dormant-by-data under the current `STANDARD_MODULES`; a code comment marks it as such. Becomes
     live if `OQ-01` revises the constant to include an out-of-range value — no code change needed.
-  - `room-input` **CR-003**: `addRoom` names via `rooms.length + 1`, so default names can repeat
-    after a removal (cosmetic; ids stay unique, name is user-editable + validated). Revisit with
-    `OQ-04` (default room dims/names) if the SME wants distinct auto-names.
+  - `room-input` **CR-003** — RESOLVED (2026-07-05): `addRoom` now names from the monotonic
+    `newRoomId()` sequence (e.g. `Room 5`), not `rooms.length + 1`, so default names no longer repeat
+    after a removal.
   - **Open low findings for triage** (in the archived `review-findings.json`s):
   - `design-system` **CR-001 → NFR-A11Y-02 partial**: `--faint` (~2.7:1) and
     `--accent`-on-`--bg` (~3.7:1) are **sub-AA** — a verbatim port of the frozen DESIGN §3

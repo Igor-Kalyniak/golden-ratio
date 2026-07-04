@@ -1,7 +1,10 @@
 # design-system Specification
 
 ## Purpose
-TBD - created by archiving change design-system. Update Purpose after archive.
+
+The visual foundation applied across the app — Tailwind 4 utilities wired to OKLCH light/dark color
+tokens, Inter/JetBrains-Mono typography, motion, and accessibility baselines.
+
 ## Requirements
 ### Requirement: Tailwind 4 utilities with token theme wiring
 

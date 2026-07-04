@@ -3,6 +3,7 @@
 import { STANDARD_MODULES, isValidCeiling, isValidOpening } from '../lib/calculations';
 import { type Mode } from '../lib/app-state';
 import { useI18n } from '../lib/i18n-context';
+import { NumberField } from './fields';
 
 interface ApartmentFormProps {
   mode: Mode;
@@ -83,69 +84,6 @@ export function ApartmentForm({
           ))}
         </select>
       </div>
-    </div>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  hint,
-  value,
-  invalid,
-  errorText,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  hint: string;
-  value: number;
-  invalid: boolean;
-  errorText: string;
-  onChange: (value: number) => void;
-}) {
-  const errorId = `${id}-error`;
-  const hintId = `${id}-hint`;
-  const describedBy = [hintId, invalid ? errorId : null].filter(Boolean).join(' ');
-  return (
-    <div>
-      <div className="mb-1 flex items-baseline justify-between">
-        <label htmlFor={id} className="text-sm text-fg2">
-          {label}
-        </label>
-        <span id={hintId} className="font-mono text-[11px] text-faint">
-          {hint}
-        </span>
-      </div>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="numeric"
-          step={1}
-          value={Number.isFinite(value) ? value : ''}
-          onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))}
-          aria-invalid={invalid}
-          aria-describedby={describedBy}
-          className={`w-full rounded-md border bg-field px-3 py-2 pr-9 font-mono text-[15px] text-fg ${
-            invalid ? 'border-err' : 'border-line2'
-          }`}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-faint"
-        >
-          mm
-        </span>
-      </div>
-      {invalid && (
-        <p role="alert" id={errorId} className="mt-1 text-xs text-err">
-          <strong aria-hidden="true" className="mr-1">
-            !
-          </strong>
-          {errorText}
-        </p>
-      )}
     </div>
   );
 }

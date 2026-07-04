@@ -1,7 +1,10 @@
 # walkway Specification
 
 ## Purpose
-TBD - created by archiving change walkway. Update Purpose after archive.
+
+Per-room walkway clearance estimates for common furniture presets, each rated
+comfortable/acceptable/tight against fixed ergonomic thresholds (`FR-WALK-01`–`FR-WALK-03`).
+
 ## Requirements
 
 ### Requirement: Per-room walkway clearances for common furniture presets

@@ -8,7 +8,7 @@ flag when the offset exceeds ¼M. It introduces the **per-room card** (DESIGN §
 valid room, header + a stack of result blocks — that `grid-fit` (10) and `walkway` (11) will extend
 with their own blocks. The pure `computeGoldenSplit` function already shipped (change 1); this is
 its presentation, plus the longer-wall selection (`FR-GOLD-03`) and the fit flag (`FR-GOLD-04`).
-Capability 9 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisites
+Capability 9 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisites
 `module-summary` (7), `room-input` (6), and `calculation-engine` (1) are archived. Owns
 `FR-GOLD-01/02/03/04` (`FR-GOLD-01/02`'s function shipped with change 1).
 

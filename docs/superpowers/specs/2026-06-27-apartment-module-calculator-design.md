@@ -17,27 +17,26 @@ A single-page Next.js 16 web application for architects and interior designers t
 
 ## Architecture
 
-```
-src/
-├── app/
-│   ├── page.tsx              # Server Component — renders <Calculator />
-│   ├── layout.tsx            # Root layout (Geist font, metadata)
-│   └── globals.css           # Tailwind base
-├── components/
-│   ├── Calculator.tsx        # 'use client' — top-level state owner
-│   ├── ApartmentForm.tsx     # Ceiling height + opening height inputs
-│   ├── RoomList.tsx          # Add/remove rooms (name, length, width)
-│   ├── ResultsPanel.tsx      # Orchestrates result sections
-│   ├── ModuleSummary.tsx     # Module value + ruler table (¼M → 4M)
-│   ├── VerticalBands.tsx     # SVG diagram — 4 height bands with labels
-│   ├── RoomResults.tsx       # Per-room: golden ratio, grid fit, walkways
-│   └── LanguageToggle.tsx    # UA ↔ EN switcher button
-├── lib/
-│   ├── calculations.ts       # Pure functions (GCD, module, golden ratio, etc.)
-│   └── i18n.tsx              # LanguageContext provider + useTranslation hook
-└── locales/
-    ├── en.json               # English UI strings
-    └── ua.json               # Ukrainian UI strings
+```text
+app/                          # routes/layouts at the repo root (no src/ wrapper)
+├── page.tsx                  # Server Component — renders <Calculator />
+├── layout.tsx                # Root layout (Inter/JetBrains-Mono fonts, metadata)
+└── globals.css               # Tailwind base
+components/
+├── Calculator.tsx            # 'use client' — top-level state owner
+├── ApartmentForm.tsx         # Ceiling height + opening height inputs
+├── RoomList.tsx              # Add/remove rooms (name, length, width)
+├── ResultsPanel.tsx          # Orchestrates result sections
+├── ModuleSummary.tsx         # Module value + ruler table (¼M → 4M)
+├── VerticalBands.tsx         # SVG diagram — 4 height bands with labels
+├── RoomResults.tsx           # Per-room: golden ratio, grid fit, walkways
+└── LanguageToggle.tsx        # UA ↔ EN switcher button
+lib/
+├── calculations.ts           # Pure functions (GCD, module, golden ratio, etc.)
+└── i18n.tsx                  # LanguageContext provider + useTranslation hook
+locales/
+├── en.json                   # English UI strings
+└── ua.json                   # Ukrainian UI strings
 ```
 
 **Data flow:** `Calculator` holds `ApartmentInput` state. Every input change triggers synchronous re-computation via pure functions from `calculations.ts`. Results flow down as props. No effects, no async.
@@ -121,17 +120,17 @@ computeRuler(m: number): { label: string; size: number; usage: string }[]
 
 ```ts
 type VerticalBands = {
-  bands: Band[];           // count = round(ceiling / m) — VARIABLE, not fixed at 4
-  topRemainder: number;    // ceiling - bandCount * m, when ceiling isn't divisible
+  bands: number;           // count of FULL bands = floor(ceiling / m) — VARIABLE, not fixed at 4
+  topRemainder: number;    // ceiling - bands * m — the leftover height above the last full band (>= 0)
   openingAligned: boolean; // does opening fall on a band boundary?
   openingBand: number;     // index of the band the opening line sits in/at
 };
-type Band = { name: string; from: number; to: number; usage: string }
-computeVerticalBands(ceiling: number, m: number): VerticalBands
+computeVerticalBands(ceiling: number, m: number, opening?: number): VerticalBands
 ```
 
-- Band count is derived (`round(ceiling / m)`), never hardcoded. The renderer must
-  handle 2 bands and 50+ bands alike.
+- Band count is the number of **full** bands, derived as `floor(ceiling / m)` (never hardcoded); when
+  `topRemainder > 0` the diagram renders one extra **partial** top band above them (so the layout has
+  `floor(ceiling / m) + 1` rows). The renderer must handle 2 bands and 50+ bands alike.
 - When the opening does **not** align to a boundary, `openingAligned` is `false` and
   the diagram shows an off-grid marker at the true opening height (no assumption that
   the opening lands on 3M).
@@ -201,6 +200,7 @@ computeWalkways(roomWidth: number, furnitureDepth: number, oppositeDepth?: numbe
 ## UI Sections (Results Panel)
 
 ### Module Summary
+
 - Module selector (dropdown of `STANDARD_MODULES`), defaulting to the suggested value
 - Large display of the active module, e.g. "M = 700 mm"
 - "Suggested from heights" hint showing `rawGcd → suggested` plus `alternatives` and `residual`
@@ -208,17 +208,19 @@ computeWalkways(roomWidth: number, furnitureDepth: number, oppositeDepth?: numbe
 - Warning banner if module is impractical
 
 ### Vertical Band Diagram
+
 - SVG sized via `viewBox="0 0 200 400"` + `preserveAspectRatio`; the container is
   width-responsive (no fixed pixel size), scales down on mobile
-- **N** stacked rectangles where `N = round(ceiling / m)` — rendered from
-  `computeVerticalBands`, never hardcoded; label density is capped (group/condense)
-  when N is large so 50+ bands stay legible
+- **N** stacked rectangles where `N = floor(ceiling / m)` full bands (+ a partial top band when
+  `topRemainder > 0`) — rendered from `computeVerticalBands`, never hardcoded; label density is
+  capped (group/condense) when N is large so 50+ bands stay legible
 - mm labels on left, band names on right
 - Opening line highlighted with a dashed marker at its true height; if it doesn't fall
   on a band boundary (`openingAligned === false`), it's drawn as an off-grid marker
 - Any `topRemainder` above the last full module is shown as a partial band
 
 ### Per-Room Results (one card per room)
+
 - Room name + dimensions header
 - Golden ratio split: exact values, snapped values, snap offset
 - Grid fit: modules × modules + remainder, quality badge

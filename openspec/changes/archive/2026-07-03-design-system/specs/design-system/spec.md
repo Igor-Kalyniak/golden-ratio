@@ -1,3 +1,5 @@
+# design-system Specification
+
 ## ADDED Requirements
 
 ### Requirement: Tailwind 4 utilities with token theme wiring
@@ -60,7 +62,9 @@ The default theme SHALL be light. (`TC-STACK-03`, DESIGN §3)
 ### Requirement: WCAG AA contrast and non-color-only status
 
 The palette SHALL meet WCAG AA contrast in both light and dark themes for body text and UI
-labels. Status meaning (grid `exact/close/poor`; walkway `comfortable/acceptable/tight`; invalid
+labels (`--fg`, `--fg2`, `--muted`). The `--faint` token is reserved for incidental, non-essential
+hint text (e.g. field range hints) and is exempt from this AA guarantee — no essential information
+SHALL be conveyed in `--faint` alone. Status meaning (grid `exact/close/poor`; walkway `comfortable/acceptable/tight`; invalid
 fields) SHALL never be conveyed by color alone — the token system SHALL be paired with a text
 label and an icon at the component layer, and this foundation SHALL provide the `--good/--warn/--bad/--err`
 tokens plus distinct `-bg` fills that keep the pairing legible. Focus styles SHALL be visible

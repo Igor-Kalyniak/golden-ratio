@@ -1,8 +1,10 @@
+# design-system design
+
 ## Context
 
-Capability 2 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md), dependency-free. The repo
+Capability 2 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md), dependency-free. The repo
 is scaffolded Next.js 16 / React 19 / Tailwind 4 with default create-next-app styling. The design
-source of truth is [docs/DESIGN.md](../../../docs/DESIGN.md) §1–3 (principles, typography, color
+source of truth is [docs/DESIGN.md](../../../../docs/DESIGN.md) §1–3 (principles, typography, color
 tokens), §8 (motion), §9 (accessibility), distilled into the `design-tokens` skill. The tokens are
 frozen verbatim from the Claude Design export; this change ports them into a Tailwind 4 stylesheet
 and swaps the font wiring. No component markup exists yet — this is pure foundation.

@@ -5,7 +5,7 @@
 dynamic list of rooms, each with a name, length, and width, that the architect edits inline.
 This produces the per-room state that every downstream result section — golden split (9), grid
 fit (10), walkway (11) — reads, and that the 2D module suggestion (12) folds a GCD across.
-Capability 6 in [docs/CAPABILITIES.md](../../../docs/CAPABILITIES.md); its prerequisite
+Capability 6 in [docs/CAPABILITIES.md](../../../../docs/CAPABILITIES.md); its prerequisite
 `app-shell` (4) is archived. Owns `FR-ROOM-01/02/03/04`.
 
 ## What Changes

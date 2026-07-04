@@ -161,9 +161,13 @@ export function newRoomId(): string {
 
 /** Append a defaulted room; existing rooms unchanged (FR-ROOM-01, DESIGN §5.3). */
 export function addRoom(state: AppState): AppState {
+  // Name from the same monotonic sequence as the id, not `rooms.length + 1`, so deleting a room and
+  // adding another can't reuse an existing name (e.g. delete Room 1 from [Room 1, Room 2] → next add
+  // would otherwise be "Room 2" again).
+  const id = newRoomId();
   const room: Room = {
-    id: newRoomId(),
-    name: `Room ${state.rooms.length + 1}`,
+    id,
+    name: `Room ${id.slice(id.indexOf('-') + 1)}`,
     length: 3000,
     width: 2400,
   };

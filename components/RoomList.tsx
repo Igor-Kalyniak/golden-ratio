@@ -3,6 +3,7 @@
 import { isValidDimension } from '../lib/calculations';
 import { ROOM_NAME, type Room } from '../lib/app-state';
 import { useI18n } from '../lib/i18n-context';
+import { DIMENSION_HINT, InlineError, NumberField } from './fields';
 
 interface RoomListProps {
   rooms: Room[];
@@ -80,35 +81,28 @@ export function RoomList({ rooms, onAddRoom, onRemoveRoom, onRoomChange }: RoomL
               <NumberField
                 id={`${room.id}-length`}
                 label={t('length')}
+                hint={DIMENSION_HINT}
                 value={room.length}
                 invalid={!isValidDimension(room.length)}
                 errorText={t('errDim')}
                 onChange={(length) => onRoomChange(room.id, { length })}
+                size="sm"
               />
               <NumberField
                 id={`${room.id}-width`}
                 label={t('width')}
+                hint={DIMENSION_HINT}
                 value={room.width}
                 invalid={!isValidDimension(room.width)}
                 errorText={t('errDim')}
                 onChange={(width) => onRoomChange(room.id, { width })}
+                size="sm"
               />
             </div>
           </li>
         ))}
       </ul>
     </div>
-  );
-}
-
-function InlineError({ id, text }: { id: string; text: string }) {
-  return (
-    <p role="alert" id={id} className="mt-1 text-xs text-err">
-      <strong aria-hidden="true" className="mr-1">
-        !
-      </strong>
-      {text}
-    </p>
   );
 }
 
@@ -144,60 +138,6 @@ function TextField({
           invalid ? 'border-err' : 'border-line2'
         }`}
       />
-      {invalid && <InlineError id={errorId} text={errorText} />}
-    </div>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  value,
-  invalid,
-  errorText,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value: number;
-  invalid: boolean;
-  errorText: string;
-  onChange: (value: number) => void;
-}) {
-  const errorId = `${id}-error`;
-  const hintId = `${id}-hint`;
-  const describedBy = [hintId, invalid ? errorId : null].filter(Boolean).join(' ');
-  return (
-    <div>
-      <div className="mb-1 flex items-baseline justify-between">
-        <label htmlFor={id} className="text-xs text-fg2">
-          {label}
-        </label>
-        <span id={hintId} className="font-mono text-[10px] text-faint">
-          500–15000
-        </span>
-      </div>
-      <div className="relative">
-        <input
-          id={id}
-          type="number"
-          inputMode="numeric"
-          step={1}
-          value={Number.isFinite(value) ? value : ''}
-          onChange={(e) => onChange(e.target.value === '' ? NaN : Number(e.target.value))}
-          aria-invalid={invalid}
-          aria-describedby={describedBy}
-          className={`w-full rounded-md border bg-field px-2.5 py-1.5 pr-8 font-mono text-sm text-fg ${
-            invalid ? 'border-err' : 'border-line2'
-          }`}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-faint"
-        >
-          mm
-        </span>
-      </div>
       {invalid && <InlineError id={errorId} text={errorText} />}
     </div>
   );
