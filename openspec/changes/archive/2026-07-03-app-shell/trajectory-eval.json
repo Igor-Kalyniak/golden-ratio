@@ -1,0 +1,145 @@
+{
+  "change": "app-shell",
+  "generated_at": "2026-07-03T03:10:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-SHELL-01",
+      "pdr_section": "PDR §Functional requirements (L59)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "app/page.tsx",
+        "components/Calculator.tsx",
+        "components/Shell.tsx:main>section[aria-label=inputs]",
+        "components/Shell.tsx:main>section[aria-label=results]",
+        "build: ✓",
+        "tsc: ✓",
+        "eslint app/lib/components: ✓"
+      ],
+      "notes": "Shell scope only: the single-page structure is present — an input column and a live results panel are rendered as intentionally EMPTY SLOTS whose contents (apartment fields change 5, room list change 6, result sections changes 7–11, visualizer 12–15) are owned by later capabilities. 'Live' reactivity is exercised by the default-state -> showResults=true path plus the animated 'updates live' pill. No React/DOM test runner (ADR-0001), so structure verified by build + tsc + eslint + inspection; see manual TC-1."
+    },
+    {
+      "id": "FR-SHELL-02",
+      "pdr_section": "PDR §Functional requirements (L60)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Shell.tsx:main.grid-cols-1.lg:grid-cols-[minmax(320px,400px)_1fr]",
+        "components/Shell.tsx:section.lg:sticky.lg:top-[var(--header-h)]",
+        "app/globals.css:--header-h",
+        "build: ✓"
+      ],
+      "notes": "Single-column grid that becomes a two-column [input | results] grid at the lg breakpoint. Reviewer finding CR-003 (RESOLVED): the sticky input offset now derives from the shared --header-h token (67px) instead of a hardcoded lg:top-[67px], so it tracks header height changes. Rendering/breakpoint behavior verified manually (TC-2); no CSS/visual test runner."
+    },
+    {
+      "id": "FR-SHELL-03",
+      "pdr_section": "PDR §Functional requirements (L61)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Shell.tsx:header>LanguageToggle (after mr-auto title block)",
+        "components/LanguageToggle.tsx",
+        "lib/i18n.test.ts::\"createTranslator resolves known keys in the active locale\"",
+        "build: ✓"
+      ],
+      "notes": "app-shell owns only the PLACEMENT of the toggle top-right in the sticky header; the live-switch mechanism (FR-I18N-01) ships with the i18n capability. The translator core is unit-tested there, but the live re-render on click has no automated coverage (no React/DOM runner, ADR-0001) — covered by manual TC-3."
+    },
+    {
+      "id": "FR-SHELL-04",
+      "pdr_section": "PDR §Functional requirements (L62)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:showResults",
+        "lib/app-state.ts:isApartmentValid",
+        "lib/app-state.ts:isRoomValid",
+        "components/Calculator.tsx:useMemo(() => showResults(state))",
+        "components/Shell.tsx:{showResults ? results : fillToSee}",
+        "lib/app-state.test.ts::\"showResults: true for valid default state\"",
+        "lib/app-state.test.ts::\"showResults: false when apartment invalid\"",
+        "lib/app-state.test.ts::\"showResults: false when no room is valid\"",
+        "lib/app-state.test.ts::\"showResults: true when at least one of several rooms is valid\""
+      ],
+      "notes": "AUTOMATED. The gate predicate (apartment valid AND >=1 room valid) is directly unit-tested, including the multi-room 'at least one valid' branch and each apartment-invalid path. The empty-state branch renders t('fillToSee'). Reviewer finding CR-001 (RESOLVED): isRoomValid now validates both name bounds against the trimmed name (was a latent max-vs-untrimmed mismatch); latent for the shell since only DEFAULT_STATE is validated, but correct for room editing in change 6."
+    },
+    {
+      "id": "TC-CLIENT-01",
+      "pdr_section": "PDR §Technical constraints (L230)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "app/page.tsx (no 'use client' — Server Component)",
+        "components/Calculator.tsx:'use client' (the single boundary)",
+        "components/Shell.tsx, LanguageToggle.tsx, ThemeToggle.tsx ('use client' descendants of the Calculator boundary)",
+        "build: ✓",
+        "tsc: ✓"
+      ],
+      "notes": "page.tsx is a Server Component that renders only <Calculator/>; Calculator carries the single 'use client' entry boundary. Shell/LanguageToggle/ThemeToggle also declare 'use client' but are descendants inside that one boundary, so there is a single client entry point per the constraint. Structural — verified by build + tsc + inspection (and confirmed by the spec-compliance-auditor); no automated assertion. Manual TC-6."
+    },
+    {
+      "id": "TC-ARCH-01",
+      "pdr_section": "PDR §Technical constraints (L231)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Calculator.tsx:useState<AppState>(DEFAULT_STATE) (state owner)",
+        "components/Calculator.tsx:<Shell showResults={results} /> (result flows down as a prop)",
+        "lib/app-state.ts:showResults (pure derivation)",
+        "lib/app-state.test.ts::\"lib/app-state.ts imports no framework code\"",
+        "tsc: ✓"
+      ],
+      "notes": "Calculator owns AppState via useState and passes the derived showResults down to Shell as a prop; the derivation is the pure showResults() from lib/app-state.ts. The pure function it depends on IS unit-tested (correctness + framework-free purity), but the ownership/prop-flow wiring itself is structural and has no automated assertion — marked tested:false for the architecture requirement. Manual TC-6."
+    },
+    {
+      "id": "NFR-RESP-01",
+      "pdr_section": "PDR §Non-functional requirements (L217)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Shell.tsx:main responsive grid + max-w-[1400px] + p-5",
+        "components/Shell.tsx:header.flex-wrap ... lg:flex-nowrap",
+        "components/Shell.tsx:pill.hidden sm:inline-flex",
+        "build: ✓"
+      ],
+      "notes": "Scope here is the form/results layout and header: header wraps on narrow and goes single-row at lg; body stacks then splits at lg. The other half of this NFR — the responsive vertical-band SVG — is owned by the bands result capability and is out of app-shell scope. Rendering across viewports verified manually (TC-2); no visual/responsive test runner."
+    },
+    {
+      "id": "NFR-A11Y-01",
+      "pdr_section": "PDR §Non-functional requirements (L215)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Shell.tsx:section[aria-label=t('inputs')]",
+        "components/Shell.tsx:section[aria-label=t('results')][aria-live=polite]",
+        "components/LanguageToggle.tsx:role=group + aria-label + per-button aria-pressed",
+        "components/ThemeToggle.tsx:aria-pressed + localized aria-label (themeLight/themeDark)",
+        "focus styles: design-system tokens (NFR-A11Y-02)",
+        "build: ✓"
+      ],
+      "notes": "Header-controls scope: the language group and theme toggle expose accessible names + aria-pressed state; the two landmark regions are labelled and the results region announces politely. Reviewer finding CR-002 (RESOLVED): the results landmark is now labelled with a generic t('results') key instead of t('perRoom'), which reserves perRoom for its subsection and correctly names the region for screen-reader navigation. Input-field labels + programmatically-associated validation messages arrive with the field capabilities (changes 5/6) — no editable inputs exist in the shell yet. Keyboard focus/label behavior verified manually (TC-5); no a11y test runner."
+    },
+    {
+      "id": "NFR-PERF-01",
+      "pdr_section": "PDR §Non-functional requirements (L211)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:showResults (synchronous, no async/effects)",
+        "components/Calculator.tsx:useMemo (synchronous derive, no useEffect in compute path)",
+        "lib/app-state.test.ts::\"lib/app-state.ts imports no framework code\"",
+        "lib/app-state.test.ts::\"showResults: true for valid default state\""
+      ],
+      "notes": "AUTOMATED (compute path). The gate is computed synchronously via useMemo from a pure function; the purity test asserts app-state.ts imports no react/next and touches no DOM globals, pinning 'no async/effects in the compute path'. Same-frame paint is a UI-integration property not asserted by a runner (ADR-0001); met by construction — see manual TC-5."
+    }
+  ],
+  "summary": { "total": 9, "implemented": 9, "tested": 2, "spec_compliant": 9 }
+}

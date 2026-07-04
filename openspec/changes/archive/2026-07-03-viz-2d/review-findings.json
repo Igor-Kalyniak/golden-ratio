@@ -1,0 +1,48 @@
+{
+  "change": "viz-2d",
+  "generated_at": "2026-07-03T20:30:00+03:00",
+  "base_sha": "a57994fed9c041bc6b3fd802dc2d9b15166edec7",
+  "head_sha": "ca41ec3b0e797d5ed067ccc6fbb624a5fae67aa9",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 1 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). code-reviewer + security clean; spec-compliance clean with one LOW doc-accuracy note. Verified: (1) layoutRoom2D is correct — floor(dim/m) cols/rows, non-negative strips, single highlight, no NaN/loop; tests match (3000×2400→5×4 no strips; 3200×2500→5×4 strips 200/100; 500×500→0×0 highlight row 0); (2) the floor-vs-round split is SPEC-MANDATED — FR-VIZ2D-02 text literally says 'the leftover after floor(dimension/m) whole modules', and grid-fit's round answers a different question — not an inconsistency; (3) exactly one accent cell per room; width-responsive viewBox (w-full/h-auto + max-w cap, no fixed px); valid.length===0 guard precedes the Math.max spread (no -Infinity); (4) BC-VALUE-01 read-only — no handlers/inputs/export; (5) FR-VIZ2D-05 reduced-motion is legitimately covered by the shipped global globals.css rule (animation:none !important on *, beats the Tailwind arbitrary [animation:cellpulse] utility) PLUS a static opacity=0.85 on the highlight = the cellpulse endpoint, so it snaps to the correct final state; (6) security — room.name (user free-text) flows only into a React-escaped aria-label + figcaption, no dangerouslySetInnerHTML / dynamic href / foreignObject; bounded grid-line loops; no new dependency (@react-three correctly absent — that's viz-3d 15). Runtime-verified by the Maker: 2D mode renders the visualizer (header, 1-module swatch, read-only note, per-room SVG with cellpulse cell + warn-bg strip). strict PASS, 94/94. Code-reviewer also noted the highlight aligns to the grid's last row rather than the room's physical bottom (vs prototype) — judged 'arguably more correct', not a defect, left as-is. The one low finding (SC-001, doc overstated griddraw) was RESOLVED by correcting proposal.md/design.md.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "viz-2d is correct, pure, read-only, and spec-faithful. layoutRoom2D floor-based cols/rows with non-negative strips and a single highlight, verified against the tests; floor-vs-round is intentional and matches the prototype + FR-VIZ2D-02 text. Viz2D renders exactly one accent cell, responsive viewBox with no fixed px, correct grid-line count, and guards the empty-rooms Math.max spread. Read-only (no handlers/export). Reduced-motion soundly covered by the global globals.css !important reset + a static highlight opacity equal to the cellpulse endpoint. cell=min(step,w,h) clamps sub-module rooms without overflow. Pure helper, no circular import. No defects.",
+      "findings": []
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "All 7 owned requirements implemented + spec-compliant. FR-VIZ2D-01 (to-scale rects, responsive viewBox, row/wrap, 2D-gated), FR-VIZ2D-02 (M×M grid + floor-based remainder strips — floor is spec-mandated by the requirement text), FR-VIZ2D-03 (exactly one accent cell), FR-VIZ2D-05 (reduced-motion via the global reset + static endpoint opacity), NFR-PERF-03 (O(1) layout, pure SVG), BC-VALUE-01 (read-only). FR-VIZ2D-04 is a Should whose animate-in/tween clauses are MAY — satisfied by cellpulse. layoutRoom2D unit-tested (94/94); SVG/animation/responsiveness manual per ADR-0001 (Maker ran the 2D surface). No scope drift (no @react-three/3D/logo), no new dependency, +1 i18n key (oneModule) with parity. Only a low doc-vs-code note: proposal/design claimed griddraw is used but only cellpulse is applied.",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "low",
+          "category": "spec-compliance",
+          "requirement_ids": ["FR-VIZ2D-04"],
+          "file": "openspec/changes/viz-2d/proposal.md",
+          "line": 41,
+          "summary": "proposal.md and design.md stated the change 'uses the shipped cellpulse + griddraw keyframes,' but Viz2D.tsx applies only cellpulse to the highlight cell; the grid lines carry no griddraw animation. All the unimplemented motion (grid animate-in, rect tween-on-change) are MAY clauses under the FR-VIZ2D-04 Should, which the cell pulse satisfies — no requirement violated, the docs just overstated the applied motion.",
+          "recommendation": "Reconcile the proposal/design wording with the code (drop the griddraw mention) or apply griddraw. Should is already met by cellpulse.",
+          "status": "resolved",
+          "resolution": "Corrected proposal.md + design.md to state only cellpulse is applied and that FR-VIZ2D-04's animate-in/tween are MAY clauses (a Should satisfied by the pulse), noting griddraw is available but intentionally not applied. No code change — the requirement was already met; this was doc accuracy. strict re-validated PASS."
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Viz2D renders user-controlled room.name only as React-escaped JSX (aria-label attribute + figcaption text node) — never via dangerouslySetInnerHTML, raw SVG strings, or dynamic href/image/foreignObject sinks, so no SVG/XSS injection path. Numeric SVG coords derive from validated dims (500-15000mm) → bounded, non-exploitable geometry. layoutRoom2D O(1); per-room grid lines bounded by floor(dim/m) (~150 max), no unbounded loop. No network/persistence/analytics/export (BC-PRIVACY-01/TC-DATA-01/BC-SCOPE-01 upheld). package.json/lockfile unchanged — @react-three correctly absent. No findings.",
+      "findings": []
+    }
+  ]
+}

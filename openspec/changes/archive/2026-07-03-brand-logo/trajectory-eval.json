@@ -1,0 +1,26 @@
+{
+  "change": "brand-logo",
+  "generated_at": "2026-07-03T22:30:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-LOGO-01",
+      "pdr_section": "PDR §Branding (L182)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Logo.tsx (Server Component — no 'use client', no state/handlers — reproducing DESIGN §7 verbatim: viewBox 0 0 110 70, nested φ:1 rects + golden-spiral arcs, stroke-widths + opacities .55/.4/.8; stroke=currentColor, fill=none, transparent ground, aria-hidden — the <h1> title is the accessible name; sensible width/height/className props)",
+        "components/Shell.tsx (placeholder span replaced by <Logo className=\"shrink-0 text-accent\"> left of the title; text-accent maps via @theme --color-accent → color: var(--accent), feeding currentColor so the mark inverts in dark mode; header layout preserved)",
+        "app/icon.svg (standalone SVG favicon serving the same mark with xmlns + an explicit hex #3f6fb5 — justified: a favicon has no CSS context so currentColor would fall back to black; #3f6fb5 is a same-hue-248 approximation of --accent oklch(0.55 0.13 248); padded square viewBox -13 -33 136 136 so the mark isn't clipped/squished at 32×32; Next auto-injects <link rel=\"icon\" type=\"image/svg+xml\"> in <head>)",
+        "package.json / package-lock.json unchanged (no new dependency — FR-LOGO-01's 'no new deps'; no raster asset)"
+      ],
+      "notes": "Golden-ratio SVG brand mark left of the header title + the same mark as the SVG favicon, single-color via currentColor on a transparent ground, no raster, no new dep. FR-LOGO-01 is PURE STATIC SVG markup — there is NO unit test possible for hand-authored markup under the node --test runner (ADR-0001), so tested=false with the coverage discharged manually/structurally (build 99/99 tests unchanged — no engine change; lint clean). implemented=true and spec_compliant=true are established three ways: (1) all 3 fresh read-only Checkers verdict CLEAN with zero findings (spec-compliance-auditor strict PASS), verifying Logo.tsx matches DESIGN §7 verbatim + Shell placement + the favicon reading of 'scales to a favicon'; (2) the Maker RUNTIME-VERIFIED the header renders the SVG (viewBox 0 0 110 70 present, the old border-2 border-accent placeholder gone), /icon.svg serves HTTP 200 with #3f6fb5, and the <link rel=\"icon\" type=\"image/svg+xml\"> is auto-injected in <head>; (3) security-reviewer confirmed both SVGs are static hand-authored shapes with no script/foreignObject/use/external url or href, no dangerouslySetInnerHTML, no tracking pixel. The Logo.tsx (currentColor) vs app/icon.svg (literal hex) geometry duplication is inherent + acceptable — a favicon must be a standalone file with a literal color and cannot import the component. This is the final change of the 16-capability backlog. Prioritized in the manual plan (TC-1..TC-3)."
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "implemented": 1,
+    "tested": 0,
+    "spec_compliant": 1
+  }
+}

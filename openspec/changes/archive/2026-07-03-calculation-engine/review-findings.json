@@ -1,0 +1,137 @@
+{
+  "change": "calculation-engine",
+  "generated_at": "2026-07-03T00:20:00+03:00",
+  "base_sha": "6646ca3d3e6f3b196c21d4ef7fec68413d24cc50",
+  "head_sha": "722730aa49ca27265cb856d88d8ef14853e23626",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "concerns",
+  "counts": { "critical": 0, "high": 0, "medium": 2, "low": 6 },
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "Engine math is correct and well-tested (25/25 green, tsc + eslint clean); main concern was hardcoded English recommendation prose in a bilingual app, plus minor doc/config staleness.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "medium",
+          "category": "quality",
+          "requirement_ids": ["FR-WALK-01", "FR-I18N-01", "NFR-PURE-01"],
+          "file": "lib/calculations.ts",
+          "line": 243,
+          "summary": "computeWalkways returned hardcoded English recommendation prose from the framework-free engine that feeds a bilingual UA/EN UI, an untranslatable localization trap.",
+          "recommendation": "Return a stable locale-independent recommendation key and localize in the UI; keep the pure engine language-agnostic.",
+          "status": "resolved"
+        },
+        {
+          "id": "CR-002",
+          "severity": "low",
+          "category": "docs",
+          "requirement_ids": ["NFR-TEST-01"],
+          "file": "openspec/changes/calculation-engine/specs/calculation-engine/spec.md",
+          "line": 162,
+          "summary": "The 'Unit test coverage' requirement still read 'run by Node node:test via tsx' after this change deliberately dropped tsx for native type-stripping (design.md and ADR-0001 were updated, this line was not).",
+          "recommendation": "Update the requirement text to match the amended ADR and package.json script.",
+          "status": "resolved"
+        },
+        {
+          "id": "CR-003",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["NFR-TEST-01", "NFR-OBS-01"],
+          "file": "package.json",
+          "line": 10,
+          "summary": "package.json has no \"type\": \"module\", so `node --test lib/*.test.ts` emits a MODULE_TYPELESS_PACKAGE_JSON warning and re-parses each .ts file as ESM on every run. Suite still passes green, but the runner is noisy.",
+          "recommendation": "Add \"type\": \"module\" (verify against the Next config first) or document the expected warning in ADR-0001. Deferred: not applied here to avoid destabilizing the Next 16 build without a full build verification (network-blocked in this environment).",
+          "status": "open"
+        },
+        {
+          "id": "CR-004",
+          "severity": "medium",
+          "category": "docs",
+          "requirement_ids": ["FR-VERT-02"],
+          "file": "docs/PDR.md",
+          "line": 98,
+          "summary": "PDR FR-VERT-02 literally said band count = round(ceiling / m), but the engine, the change spec, and the canonical SKILL all use floor(ceiling / m). round can produce a negative topRemainder (e.g. ceiling 2500, m 700). Code is right; PDR wording was the outlier.",
+          "recommendation": "Reconcile PDR FR-VERT-02 to floor(ceiling / m). No code change.",
+          "status": "resolved",
+          "corroborated_by": ["spec-compliance-auditor"]
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "openspec validate --strict PASSES; every owned ID (FR-MODULE-01, FR-VERT-01/02/03/04, FR-GOLD-01/02/03, FR-GRID-01/02/03/04, FR-WALK-01/02/03, NFR-PURE/TEST/PERF) implemented and covered, worked-example numbers match SKILL, ADR-0001 amendment internally consistent. Concerns were PDR-vs-impl literal-formula drift on two owned IDs and one scope leak.",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "medium",
+          "category": "docs",
+          "requirement_ids": ["FR-VERT-02"],
+          "file": "docs/PDR.md",
+          "line": 98,
+          "summary": "Same as CR-004: PDR FR-VERT-02 said round, implementation/spec/SKILL use floor (round would break the topRemainder partial-band contract). Independently raised.",
+          "recommendation": "Reconcile PDR FR-VERT-02 to floor(ceiling / m).",
+          "status": "resolved",
+          "corroborated_by": ["code-reviewer"]
+        },
+        {
+          "id": "SC-002",
+          "severity": "low",
+          "category": "docs",
+          "requirement_ids": ["FR-GRID-03"],
+          "file": "docs/PDR.md",
+          "line": 119,
+          "summary": "PDR FR-GRID-03 gave the remainder as the unsigned magnitude min(d%m, m-(d%m)), which cannot express 'round up vs round down'. Implementation uses the signed nearest-distance d - round(d/m)*m (matching SKILL and the corrected spec). Also: SKILL kitchen worked-example row showed 'rem -300 / +300', contradicting its own signed formula and the correct +300 / -300 output.",
+          "recommendation": "Update PDR FR-GRID-03 to the signed formula and fix the SKILL kitchen sign typo.",
+          "status": "resolved"
+        },
+        {
+          "id": "SC-003",
+          "severity": "low",
+          "category": "spec",
+          "requirement_ids": ["FR-MODULE-04"],
+          "file": "lib/calculations.ts",
+          "line": 257,
+          "summary": "moduleRuler()/MODULE_RULER_STEPS implemented FR-MODULE-04, which is NOT an owned ID of calculation-engine (it belongs to change 7 module-summary) and was not referenced by any task. Undocumented scope leak, though pure and tested.",
+          "recommendation": "Remove moduleRuler from this change or add a task acknowledging the pre-staged helper. Chose removal to keep the change scoped to its owned IDs.",
+          "status": "resolved"
+        },
+        {
+          "id": "SC-004",
+          "severity": "low",
+          "category": "test",
+          "requirement_ids": ["NFR-PERF-02", "NFR-TEST-01"],
+          "file": "openspec/changes/calculation-engine/tasks.md",
+          "line": 51,
+          "summary": "tasks.md section 9 (Verify) boxes were left unchecked while the change was treated as shipped; independently confirmed tests pass and tsc is clean. Repo-wide lint is not clean but only in the pre-existing frozen docs/design/export/ vendor files. NFR-PERF-02's 16 ms budget is met by construction (O(rooms) arithmetic) with no asserting timing test (acceptable — no spec scenario mandates one).",
+          "recommendation": "Check the Verify boxes and note the lint errors are confined to the frozen export.",
+          "status": "resolved"
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Pure-math module adds no dependency (tsx removed, nothing added), no network/persistence/secrets, no unsafe sinks; only a non-reachable div-by-zero/NaN robustness edge. BC-PRIVACY-01 / TC-DATA-01 / NFR-PURE-01 all hold.",
+      "findings": [
+        {
+          "id": "SEC-001",
+          "severity": "low",
+          "category": "correctness",
+          "requirement_ids": ["NFR-PURE-01"],
+          "file": "lib/calculations.ts",
+          "line": 167,
+          "summary": "computeVerticalBands/computeRoomGrid/computeGoldenSplit/snap divide by module m and do not guard m<=0; m=0 yields Infinity/NaN that would propagate silently. Not reachable today (m always comes from nearestStandardModule >= 100 and inputs are validated); no DoS/infinite-loop, no security impact. Defensive-robustness only.",
+          "recommendation": "If these become externally callable with untrusted m, assert Number.isFinite(m) && m > 0 at entry; otherwise document that m must be a positive standard module. Deferred as non-reachable low-risk.",
+          "status": "open"
+        }
+      ]
+    }
+  ]
+}

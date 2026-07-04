@@ -1,0 +1,35 @@
+{
+  "change": "brand-logo",
+  "generated_at": "2026-07-03T22:15:00+03:00",
+  "base_sha": "02688321c7a3e2d9d77177c9ca1b493532c76934",
+  "head_sha": "17c9e2243789bd00dab02b94fe95c5a69c6b36b8",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean with zero findings — the final change of the 16-capability backlog. Verified: (1) components/Logo.tsx reproduces DESIGN §7 verbatim (identical viewBox 0 0 110 70, rects/lines/paths, stroke-widths, opacities .55/.4/.8), stroke=currentColor + fill=none + transparent, aria-hidden (the <h1> title is the accessible name), and is a proper Server Component (no 'use client', no state/handlers); (2) Shell text-accent maps via @theme (--color-accent: var(--accent)) to color: var(--accent), correctly feeding currentColor and inverting in dark mode; placeholder removed, layout preserved; (3) app/icon.svg is a standalone favicon with xmlns, an explicit hex #3f6fb5 (justified — a favicon has no CSS context so currentColor would fall back to black; #3f6fb5 is a same-hue-248 approximation of --accent oklch(0.55 0.13 248)), padded square viewBox -13 -33 136 136 so the mark isn't clipped/squished at 32×32; (4) no new dependency (package.json/lock unchanged — FR-LOGO-01's 'no new deps'); (5) security nil — both SVGs are static hand-authored shapes with no script/foreignObject/use/external url or href, no dangerouslySetInnerHTML, no props interpolated into injectable sinks, no tracking pixel. The geometry duplication between Logo.tsx (currentColor) and app/icon.svg (hex) is inherent + acceptable (a favicon must be a standalone file with a literal color, can't import the component). spec-compliance strict PASS and confirmed backlog completion: changes 1-15 shipped, 16 delivered here → all 16 capabilities + all FR-* + the Epic B Must set are complete. Runtime-verified by the Maker: header renders the SVG (placeholder gone), /icon.svg serves 200 + <link rel=icon type=image/svg+xml> auto-injected in <head>.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Logo.tsx matches DESIGN §7 verbatim as a correct Server Component (currentColor/fill=none/transparent/aria-hidden, sensible width/height/className props); Shell text-accent drives currentColor properly and inverts in dark; favicon uses a justified hex approximation of --accent with sensible symmetric square padding; no new deps; aria-hidden correct (title is the heading). The Logo/icon geometry duplication is inherent to the favicon-as-standalone-file constraint, not a defect. No correctness/quality/reuse/spec/a11y findings.",
+      "findings": []
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "brand-logo fully delivers FR-LOGO-01: Logo.tsx renders the nested φ:1 rects + golden-spiral arcs via currentColor on a transparent ground (aria-hidden, pure SVG, no new dep); Shell places it left of the title with text-accent driving currentColor; app/icon.svg serves the same mark as the auto-registered favicon with an explicit accent hex — the correct reading of 'scales to a favicon' (a favicon has no CSS context; the favicon is explicitly in scope, not gold-plating). Strict PASS; diff scoped to 4 files, no state/calc/i18n/behavior drift, package.json/lock unchanged; tests unchanged 99/99 (coverage structural/manual per ADR-0001 — no unit test possible for static markup); all 4 tasks checked + code-backed. Backlog: 1-15 shipped, 16 delivered → all 16 capabilities + FR-* + Epic B Must set complete.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Only static, hand-authored inline SVG. Logo.tsx (Server Component, props bound solely to their own SVG attributes — no interpolation into path/href sinks, no dangerouslySetInnerHTML, no user data, no handlers) and app/icon.svg (literal shapes/strokes, no script/foreignObject/use/external url() or xlink:href). Shell swaps a placeholder span for <Logo> with no new data flow. No persistence/network/analytics/export; the favicon is a local static asset, not a tracking pixel. package.json/lock unchanged. Client-side attack/privacy surface is nil.",
+      "findings": []
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "change": "walkway",
+  "generated_at": "2026-07-03T17:30:00+03:00",
+  "base_sha": "60d0f5d4f3e836eb434d93d288d5dc51484037ae",
+  "head_sha": "5ac33bc46dcf75858df64cd247ff94f7eda5cab8",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean with zero findings. The crux — BC-WALK-01 (ratings must be fixed mm, never derived from the module M) — was verified: WalkwayBlock takes only a `room` prop (no module), calls computeWalkways(room.width, depth), and reads the rating straight from the engine's fixed-threshold rateWalkway; a unit test asserts module-independence. Corridor dimension is room width (matches the frozen prototype); preset depths come from FURNITURE_DEPTHS (600/900/1200), not literals; Tailwind rating classes are written out statically (no dynamic .replace) so JIT keeps them; meaning is carried by label + meter + guidance, not color alone; negative clearance (facing 1200 in a narrow room) renders as a negative number rated tight. No new i18n keys (all 12 pre-shipped in both locales), no new dependency, oppositeDepth intentionally not wired (Could/out-of-scope). 77/77 tests. This change completes the per-room card and Epic A.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Walkway presentation layer is correct, spec-faithful, and defect-free: BC-WALK-01 honored (WalkwayBlock takes no module prop; ratings from fixed-mm rateWalkway), corridor = room width (matches prototype), presets from FURNITURE_DEPTHS, walkwayMeterBars 3/2/1 unit-tested, RATING_META Tailwind classes written out statically (no .replace — the interim dynamic version is gone), meaning carried by label + meter (aria-hidden) + guidance not color alone, negative clearance reads tight, helper pure, block read-only, no circular import, all i18n keys present. 77/77 tests.",
+      "findings": []
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "Walkway fully delivers FR-WALK-01/02/03/04 + BC-WALK-01 with no scope creep. computeWalkways reused (available = width − depth, presets 600/900/1200); fixed thresholds ≥900/≥600/<600 decoupled from M (block takes no module prop; module-independence tested); three preset rows with meter + colored label + localized guidance. Recommendation mapping (walkway.comfortable→recComf etc.) correct. All 12 i18n keys pre-shipped in both locales, no new dependency, oppositeDepth intentionally not wired (two-arg form). No Epic B creep. Strict PASS, 77/77 tests, all tasks code-backed.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Clean for a pure client-side app. WalkwayBlock renders only computed numeric clearances (React-escaped text) and static t()-resolved dictionary strings; no dangerouslySetInnerHTML, no HTML/SVG sink, no user free-text (room.name is not rendered here). No network, storage, analytics, cookies, or export. package.json/lockfile unchanged. Math is pure: computeWalkways is subtraction + fixed-threshold compares, walkwayMeterBars a 3-branch switch — no loops, eval, or NaN/crash path; negative clearance safely renders and rates tight. Meter Tailwind classes are static, not attacker-influenced.",
+      "findings": []
+    }
+  ]
+}
