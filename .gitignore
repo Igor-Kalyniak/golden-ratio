@@ -50,3 +50,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Local demo exports (mp4 renders — regenerate with `npm run test:e2e:demo:voice`)
+/demo/

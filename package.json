@@ -10,6 +10,7 @@
     "test": "node --test lib/*.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:demo": "playwright test demo-ua",
+    "test:e2e:demo:voice": "playwright test demo-ua && node scripts/build-demo-voiceover.mjs",
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
