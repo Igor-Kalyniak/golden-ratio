@@ -20,6 +20,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      // Re-set viewport AFTER the spread: devices['Desktop Chrome'] carries its own 1280×720,
+      // and project `use` merges over top-level `use`, so this override is required to hold 1920×1080.
       use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
     },
   ],

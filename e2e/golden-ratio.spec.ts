@@ -41,7 +41,7 @@ test('worked-example inputs render the canonical derived numbers (UA)', async ({
   // exists in the golden-split section above, so match the badge text exactly to avoid
   // a strict-mode ambiguity between the two).
   await expect(page.getByText('6 × 5')).toBeVisible();
-  await expect(page.getByText('✓точно')).toBeVisible();
+  await expect(page.getByText('✓точно', { exact: true })).toBeVisible();
 });
 
 test('mode toggle hides height fields in 2D (FR-MODE-02)', async ({ page }) => {
