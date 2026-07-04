@@ -44,3 +44,9 @@ next-env.d.ts
 /.worktrees/
 .claude/.pipeline-autopilot
 .worktrees/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
