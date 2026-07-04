@@ -6,8 +6,24 @@
 
 ## Handoff
 
-- **Last updated:** 2026-07-04T12:00:00+03:00
-- **Last action:** **Shipped capability 17 `viz-3d-grid`** (iteration 3) end-to-end via the
+- **Last updated:** 2026-07-04T20:30:00+03:00
+- **Last action:** **Added Playwright e2e + Ukrainian demo recording** (brainstorm → spec → plan →
+  subagent-driven execution → review). New `e2e/` suite targets the **production Vercel deployment
+  only** (`baseURL` = `https://golden-ratio-apartment.vercel.app/`, no `webServer`, Chromium-only,
+  `retries: 1`, `video: 'on'`, 1920×1080): [playwright.config.ts](../playwright.config.ts),
+  [e2e/helpers.ts](../e2e/helpers.ts) (`pace`/`setLanguage`/`setMode`/`fill`),
+  [e2e/golden-ratio.spec.ts](../e2e/golden-ratio.spec.ts) (5 UA assertions — i18n switch, canonical
+  worked-example numbers, mode toggle, room CRUD, validation), [e2e/smoke.spec.ts](../e2e/smoke.spec.ts),
+  and [e2e/demo-ua.spec.ts](../e2e/demo-ua.spec.ts) (paced UA walkthrough → `.webm` under
+  `test-results/`). **No product code changed** (role/label/id selectors; no `data-testid`). Scripts
+  `test:e2e` / `test:e2e:demo` / `test:e2e:report`; existing `npm test` (node --test) untouched;
+  `e2e`/`playwright.config.ts` excluded from the Next typecheck. Unit **107/107**, e2e **7/7** green.
+  Final whole-branch review: **ready to merge** (no crit/important). Commits `243d565..96d65ce` on
+  branch **`dev`**, kept as-is (not merged/pushed). Design & plan in
+  [docs/superpowers/specs/2026-07-04-playwright-e2e-demo-ua-design.md](superpowers/specs/2026-07-04-playwright-e2e-demo-ua-design.md)
+  / [docs/superpowers/plans/2026-07-04-playwright-e2e-demo-ua.md](superpowers/plans/2026-07-04-playwright-e2e-demo-ua.md).
+  Out of scope (backlog): CI wiring; localhost target; on-screen captions.
+- **Prior action:** **Shipped capability 17 `viz-3d-grid`** (iteration 3) end-to-end via the
   `ship-capability` advisory loop — the 3D **module-lattice + remainder-slab** parity with the 2D
   visualizer. [components/Viz3DScene.tsx](../components/Viz3DScene.tsx) now draws a faint M³ lattice
   on the floor + two corner faces (via `<lineSegments>`) and thin warn-tone remainder slabs on the
