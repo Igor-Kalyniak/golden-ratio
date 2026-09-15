@@ -1,0 +1,35 @@
+{
+  "change": "viz-3d-grid",
+  "generated_at": "2026-07-04T01:20:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-VIZ3D-07",
+      "pdr_section": "PDR §3D module visualizer (L177)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:563 layoutRoom3D — adds lengthRemainder/widthRemainder/heightRemainder = dim − floor(dim/m)·m (lib/calculations.ts:581-583), the 3D analogue of layoutRoom2D's rightStrip/bottomStrip",
+        "lib/calculations.ts:519 interiorModuleLines(dimension, m) — pure per-axis interior grid-line offsets [m,2m,… < dimension], the shared rule the 2D grid and 3D lattice both tile with (extracted per CR-001)",
+        "components/Viz3DScene.tsx:201-205 RoomBox useMemo — feeds interiorModuleLines per axis into buildLatticeSegments; :39 buildLatticeSegments draws the lattice as <lineSegments> on floor+front+left faces (:235-242) with a faint neutral LATTICE_COLOR opacity 0.4",
+        "components/Viz3DScene.tsx:208-263 signed remainder slabs — remL/remW/remH = remainder·scale rendered as <mesh> boxes gated on rem > EPS (1e-4) in warn tone REMAINDER_COLOR '#d97706', omitted on exact fit",
+        "components/Viz3DScene.tsx:27 MAX_LATTICE_DIVISIONS=40 — buildLatticeSegments returns null past the cap (:47) so the box/cube/slabs still render but the lattice degrades (NFR-PERF-03)",
+        "lib/calculations.test.ts:493 'layoutRoom3D: even dims → zero remainder on every axis (FR-VIZ3D-07)'",
+        "lib/calculations.test.ts:500 'layoutRoom3D: off-grid dims surface signed remainder per axis (FR-VIZ3D-07)' (3700/2500/2900 @600 → 100/100/500)",
+        "lib/calculations.test.ts:507 'layoutRoom3D: length/width remainders match layoutRoom2D strips (parity, FR-VIZ3D-07)'",
+        "lib/calculations.test.ts:516 'interiorModuleLines: exact fit drops the coincident far-edge line'",
+        "lib/calculations.test.ts:521 'interiorModuleLines: off-grid keeps the last whole-module line before the remainder'",
+        "lib/calculations.test.ts:526 'interiorModuleLines: count parity with layoutRoom3D per-axis cells'",
+        "lib/calculations.test.ts:534 'interiorModuleLines: dimension smaller than a module → no interior lines'",
+        "lib/calculations.test.ts:538 'interiorModuleLines: guards a non-positive module'"
+      ],
+      "notes": "AUTOMATED — the entire grid math is pure and unit-tested (node --test lib/*.test.ts → 107/107 green, incl. these 8 new tests: 3 remainder + 5 interiorModuleLines, run in-loop). Verified firsthand: (a) the per-axis remainders (dim − floor(dim/m)·m) pinned at even → 0, off-grid → signed leftover, and parity with layoutRoom2D's rightStrip/bottomStrip on the shared length/width axes; (b) interiorModuleLines pinned for exact-fit (drops the coincident far-edge line), off-grid (keeps the last whole line before the remainder), count parity with layoutRoom3D cols/rows/layers, sub-module (empty), and the m<=0 guard. CR-001 (low, resolved): the riskiest logic — the exact-fit-vs-off-grid interior-line filter — was extracted from a module-private helper into the pure, tested interiorModuleLines engine helper shared by Viz2D and the 3D lattice, so an off-by-one can no longer silently ship. MANUAL — the canvas render itself is not covered by an automated runner (ADR-0001: no React/WebGL/canvas harness in this repo): that the lattice <lineSegments> actually tiles each box on the M step, that the remainder <mesh> slabs appear on off-grid far faces and vanish on exact fit, that the single accent cube still reads as the only saturated element (FR-VIZ3D-03 preserved — lattice/slabs are faint/neutral), that MAX_LATTICE_DIVISIONS=40 degrades gracefully for tiny-module rooms, and the inherited WebGL-off→Viz2D fallback + reduced-motion — are covered by the manual test plan docs/qa/test-plans/viz-3d-grid.md. spec_compliant: verified against all six spec.md scenarios and PDR L177 — grid math (floor cells + interior lines + signed remainder) matches the FR-VIZ2D-02 rule mirrored into 3D, confirmed by the parity test and the resolved CR-001. Re-verified (not owned) constraints hold: NFR-BUNDLE-01 / TC-STACK-04 — grep confirms components/Viz3DScene.tsx is the SOLE @react-three/three importer (the interiorModuleLines helper stays framework-free, the type-only Mesh import is erased by tsc); NFR-PERF-03 — MAX_LATTICE_DIVISIONS cap + bounded validated input; BC-VALUE-01 / NFR-A11Y-03 — lattice/slabs are static geometry with no edit/export handler. All 3 fresh Checkers clean (review-findings.json head_sha 6db0b06)."
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "implemented": 1,
+    "tested": 1,
+    "spec_compliant": 1
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "change": "i18n",
+  "generated_at": "2026-07-03T01:40:00+03:00",
+  "base_sha": "9102c9a5215fefac2fdb3d917af8c3dd17429901",
+  "head_sha": "6a33947d4f76589166560ca691a96c29acd6bbe9",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 2 },
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "i18n plumbing correct: dictionaries match the frozen export verbatim with identical key sets (parity 74/74), never-translate labels isolated in CALC_LABELS, context/toggle sound, pure core enforced by tests. 9/9 tests pass.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["FR-I18N-02"],
+          "file": "lib/i18n.ts",
+          "line": 34,
+          "summary": "createTranslator's returned t was typed (key: string) => string, so mistyped keys at downstream call sites would compile and silently render the raw key.",
+          "recommendation": "Derive a key union so call sites get compile-time key checking; fallback-to-key stays as the intentional runtime behavior.",
+          "status": "resolved"
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "openspec validate i18n --strict: PASS. All four owned IDs (FR-I18N-01/02/03, TC-I18N-01) implemented + covered; dictionaries trace verbatim to DESIGN §11 / export STR (nested gridQual correctly flattened to qexact/qclose/qpoor); no heavy i18n dep; no scope drift (provider not mounted, toggle not placed in header = deferred to FR-SHELL-03/app-shell). 9/9 tests pass.",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "low",
+          "category": "spec",
+          "requirement_ids": ["FR-I18N-02", "NFR-A11Y-02"],
+          "file": "components/LanguageToggle.tsx",
+          "line": 19,
+          "summary": "The toggle's group aria-label=\"Language\" was a hardcoded screen-reader-facing string not resolved through t(), staying English in the UA locale. The canonical STR export has no key for it.",
+          "recommendation": "Add a dictionary key and source the aria-label via t().",
+          "status": "resolved"
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Clean against the pure-client threat model: no package.json/lockfile change (no i18n library — TC-I18N-01), no localStorage/cookie/IndexedDB/navigator/fetch/analytics (locale is in-memory useState — BC-PRIVACY-01), no server/api (TC-DATA-01), no dangerouslySetInnerHTML/eval; dictionary strings render as auto-escaped JSX text; t() keys are static developer-controlled literals (no reflected-injection sink).",
+      "findings": []
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "change": "i18n",
+  "generated_at": "2026-07-03T03:10:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-I18N-01",
+      "pdr_section": "Internationalisation (PDR L136)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/i18n-context.tsx:LanguageProvider",
+        "lib/i18n-context.tsx:useI18n",
+        "lib/i18n.ts:createTranslator",
+        "components/LanguageToggle.tsx:LanguageToggle",
+        "lib/i18n.test.ts::\"createTranslator resolves known keys in the active locale\"",
+        "lib/i18n.test.ts::\"createTranslator falls back to the key on miss, never undefined\""
+      ],
+      "notes": "Context holds locale ('en'|'ua') + setLocale + t(); LanguageProvider memoizes t on [locale] so a setLocale call re-renders every consumer live; LanguageToggle calls setLocale. The t()/translator core IS automated (createTranslator tests), but the React live re-render and context wiring are NOT covered by an automated test — the repo has no React/DOM test runner (ADR-0001). Live-switch behavior is verified by tsc + eslint (components/ clean) + build + the manual plan (test-plans/i18n.md TC-1/TC-3). No open reviewer findings on this ID."
+    },
+    {
+      "id": "FR-I18N-02",
+      "pdr_section": "Internationalisation (PDR L137)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "locales/en.json",
+        "locales/ua.json",
+        "lib/i18n.ts:createTranslator",
+        "lib/i18n.ts:missingKeys",
+        "lib/i18n-context.tsx:TranslationKey",
+        "lib/i18n.test.ts::\"EN and UA dictionaries have the identical key set\"",
+        "lib/i18n.test.ts::\"every dictionary value is a non-empty string\"",
+        "lib/i18n.test.ts::\"UA values differ from EN for translated prose (not a copy-paste stub)\""
+      ],
+      "notes": "Two flat JSON dictionaries (en.json / ua.json, 75 keys each) with an asserted identical key set (missingKeys both directions == []); all values non-empty strings; sampled prose keys genuinely differ. t() is the single resolution path. TranslationKey is derived from the EN dictionary so downstream call sites get compile-time key checking (CR-001, resolved). SC-001 (resolved): the toggle's group aria-label is now sourced via t('language'), so it too resolves through the dictionary. Whether *every* user-facing string in downstream components actually routes through t() is a per-consumer property verified as those components ship — pinned here only for the strings this change owns."
+    },
+    {
+      "id": "FR-I18N-03",
+      "pdr_section": "Internationalisation (PDR L138)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/i18n.ts:CALC_LABELS",
+        "lib/i18n.test.ts::\"CALC_LABELS are the fixed module labels\"",
+        "lib/i18n.test.ts::\"calculation labels are NOT dictionary keys or translated values\""
+      ],
+      "notes": "Calc labels (¼M, ½M, M, 1.5M, 2M, 3M, 4M) are isolated in the CALC_LABELS constant, not dictionary keys and not dictionary values. The never-translate test asserts, for both en and ua, that no label appears as a key or a value — so a label cannot become locale-dependent. Matches DESIGN §11 never-translate rule. No open findings."
+    },
+    {
+      "id": "TC-I18N-01",
+      "pdr_section": "Technical constraints (PDR L232)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/i18n-context.tsx:I18nContext",
+        "locales/en.json",
+        "locales/ua.json",
+        "package.json",
+        "lib/i18n.test.ts::\"lib/i18n.ts imports no framework code\""
+      ],
+      "notes": "Bilingual UA/EN built on a React createContext + two flat JSON dictionaries — no i18n library. Verified structurally: package.json + package-lock.json are byte-identical between base (9102c9a) and head (6b620ac), so no dependency was added (corroborated by the security review). This 'no heavy library' constraint is NOT asserted by any test in the suite (nothing fails if someone adds i18next later), hence tested:false; the purity test only pins that lib/i18n.ts imports no react/next/DOM. Verified by the package.json diff + manual plan TC-4."
+    }
+  ],
+  "summary": { "total": 4, "implemented": 4, "tested": 2, "spec_compliant": 4 }
+}

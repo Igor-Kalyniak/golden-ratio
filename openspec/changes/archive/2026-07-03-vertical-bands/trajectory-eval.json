@@ -1,0 +1,122 @@
+{
+  "change": "vertical-bands",
+  "generated_at": "2026-07-03T15:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-VERT-01",
+      "pdr_section": "PDR §Vertical bands (L97)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:294 (layoutBandDiagram calls computeVerticalBands(ceiling, m, opening) — reuses the shipped engine function, does not reimplement it)",
+        "lib/calculations.ts:computeVerticalBands returns { bands, topRemainder, openingAligned, openingBand } (shipped with calculation-engine, change 1)",
+        "lib/calculations.test.ts:\"computeVerticalBands: ceiling not divisible leaves top remainder\", \"computeVerticalBands: opening alignment\", \"computeVerticalBands: no opening → not aligned, null band\", \"computeVerticalBands: large band count derived, not capped\", \"computeVerticalBands: minimal 2-band case\"",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Requirement: Band layout derives full and partial bands from the engine)"
+      ],
+      "notes": "The engine function itself shipped and is fully automated in change 1 (calculation-engine) — this change's contribution is the presentation layer, which consumes it. layoutBandDiagram(2800,700) reuses computeVerticalBands rather than re-deriving the counts (confirmed by spec-compliance-auditor: \"reuses computeVerticalBands, not reimplemented\"). tested: true — the return shape and count/remainder/alignment behavior are pinned by the pre-existing computeVerticalBands unit tests. spec_compliant confirmed by strict PASS."
+    },
+    {
+      "id": "FR-VERT-02",
+      "pdr_section": "PDR §Vertical bands (L98)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:294-296 (totalRows = floor(ceiling/m) full bands via computeVerticalBands + optional partial — count is derived, never a constant)",
+        "lib/calculations.ts:299-312 (loop builds one BandLayoutRow per derived row)",
+        "components/BandDiagram.tsx:37-39,49 (renders bands.filter(!partial).length; no hardcoded band count)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: divisible ceiling → full bands, no partial\" (2800/700 → 4 bands)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: large band count is derived, not capped\" (5000/100 → 50 bands)",
+        "lib/calculations.test.ts:\"computeVerticalBands: minimal 2-band case\" (2000/700 → 2)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Scenario: Ceiling divisible by module — no partial band; Scenario: Large band count stays derived)"
+      ],
+      "notes": "AUTOMATED. Band count = floor(ceiling/m), variable and uncapped — proven at both ends of the required range: 4 bands (2800/700), 2 bands (2000/700), and 50 bands (5000/100), the last asserting the count is derived from floor(5000/100) not a capped constant. The 50+ SVG render itself (all ticks drawn, only labels thinned) is manual (ADR-0001) but the derivation is pinned."
+    },
+    {
+      "id": "FR-VERT-03",
+      "pdr_section": "PDR §Vertical bands (L99)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:295-296 (hasPartial = topRemainder > 0; totalRows adds one trailing row)",
+        "lib/calculations.ts:300-311 (the last row when hasPartial is flagged partial:true, to=ceiling, span=to-from = the leftover)",
+        "components/BandDiagram.tsx:72,75,84-85 (partial band drawn with --accent-bg + dashed stroke, tagged `· {t('partial')} {span} mm`)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: non-divisible ceiling → trailing partial band\" (3000/700 → 5 rows; partial row: partial=true, span=200, from=2800, to=3000)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Scenario: Ceiling not divisible — trailing partial band)"
+      ],
+      "notes": "AUTOMATED. The leftover topRemainder (ceiling − bands·m) is surfaced as a trailing partial band: 3000/700 yields 4 full + 1 partial spanning 200 mm (from 2800 to 3000), flagged partial. The dashed accent-fill rendering + `partial · {span} mm` tag are manual (ADR-0001); the leftover geometry is pinned by the unit test."
+    },
+    {
+      "id": "FR-VERT-04",
+      "pdr_section": "PDR §Vertical bands (L100)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:325-326 (overlay = opening !== undefined ? { mm: opening, aligned: opening % m === 0 } : null — marker at true height, aligned only on an exact module multiple)",
+        "components/BandDiagram.tsx:113-134 (opening drawn as a dashed accent rule + dot at yOf(overlay.mm), tagged `{t('openingLine')} · {t(aligned ? 'aligned' : 'offGrid')}`)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: opening on a boundary is aligned\" (2800/700/2100 → { mm:2100, aligned:true })",
+        "lib/calculations.test.ts:\"layoutBandDiagram: off-grid opening at its true height\" (2800/400/2100 → aligned:false, mm:2100)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: no opening → null overlay\"",
+        "lib/calculations.test.ts:\"computeVerticalBands: opening alignment\" (2100/700 aligned true band 3; 2050/700 aligned false)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Scenario: Opening on a band boundary; Scenario: Opening off the grid)"
+      ],
+      "notes": "AUTOMATED. The overlay carries the true opening height (mm) and aligned = (opening % m === 0): 2100/700 → aligned true; 2100/400 → aligned false but the marker still sits at the true 2100 mm (drawn off-grid, not snapped); no opening → null overlay. The dashed rule/dot + on-grid/off-grid tag rendering is manual (ADR-0001). The condensed-label right-gutter that hosts this tag was the CR-001 concern, resolved by the 360-wide viewBox."
+    },
+    {
+      "id": "FR-VERT-05",
+      "pdr_section": "PDR §Vertical bands (L101)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/BandDiagram.tsx:24-25 (VB_W=360, VB_H=470)",
+        "components/BandDiagram.tsx:55-57 (viewBox=`0 0 360 470`, preserveAspectRatio=\"xMidYMid meet\", className=\"h-auto w-full\" — no fixed pixel width/height attribute on the <svg>)",
+        "components/BandDiagram.tsx:53 (responsive wrapper `mx-auto w-full max-w-[520px]`)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Requirement: Responsive viewBox SVG; Scenario: Scales without a fixed width)",
+        "openspec/changes/vertical-bands/design.md:57-69 (viewBox decision — 360×470 reconciling FR-VERT-05 and FR-VERT-06)",
+        "openspec/changes/vertical-bands/review-findings.json:CR-001 (resolved)"
+      ],
+      "notes": "IMPLEMENTED but MANUAL (tested: false) — there is no React/DOM/visual runner (ADR-0001), so viewBox/preserveAspectRatio/responsive scaling is verified by build+tsc+lint+manual (test-plans/vertical-bands.md TC-3). DOCUMENTED PDR DRIFT recorded honestly: FR-VERT-05 specifies the literal viewBox=\"0 0 200 400\", but the shipped SVG uses \"0 0 360 470\" (DESIGN §6.2). The first cut used the PDR literal 200×400; code-reviewer CR-001 (high) found that box too narrow — right-side band-name labels and the opening tag overflowed the viewBox edge and clipped, failing FR-VERT-06. The two owned requirements were in tension and only the wider DESIGN box satisfies BOTH, so 360×470 was adopted (BAND_X=78, BAND_W=150, wide right gutter). The load-bearing FR-VERT-05 contract — a viewBox + preserveAspectRatio + width-responsive container with no fixed pixel size — holds either way. spec.md/design.md/tasks.md record 360×470 as shipped and flag the PDR literal for a docs-pass reconciliation (design.md Open Questions). spec_compliant: true against the FR-VERT-05 contract (responsive viewBox, no fixed pixels), with the numeric-literal drift flagged rather than silently matched."
+    },
+    {
+      "id": "FR-VERT-06",
+      "pdr_section": "PDR §Vertical bands (L102)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:138 (BAND_MARK_DENSITY = 16)",
+        "lib/calculations.ts:314-323 (mm marks 0..ceiling; condensed = markVals.length > 16; per-mark condensedOut = condensed && i%4 !== 0 && i !== last — keep every 4th + the last)",
+        "lib/calculations.ts:332-345 (bandNameKey emits locale-independent keys band.basePlinth/workZone/doorHead/upperCeiling — no English prose in the engine)",
+        "components/BandDiagram.tsx:96-110 (mm marks up the left edge, label hidden when condensedOut), :78-85 (band names on the right resolved via t(BAND_NAME_I18N[nameKey]))",
+        "locales/en.json:56-59 + locales/ua.json:56-59 (bandBasePlinth/bandWorkZone/bandDoorHead/bandUpperCeiling — EN/UA, i18n parity confirmed)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: mark labels condense only above the density threshold\" (5 marks → not condensed; 16 marks == threshold → not condensed; 17 marks > 16 → condensed, last kept, index 0 kept, index 1 hidden)",
+        "lib/calculations.test.ts:\"layoutBandDiagram: band-name key sequence (3D rule)\" (base at bottom, doorHead where opening 2100 falls, upperCeiling at top)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Requirement: mm labels, band names, and label condensing)"
+      ],
+      "notes": "The label-condensing LOGIC and the band-name KEY sequence are AUTOMATED (tested: true): the >16 threshold is pinned at the 5 / 16 / 17 boundaries (16 marks == threshold stays uncondensed; 17 flips condensed with index 0 and the last mark always kept, index 1 hidden), and the 3D-rule name-key sequence (basePlinth bottom / doorHead at the opening band / upperCeiling top) is asserted. The band names are locale-independent keys resolved through t() in the UI — engine emits no prose (spec-compliant, matches the WalkwayRecommendationKey pattern; EN/UA parity holds). The ACTUAL VISUAL LEGIBILITY (labels fitting the right gutter without clipping in both locales, mm labels thinning cleanly at 50 bands) is manual (ADR-0001) — and was the substance of CR-001: the initial 200-wide viewBox clipped these very labels, resolved by the 360×470 box. Covered by test-plans/vertical-bands.md TC-4 (condensing) and TC-6 (viewBox/legibility)."
+    },
+    {
+      "id": "NFR-RESP-01",
+      "pdr_section": "PDR §NFR (L217)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/BandDiagram.tsx:53-57 (responsive wrapper `mx-auto w-full max-w-[520px]`; <svg> with viewBox + preserveAspectRatio + `h-auto w-full`, no fixed pixel size — scales from mobile to desktop)",
+        "openspec/changes/vertical-bands/specs/vertical-bands/spec.md (Requirement: Responsive viewBox SVG)",
+        "openspec/changes/vertical-bands/review-findings.json:CR-001 (requirement_ids include NFR-RESP-01; resolved with the wider viewBox that keeps labels legible)"
+      ],
+      "notes": "NFR-RESP-01 covers the vertical-band SVG (owned here) plus the form/results layout (owned by app-shell, tracked as partial there). This change's contribution — the band SVG being fully responsive and legible mobile→desktop — is IMPLEMENTED via a viewBox/preserveAspectRatio SVG in a width-responsive container with no fixed pixel size. tested: false — responsiveness is a rendered/visual property with no React/DOM/visual runner (ADR-0001), verified by build+lint+manual (test-plans/vertical-bands.md TC-3). Legibility across widths and locales is the FR-VERT-06 concern flagged by CR-001 and resolved by the 360×470 viewBox. spec_compliant against the responsive-SVG contract; not marked covered because there is no automated responsive/visual assertion."
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "implemented": 7,
+    "tested": 5,
+    "spec_compliant": 7
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "change": "viz-2d",
+  "generated_at": "2026-07-03T21:10:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-VIZ2D-01",
+      "pdr_section": "PDR §2D module visualizer (L161)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz2D.tsx (per valid room, draws a plan rectangle to scale — width:height matches length:width via a shared scale factor — laid out in a wrapping row, NOT a floor plan: no walls/adjacency/positioning)",
+        "components/Viz2D.tsx (width-responsive SVG: viewBox + w-full/h-auto + a max-w cap, no fixed pixel width/height)",
+        "components/Shell.tsx (Viz2D rendered only when state.mode === '2d')",
+        "runtime: `next dev` 2D mode — the visualizer renders its header, the '1 module' swatch, the 'Read-only — comprehension aid' note, and one per-room SVG each (Maker verify-skill capture)"
+      ],
+      "notes": "To-scale plan rectangles in a responsive, 2D-gated SVG. The shared-scale geometry, wrapping row (not a floor plan), and width-responsive viewBox (no fixed px) are DOM/CSS-visual properties with no React/DOM/visual runner (ADR-0001), so tested=false; runtime-verified by the Maker (2D surface rendered per-room SVGs) and endorsed by all 3 reviewers (responsive viewBox with no fixed px, empty-rooms Math.max spread guarded). NFR-PERF-03 co-owns the responsiveness/redraw budget for this requirement."
+    },
+    {
+      "id": "FR-VIZ2D-02",
+      "pdr_section": "PDR §2D module visualizer (L162)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom2D + Room2DLayout: cols = floor(length/m), rows = floor(width/m); signed remainders leftL = length − cols·m, leftW = width − rows·m, surfaced as edge strips only when > 0)",
+        "components/Viz2D.tsx (faint M×M grid lines; a thin strip at the far right for a length remainder and the far bottom for a width remainder, coloured var(--warn-bg), rendered only when the leftover > 0)",
+        "lib/calculations.test.ts::\"layoutRoom2D: exact fit → whole cells, no strips\" (3000×2400 m600 → 5×4, no strips)",
+        "lib/calculations.test.ts::\"layoutRoom2D: remainders surface as edge strips\" (3200×2500 m600 → strips 200 / 100)",
+        "lib/calculations.test.ts::\"layoutRoom2D: cols/rows are floor(dim/m), not round\" (3599 m600 → 5, floor not round)",
+        "runtime: 2D render showed the var(--warn-bg) remainder strip on rooms with a leftover (Maker capture)"
+      ],
+      "notes": "Faint M×M grid with a signed-remainder edge strip — the layout math is FULLY AUTOMATED by layoutRoom2D unit tests (exact-fit, remainder strips, floor-not-round). IMPORTANT floor-vs-round note: the visualizer uses floor(dim/m) whole cells with the leftover as a strip, which is SPEC-MANDATED by FR-VIZ2D-02's own text ('the leftover after floor(dimension / m) whole modules'); this is deliberately distinct from grid-fit's round-to-nearest, which answers a different question (module count) — NOT an inconsistency (confirmed by code-reviewer + spec-auditor). The actual grid-line/strip SVG render is manual per ADR-0001, runtime-verified."
+    },
+    {
+      "id": "FR-VIZ2D-03",
+      "pdr_section": "PDR §2D module visualizer (L163)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom2D returns exactly one highlight cell {col:0, row: rows-1} — the bottom-left M×M cell; clamped to row 0 when the room is smaller than a module)",
+        "components/Viz2D.tsx (renders precisely one accent-coloured M×M cell at the highlight position, with the cellpulse animation)",
+        "lib/calculations.test.ts::\"layoutRoom2D: exactly one highlighted cell, bottom-left\" ({col:0, row:3} for 3000×2400 m600)",
+        "lib/calculations.test.ts::\"layoutRoom2D: room smaller than a module → rows 0, highlight row 0, no negative strip\" (500×500 m600 → highlight row 0, no negative strip)",
+        "runtime: 2D render showed one cellpulse accent cell per room (Maker capture)"
+      ],
+      "notes": "Exactly one highlighted module cell — the single-highlight contract is AUTOMATED (one cell at bottom-left, clamped to row 0 for sub-module rooms so no negative strip / no zero-or-many highlights). The accent-fill render is DOM-level, manual per ADR-0001, runtime-verified. Code-reviewer noted the highlight aligns to the grid's last row rather than the room's physical bottom (vs the prototype) — judged 'arguably more correct', not a defect, left as-is."
+    },
+    {
+      "id": "FR-VIZ2D-04",
+      "pdr_section": "PDR §2D module visualizer (L164)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz2D.tsx (the highlighted cell carries the shipped cellpulse keyframe animation)",
+        "openspec/changes/archive/2026-07-03-viz-2d/proposal.md, design.md (reconciled: only cellpulse is applied; grid animate-in and rect/grid tween-on-change are MAY clauses, satisfied-by-Should via the pulse; griddraw available but intentionally not applied)"
+      ],
+      "notes": "Motion (Should). FR-VIZ2D-04 reads 'grid lines animate in and the highlighted cell pulses; on input change rects/grid tween'. The highlighted-cell pulse (cellpulse) IS implemented and satisfies the Should; per the spec.md the grid animate-in and the on-change tween are MAY clauses, left unimplemented — no requirement violated. tested=false: animation is a visual property with no React/DOM runner (ADR-0001). The low doc note SC-001 (proposal/design overstated griddraw as applied) was RESOLVED by correcting the docs to match the code (cellpulse-only); no code change needed. spec_compliant=true because the Should is met by the pulse."
+    },
+    {
+      "id": "FR-VIZ2D-05",
+      "pdr_section": "PDR §2D module visualizer (L165)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "app/globals.css (global @media (prefers-reduced-motion: reduce) { * { animation: none !important } } — overrides the Tailwind arbitrary [animation:cellpulse] utility)",
+        "components/Viz2D.tsx (the highlight carries a static opacity=0.85 equal to the cellpulse endpoint, so with animation disabled it renders in its correct final state — it snaps rather than plays)"
+      ],
+      "notes": "Reduced-motion honored (Should). Coverage is legitimate and two-part: (1) the shipped GLOBAL globals.css rule sets animation:none !important on * under prefers-reduced-motion, which beats the cellpulse utility; (2) the highlight also carries a static opacity=0.85 = the cellpulse endpoint, so when the animation is suppressed the cell renders in its final state (snaps, does not play). tested=false: prefers-reduced-motion honoring is a media-query/visual property with no React/DOM/visual runner (ADR-0001); verified by code inspection + all 3 reviewers clean."
+    },
+    {
+      "id": "NFR-PERF-03",
+      "pdr_section": "PDR §NFR (L220)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom2D is O(1) arithmetic — floor divisions + a single highlight, no loops in the layout math)",
+        "components/Viz2D.tsx (pure SVG, no @react-three / no heavy dependency; per-room grid lines bounded by floor(dim/m) — ~150 max at the 15000 mm / 100 mm worst case)",
+        "lib/calculations.test.ts::\"layoutRoom2D: exact fit → whole cells, no strips\", \"layoutRoom2D: remainders surface as edge strips\", \"layoutRoom2D: cols/rows are floor(dim/m), not round\" (pin the layout arithmetic that the redraw consumes)",
+        "package.json / package-lock.json unchanged (@react-three correctly absent — that is viz-3d 15)"
+      ],
+      "notes": "2D redraw within the <16 ms budget. The layout is O(1) pure arithmetic (layoutRoom2D, unit-tested) feeding bounded pure-SVG grid lines (≤ ~150 per room); no async, no effects, no heavy dependency. tested=true for the layout math that drives the redraw; the 'stays within <16 ms' wall-clock budget itself is met-by-construction (same class as NFR-PERF-02) with no asserting benchmark — no React/DOM/perf runner (ADR-0001). The 3D-frame-rate half of NFR-PERF-03 belongs to viz-3d (15), not this change."
+    },
+    {
+      "id": "BC-VALUE-01",
+      "pdr_section": "PDR §Business constraints (L241)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz2D.tsx (display-only: no input/handler that edits room geometry, no export/download control, no dangerouslySetInnerHTML — room.name flows only into a React-escaped aria-label + figcaption)",
+        "components/Viz2D.tsx (the 'Read-only — comprehension aid' note is rendered in the visualizer header)",
+        "security-reviewer verdict clean: no editing affordance, no export sink, no network/persistence introduced (BC-PRIVACY-01 / TC-DATA-01 / BC-SCOPE-01 upheld)",
+        "runtime: 2D render showed the visualizer header with the 'Read-only — comprehension aid' note and no editing/export controls (Maker capture)"
+      ],
+      "notes": "Read-only comprehension aid — the visualizer conveys the module's scale and exposes NO control that edits geometry or exports a drawing; numeric results remain the source of truth. Structural/DOM-level with no React/DOM runner (ADR-0001), so tested=false; verified by code inspection, the explicit 'Read-only — comprehension aid' note, the security reviewer (no edit/export sink, user free-text room.name only React-escaped), and runtime capture. Consistent with the BC-VALUE-01 posture across the product."
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "implemented": 7,
+    "tested": 3,
+    "spec_compliant": 7
+  }
+}

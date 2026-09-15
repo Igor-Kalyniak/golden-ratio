@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+    --bg:#fbfbfa; --panel:#ffffff; --panel2:#f6f6f4; --inset:#f1f1ee;
+    --fg:#1a1a18; --fg2:#3a3a36; --muted:#73736c; --faint:#9a9a91;
+    --line:rgba(20,20,16,.10); --line2:rgba(20,20,16,.18); --field:#ffffff;
+    --accent:oklch(0.55 0.13 248); --accent-fg:#ffffff; --accent-bg:oklch(0.95 0.03 248); --accent-line:oklch(0.80 0.07 248);
+    --good:oklch(0.52 0.12 150); --good-bg:oklch(0.95 0.04 150);
+    --warn:oklch(0.58 0.11 70); --warn-bg:oklch(0.95 0.05 75);
+    --bad:oklch(0.52 0.17 28); --bad-bg:oklch(0.95 0.04 28);
+    --err:oklch(0.52 0.17 28); --err-bg:oklch(0.96 0.03 28);
+  }
+  html[data-theme="dark"]{
+    --bg:#0e0e0d; --panel:#161614; --panel2:#1c1c1a; --inset:#222220;
+    --fg:#ededea; --fg2:#cfcfc9; --muted:#a0a097; --faint:#6f6f67;
+    --line:rgba(255,255,250,.12); --line2:rgba(255,255,250,.22); --field:#1b1b19;
+    --accent:oklch(0.74 0.13 248); --accent-fg:#0e0e0d; --accent-bg:oklch(0.30 0.06 248); --accent-line:oklch(0.45 0.09 248);
+    --good:oklch(0.74 0.13 150); --good-bg:oklch(0.30 0.06 150);
+    --warn:oklch(0.78 0.12 75); --warn-bg:oklch(0.32 0.06 75);
+    --bad:oklch(0.70 0.16 28); --bad-bg:oklch(0.32 0.07 28);
+    --err:oklch(0.70 0.16 28); --err-bg:oklch(0.30 0.06 28);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1,"cv01" 1}
+  input,select,button{font-family:inherit}
+  input[type=number]::-webkit-inner-spin-button{opacity:.35}
+  @keyframes livedot{0%,100%{opacity:1}50%{opacity:.25}}
+  @keyframes griddraw{from{stroke-dashoffset:240}to{stroke-dashoffset:0}}
+  @keyframes cellpulse{0%,100%{opacity:.85}50%{opacity:.45}}
+  @keyframes spin3d{from{transform:rotateX(-22deg) rotateY(0deg)}to{transform:rotateX(-22deg) rotateY(360deg)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+  ::selection{background:var(--accent-bg)}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--bg)">
+  <header style="display:flex;align-items:center;gap:16px;padding:18px 28px;border-bottom:1px solid var(--line);position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);z-index:20;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:13px;flex:1;min-width:240px">
+      <span style="color:var(--accent);display:flex">
+        <svg width="40" height="26" viewBox="0 0 110 70" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="108" height="68" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+          <line x1="68" y1="1" x2="68" y2="69" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+          <line x1="68" y1="43" x2="110" y2="43" stroke="currentColor" stroke-width="1.1" opacity=".55"/>
+          <line x1="93" y1="43" x2="93" y2="69" stroke="currentColor" stroke-width="1.1" opacity=".4"/>
+          <line x1="68" y1="59" x2="93" y2="59" stroke="currentColor" stroke-width="1.1" opacity=".4"/>
+          <path d="M1 1 A67 67 0 0 1 68 69" stroke="currentColor" stroke-width="1.8" fill="none"/>
+          <path d="M68 69 A42 42 0 0 1 110 43" stroke="currentColor" stroke-width="1.8" fill="none"/>
+          <path d="M110 43 A26 26 0 0 1 93 69" stroke="currentColor" stroke-width="1.8" fill="none" opacity=".8"/>
+        </svg>
+      </span>
+      <div style="line-height:1.15">
+        <div style="font-size:15px;font-weight:600;letter-spacing:-.01em">{{ s.title }}</div>
+        <div style="font-size:11.5px;color:var(--muted);font-weight:450">{{ s.subtitle }}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:5px 10px;border:1px solid var(--line);border-radius:20px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--good);animation:livedot 1.8s ease-in-out infinite"></span>
+        <span style="font-weight:500">{{ s.live }}</span>
+      </div>
+      <button onClick="{{ toggleTheme }}" aria-label="Toggle dark mode" style="width:34px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px" style-hover="border-color:var(--line2)">{{ themeIcon }}</button>
+      <div role="group" aria-label="Language" style="display:flex;border:1px solid var(--line);border-radius:20px;overflow:hidden;font-family:var(--mono);font-size:11px;font-weight:600">
+        <button onClick="{{ setEN }}" style="{{ enPillStyle }}" style-focus="outline:2px solid var(--accent);outline-offset:-2px">EN</button>
+        <button onClick="{{ setUA }}" style="{{ uaPillStyle }}" style-focus="outline:2px solid var(--accent);outline-offset:-2px">UA</button>
+      </div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:0;align-items:start;max-width:1400px;margin:0 auto">
+
+    <!-- ===================== INPUT COLUMN ===================== -->
+    <section aria-label="Inputs" style="padding:24px 26px 60px;border-right:1px solid var(--line);position:sticky;top:67px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2 style="margin:0;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">{{ s.inputs }}</h2>
+        <div role="group" aria-label="Calculation mode" style="display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;font-size:11.5px;font-weight:600">
+          <button onClick="{{ set2D }}" style="{{ mode2dStyle }}">2D</button>
+          <button onClick="{{ set3D }}" style="{{ mode3dStyle }}">3D</button>
+        </div>
+      </div>
+
+      <!-- Apartment fields -->
+      <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 18px;margin-bottom:18px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:14px">{{ s.apartment }}</div>
+
+        <sc-if value="{{ showHeights }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:14px">
+            <div>
+              <label for="f-ceiling" style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:500;margin-bottom:6px;color:var(--fg2)"><span>{{ s.ceiling }}</span><span style="color:var(--faint);font-family:var(--mono);font-size:11px">{{ s.rngCeiling }}</span></label>
+              <div style="display:flex;align-items:center;border:1px solid {{ ceilBorder }};border-radius:8px;background:var(--field);overflow:hidden" >
+                <input id="f-ceiling" type="number" value="{{ ceiling }}" onChange="{{ onCeiling }}" aria-invalid="{{ ceilInvalid }}" style="flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-family:var(--mono);font-size:15px;font-weight:500;padding:9px 11px" style-focus="outline:none"/>
+                <span style="padding:0 11px;font-family:var(--mono);font-size:11px;color:var(--faint);border-left:1px solid var(--line)">mm</span>
+              </div>
+              <sc-if value="{{ ceilErr }}" hint-placeholder-val="">
+                <div role="alert" style="margin-top:5px;font-size:11.5px;color:var(--err);display:flex;gap:5px;align-items:center"><span style="font-weight:700">!</span>{{ ceilErr }}</div>
+              </sc-if>
+            </div>
+            <div>
+              <label for="f-opening" style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:500;margin-bottom:6px;color:var(--fg2)"><span>{{ s.opening }}{{ openingOpt }}</span><span style="color:var(--faint);font-family:var(--mono);font-size:11px">{{ s.rngOpening }}</span></label>
+              <div style="display:flex;align-items:center;border:1px solid {{ openBorder }};border-radius:8px;background:var(--field);overflow:hidden">
+                <input id="f-opening" type="number" value="{{ opening }}" onChange="{{ onOpening }}" aria-invalid="{{ openInvalid }}" style="flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-family:var(--mono);font-size:15px;font-weight:500;padding:9px 11px" style-focus="outline:none"/>
+                <span style="padding:0 11px;font-family:var(--mono);font-size:11px;color:var(--faint);border-left:1px solid var(--line)">mm</span>
+              </div>
+              <sc-if value="{{ openErr }}" hint-placeholder-val="">
+                <div role="alert" style="margin-top:5px;font-size:11.5px;color:var(--err);display:flex;gap:5px;align-items:center"><span style="font-weight:700">!</span>{{ openErr }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <div>
+          <label for="f-module" style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:500;margin-bottom:6px;color:var(--fg2)"><span>{{ s.module }}</span><span style="color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:600">{{ s.overridable }}</span></label>
+          <div style="position:relative">
+            <select id="f-module" value="{{ module }}" onChange="{{ onModule }}" style="width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--field);color:var(--fg);font-family:var(--mono);font-size:15px;font-weight:500;padding:9px 11px;appearance:none;cursor:pointer" style-focus="outline:2px solid var(--accent);outline-offset:-1px">
+              <sc-for list="{{ moduleOptions }}" as="opt" hint-placeholder-count="7">
+                <option value="{{ opt.value }}">{{ opt.label }}</option>
+              </sc-for>
+            </select>
+            <span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted);font-size:10px">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room list -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint)">{{ s.rooms }} <span style="font-family:var(--mono);color:var(--muted)">{{ roomCount }}</span></div>
+        <button onClick="{{ addRoom }}" style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent-line);border-radius:7px;padding:6px 11px;cursor:pointer" style-hover="filter:brightness(.97)"><span style="font-size:14px;line-height:1">+</span>{{ s.addRoom }}</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <sc-for list="{{ rooms }}" as="room" hint-placeholder-count="3">
+          <div style="background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 14px 14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+              <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint);font-weight:600">{{ room.tag }}</span>
+              <input aria-label="Room name" value="{{ room.name }}" onChange="{{ room.onName }}" style="flex:1;min-width:0;border:0;border-bottom:1px solid transparent;background:transparent;color:var(--fg);font-size:13.5px;font-weight:600;padding:3px 2px" style-focus="outline:none;border-bottom-color:var(--accent)" style-hover="border-bottom-color:var(--line2)"/>
+              <button onClick="{{ room.onRemove }}" disabled="{{ room.removeDisabled }}" aria-label="Remove room" style="{{ room.removeStyle }}">×</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px">
+              <div>
+                <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px">{{ s.length }}</label>
+                <div style="display:flex;align-items:center;border:1px solid {{ room.lenBorder }};border-radius:7px;background:var(--field);overflow:hidden">
+                  <input type="number" value="{{ room.length }}" onChange="{{ room.onLen }}" aria-invalid="{{ room.lenInvalid }}" style="flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-family:var(--mono);font-size:13.5px;padding:7px 9px" style-focus="outline:none"/>
+                  <span style="padding:0 8px;font-family:var(--mono);font-size:10px;color:var(--faint)">mm</span>
+                </div>
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:4px">{{ s.width }}</label>
+                <div style="display:flex;align-items:center;border:1px solid {{ room.widBorder }};border-radius:7px;background:var(--field);overflow:hidden">
+                  <input type="number" value="{{ room.width }}" onChange="{{ room.onWid }}" aria-invalid="{{ room.widInvalid }}" style="flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-family:var(--mono);font-size:13.5px;padding:7px 9px" style-focus="outline:none"/>
+                  <span style="padding:0 8px;font-family:var(--mono);font-size:10px;color:var(--faint)">mm</span>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{ room.dimErr }}" hint-placeholder-val="">
+              <div role="alert" style="margin-top:7px;font-size:11px;color:var(--err);display:flex;gap:5px;align-items:center"><span style="font-weight:700">!</span>{{ room.dimErr }}</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <!-- ===================== RESULTS COLUMN ===================== -->
+    <section aria-label="Results" aria-live="polite" style="padding:24px 28px 80px;min-width:0">
+      <sc-if value="{{ showResults }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:22px">
+
+          <!-- 1. MODULE SUMMARY -->
+          <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden">
+            <div style="display:flex;align-items:stretch;gap:0;border-bottom:1px solid var(--line)">
+              <div style="padding:20px 22px;border-right:1px solid var(--line);background:var(--panel2);display:flex;flex-direction:column;justify-content:center;min-width:170px">
+                <div style="font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:6px">{{ s.activeModule }}</div>
+                <div style="font-family:var(--mono);font-size:34px;font-weight:600;letter-spacing:-.02em;color:var(--fg);line-height:1">M = {{ mod.value }}</div>
+                <div style="font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px">mm</div>
+              </div>
+              <div style="padding:18px 22px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint)">{{ mod.from }}</div>
+                <div style="font-family:var(--mono);font-size:13px;color:var(--fg2);line-height:1.6">GCD(<span style="color:var(--fg)">{{ mod.gcdInputs }}</span>) = <span style="color:var(--fg);font-weight:600">{{ mod.gcd }}</span> <span style="color:var(--muted)">→ {{ s.snappedTo }}</span> <span style="color:var(--accent);font-weight:600">{{ mod.snapped }}</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:1px">
+                  <span style="font-size:11.5px;color:var(--muted)">{{ s.residual }}</span>
+                  <span style="font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--good);background:var(--good-bg);padding:2px 8px;border-radius:5px">{{ mod.residual }} mm</span>
+                  <span style="width:1px;height:14px;background:var(--line);margin:0 2px"></span>
+                  <span style="font-size:11.5px;color:var(--muted)">{{ s.alternatives }}</span>
+                  <sc-for list="{{ mod.alts }}" as="a" hint-placeholder-count="2">
+                    <span style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--fg2);border:1px solid var(--line);padding:2px 8px;border-radius:5px">{{ a }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <sc-if value="{{ warn }}" hint-placeholder-val="">
+              <div role="alert" style="display:flex;gap:10px;align-items:center;padding:11px 22px;background:var(--warn-bg);border-bottom:1px solid var(--line);color:var(--warn);font-size:12.5px;font-weight:500">
+                <span style="font-weight:700;font-size:14px">⚠</span><span>{{ warn.msg }}</span>
+              </div>
+            </sc-if>
+
+            <div style="padding:16px 22px 18px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">{{ s.ruler }}</div>
+              <div style="border:1px solid var(--line);border-radius:9px;overflow:hidden">
+                <div style="display:grid;grid-template-columns:64px 90px 1fr;background:var(--panel2);border-bottom:1px solid var(--line);font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)">
+                  <div style="padding:7px 12px">{{ s.colLabel }}</div>
+                  <div style="padding:7px 12px;text-align:right">{{ s.colSize }}</div>
+                  <div style="padding:7px 14px">{{ s.colUse }}</div>
+                </div>
+                <sc-for list="{{ ruler }}" as="row" hint-placeholder-count="7">
+                  <div style="display:grid;grid-template-columns:64px 90px 1fr;border-top:1px solid var(--line);font-size:12.5px;align-items:center">
+                    <div style="padding:8px 12px;font-family:var(--mono);font-weight:600;color:var(--accent)">{{ row.label }}</div>
+                    <div style="padding:8px 12px;font-family:var(--mono);text-align:right;color:var(--fg);font-weight:500">{{ row.size }} <span style="color:var(--faint);font-size:10px">mm</span></div>
+                    <div style="padding:8px 14px;color:var(--muted);font-size:12px">{{ row.use }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <sc-if value="{{ bandsM }}" hint-placeholder-val="">
+            <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 22px 20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+                <div style="font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)">{{ s.bandDiagram }}</div>
+                <div style="display:flex;align-items:center;gap:14px;font-size:11px;color:var(--muted)">
+                  <span><span style="font-family:var(--mono);font-weight:600;color:var(--fg)">{{ bandsM.count }}</span> {{ s.bands }}</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:0;border-top:1.5px dashed var(--accent)"></span>{{ s.openingLine }}</span>
+                </div>
+              </div>
+              <svg viewBox="0 0 360 470" style="width:100%;height:auto;max-width:520px;display:block" role="img" aria-label="Vertical band stack">
+                <sc-for list="{{ bandsM.list }}" as="b" hint-placeholder-count="4">
+                  <g>
+                    <rect x="78" y="{{ b.y }}" width="150" height="{{ b.h }}" fill="{{ b.fill }}" stroke="var(--line2)" stroke-width="1" stroke-dasharray="{{ b.dash }}"/>
+                    <text x="236" y="{{ b.cy }}" font-family="var(--sans)" font-size="11.5" font-weight="500" fill="var(--fg2)" dominant-baseline="middle">{{ b.name }}</text>
+                    <sc-if value="{{ b.partial }}" hint-placeholder-val="">
+                      <text x="236" y="{{ b.cy2 }}" font-family="var(--mono)" font-size="9.5" fill="var(--faint)" dominant-baseline="middle">{{ s.partial }} · {{ b.span }} mm</text>
+                    </sc-if>
+                  </g>
+                </sc-for>
+                <sc-for list="{{ bandsM.marks }}" as="m" hint-placeholder-count="5">
+                  <g>
+                    <line x1="72" y1="{{ m.y }}" x2="78" y2="{{ m.y }}" stroke="var(--line2)" stroke-width="1"/>
+                    <text x="68" y="{{ m.y }}" text-anchor="end" font-family="var(--mono)" font-size="11" fill="var(--muted)" dominant-baseline="middle">{{ m.mm }}</text>
+                  </g>
+                </sc-for>
+                <sc-if value="{{ bandsM.hasOpening }}" hint-placeholder-val="">
+                  <g>
+                    <line x1="78" y1="{{ bandsM.openY }}" x2="228" y2="{{ bandsM.openY }}" stroke="var(--accent)" stroke-width="1.8" stroke-dasharray="6 4"/>
+                    <circle cx="78" cy="{{ bandsM.openY }}" r="3" fill="var(--accent)"/>
+                    <text x="84" y="{{ bandsM.openTagY }}" font-family="var(--mono)" font-size="10" font-weight="600" fill="var(--accent)">{{ s.openingLine }} {{ bandsM.opening }} · {{ bandsM.openTag }}</text>
+                  </g>
+                </sc-if>
+              </svg>
+            </div>
+          </sc-if>
+          <div>
+            <div style="font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);margin-bottom:11px">{{ s.perRoom }}</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ roomResults }}" as="r" hint-placeholder-count="3">
+                <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden">
+                  <!-- header -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--panel2);flex-wrap:wrap">
+                    <div style="display:flex;align-items:baseline;gap:10px">
+                      <span style="font-size:14.5px;font-weight:600;color:var(--fg)">{{ r.name }}</span>
+                      <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">{{ r.dims }} mm</span>
+                    </div>
+                    <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:{{ r.fitColor }};background:{{ r.fitBg }};padding:3px 9px;border-radius:20px"><span aria-hidden="true">{{ r.fitIcon }}</span>{{ r.fitLabel }}</span>
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                    <!-- golden split -->
+                    <div style="padding:14px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)">
+                      <div style="font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:9px">{{ s.goldenSplit }} <span style="color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500">· {{ s.longerWall }} {{ r.longer }}</span></div>
+                      <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:var(--muted)">{{ s.exact }} (.618 / .382)</span><span style="font-family:var(--mono);color:var(--fg2)">{{ r.largerExactF }} / {{ r.smallerExactF }}</span></div>
+                        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="color:var(--muted)">{{ s.snappedVals }}</span><span style="font-family:var(--mono);font-weight:600;color:var(--accent)">{{ r.snappedLarger }} / {{ r.snappedSmaller }}</span></div>
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:6px;border-top:1px solid var(--line)"><span style="color:var(--muted)">{{ s.snapOffset }}</span><span style="font-family:var(--mono);color:{{ r.fitColor }};font-weight:600">{{ r.offsetF }} mm</span></div>
+                      </div>
+                    </div>
+
+                    <!-- grid fit -->
+                    <div style="padding:14px 18px;border-bottom:1px solid var(--line)">
+                      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+                        <span style="font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint)">{{ s.gridFit }}</span>
+                        <span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:10.5px;font-weight:700;color:{{ r.qColor }};background:{{ r.qBg }};padding:2px 8px;border-radius:5px"><span aria-hidden="true">{{ r.qIcon }}</span>{{ r.qLabel }}</span>
+                      </div>
+                      <div style="font-family:var(--mono);font-size:19px;font-weight:600;color:var(--fg);margin-bottom:7px">{{ r.gridDims }} <span style="font-size:11px;color:var(--faint);font-weight:400">{{ s.module }}</span></div>
+                      <div style="display:flex;gap:14px;font-size:11.5px;color:var(--muted)">
+                        <span>{{ s.remainder }} L <span style="font-family:var(--mono);color:var(--fg2);font-weight:600">{{ r.remLF }}</span></span>
+                        <span>W <span style="font-family:var(--mono);color:var(--fg2);font-weight:600">{{ r.remWF }}</span></span>
+                      </div>
+                      <sc-if value="{{ r.hasAnn }}" hint-placeholder-val="">
+                        <div style="margin-top:7px;font-size:11px;color:var(--warn);font-style:italic">{{ r.annotation }}</div>
+                      </sc-if>
+                    </div>
+                  </div>
+
+                  <!-- walkway -->
+                  <div style="padding:13px 18px 15px">
+                    <div style="font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-bottom:9px">{{ s.walkway }}</div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                      <sc-for list="{{ r.walk }}" as="w" hint-placeholder-count="3">
+                        <div style="display:flex;align-items:center;gap:12px">
+                          <span style="flex:1;min-width:0;font-size:12px;color:var(--fg2)">{{ w.label }}</span>
+                          <span style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--fg);width:74px;text-align:right">{{ w.cF }} mm</span>
+                          <span style="display:flex;gap:2px;align-items:flex-end" aria-hidden="true"><span style="{{ w.barStyle1 }}"></span><span style="{{ w.barStyle2 }}"></span><span style="{{ w.barStyle3 }}"></span></span>
+                          <span style="font-size:11px;font-weight:600;color:{{ w.color }};width:88px;text-align:right">{{ w.ratingLabel }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 22px 20px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+              <div style="font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)">{{ s.visualizer }} <span style="font-family:var(--mono);color:var(--accent)">{{ mode }}</span></div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--faint)"><span style="width:11px;height:11px;border-radius:2px;background:var(--accent)"></span>1 module</div>
+            </div>
+            <div style="font-size:11.5px;color:var(--faint);margin-bottom:16px">{{ s.vizNote }}</div>
+
+            <!-- 2D plan -->
+            <sc-if value="{{ show2d }}" hint-placeholder-val="">
+              <div style="display:flex;flex-wrap:wrap;gap:26px;align-items:flex-end">
+                <sc-for list="{{ viz2d }}" as="r2" hint-placeholder-count="3">
+                  <div style="display:flex;flex-direction:column;gap:7px">
+                    <svg viewBox="{{ r2.viewBox }}" width="{{ r2.svgW }}" height="{{ r2.svgH }}" style="max-width:100%;height:auto;overflow:visible" role="img" aria-label="Room plan to scale">
+                      <rect x="{{ r2.roomX }}" y="{{ r2.roomY }}" width="{{ r2.w }}" height="{{ r2.h }}" fill="var(--inset)" stroke="var(--line2)" stroke-width="1.4"/>
+                      <sc-for list="{{ r2.gridV }}" as="g" hint-placeholder-count="3"><line x1="{{ g.x1 }}" y1="{{ g.y1 }}" x2="{{ g.x2 }}" y2="{{ g.y2 }}" stroke="var(--line)" stroke-width="1"/></sc-for>
+                      <sc-for list="{{ r2.gridH }}" as="g" hint-placeholder-count="3"><line x1="{{ g.x1 }}" y1="{{ g.y1 }}" x2="{{ g.x2 }}" y2="{{ g.y2 }}" stroke="var(--line)" stroke-width="1"/></sc-for>
+                      <sc-if value="{{ r2.stripRightShow }}" hint-placeholder-val=""><rect x="{{ r2.stripRightX }}" y="{{ r2.roomY }}" width="{{ r2.stripRightW }}" height="{{ r2.h }}" fill="var(--warn-bg)"/></sc-if>
+                      <sc-if value="{{ r2.stripBotShow }}" hint-placeholder-val=""><rect x="{{ r2.roomX }}" y="{{ r2.stripBotY }}" width="{{ r2.w }}" height="{{ r2.stripBotH }}" fill="var(--warn-bg)"/></sc-if>
+                      <rect x="{{ r2.cellX }}" y="{{ r2.cellY }}" width="{{ r2.cellS }}" height="{{ r2.cellS }}" fill="var(--accent)" opacity="0.85" style="animation:cellpulse 2.6s ease-in-out infinite"/>
+                    </svg>
+                    <div style="font-size:11.5px;color:var(--fg2);font-weight:500">{{ r2.name }} <span style="font-family:var(--mono);color:var(--muted);font-weight:400">· {{ r2.dims }} · {{ r2.gridLabel }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <!-- 3D scene -->
+            <sc-if value="{{ show3d }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="perspective:1100px;perspective-origin:40% 40%;padding:30px 6px 46px;display:flex;justify-content:center;cursor:grab;touch-action:none;overflow:hidden" style-active="cursor:grabbing">
+                  <div id="viz3d-scene" style="transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(-32deg);animation:spin3d 26s linear infinite;display:flex;gap:46px;align-items:flex-end;justify-content:center">
+                    <sc-for list="{{ viz3d }}" as="b3" hint-placeholder-count="3">
+                      <div style="{{ b3.roomStyle }}">
+                        <div style="{{ b3.floorStyle }}"></div>
+                        <div style="{{ b3.backStyle }}"></div>
+                        <div style="{{ b3.leftStyle }}"></div>
+                        <sc-if value="{{ b3.hasOpen }}" hint-placeholder-val=""><div style="{{ b3.openStyle }}"></div></sc-if>
+                        <div style="{{ b3.cubeWrap }}">
+                          <div style="{{ b3.cubeB }}"></div>
+                          <div style="{{ b3.cubeBo }}"></div>
+                          <div style="{{ b3.cubeL }}"></div>
+                          <div style="{{ b3.cubeR }}"></div>
+                          <div style="{{ b3.cubeF }}"></div>
+                          <div style="{{ b3.cubeT }}"></div>
+                        </div>
+                        <div style="{{ b3.nameStyle }}">{{ b3.name }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px">
+                  <div style="font-size:11px;color:var(--faint)">↻ drag to orbit · auto-rotates · opening shown as accent band</div>
+                  <div style="font-size:10.5px;color:var(--faint);font-style:italic;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--faint)"></span>{{ s.webgl }}</div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noResults }}" hint-placeholder-val="">
+        <div style="border:1px dashed var(--line2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted);font-size:13px;margin-top:8px">{{ s.fillToSee }}</div>
+      </sc-if>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:860}}">
+class Component extends DCLogic {
+  STD = [100,150,200,300,350,600,700];
+
+  STR = {
+    en: {
+      title:'Apartment Module & Golden Ratio', subtitle:'Proportional planning instrument · all values in mm',
+      live:'updates live', inputs:'Inputs', apartment:'Apartment',
+      ceiling:'Ceiling height', opening:'Opening height', module:'Module',
+      rngCeiling:'2000–5000', rngOpening:'1800–ceiling', overridable:'override',
+      rooms:'Rooms', addRoom:'Add room', length:'Length', width:'Width',
+      suggested:'suggested', optional:'optional',
+      errCeiling:'Must be an integer between 2000 and 5000 mm.',
+      errOpening:'Must be ≥ 1800 mm and ≤ ceiling height.',
+      errDim:'Must be between 500 and 15000 mm.',
+      fillToSee:'Enter valid apartment fields and at least one room to see results.',
+      // results
+      moduleSummary:'Module Summary', activeModule:'active module',
+      suggestedFrom:'suggested from heights', suggestedFromRooms:'suggested from room dimensions',
+      snappedTo:'snapped to', residual:'residual', alternatives:'alternatives',
+      ruler:'Module ruler', colLabel:'Label', colSize:'Size', colUse:'Typical use',
+      warnLarge:'Module may be impractically large — check ½M for finer planning.',
+      warnSmall:'Module is very small — inputs may need revision.',
+      bandDiagram:'Vertical band diagram', bands:'bands', openingLine:'opening',
+      aligned:'on grid', offGrid:'off-grid', partial:'partial', leftover:'leftover',
+      perRoom:'Per-room results', goldenSplit:'Golden-ratio split', longerWall:'longer wall',
+      exact:'exact', snappedVals:'snapped (½M)', snapOffset:'snap offset',
+      approxFit:'approximate fit', cleanFit:'clean fit',
+      gridFit:'Grid fit', remainder:'remainder', quality:'quality',
+      roundUp:'round up', roundDown:'round down', onLength:'on length', onWidth:'on width',
+      walkway:'Walkway clearance', clearance:'clearance', furniture:'furniture',
+      comfortable:'comfortable', acceptable:'acceptable', tight:'tight',
+      wardrobe:'Past wardrobe / kitchen (600)', sofa:'Centre past sofa / bed (900)', facing:'Between facing 600 units',
+      recComf:'Comfortable two-way passing.', recAcc:'One person passes; furniture doors limited.', recTight:'Below ergonomic minimum — reconsider layout.',
+      visualizer:'Module visualizer', vizNote:'Read-only — comprehension aid, to scale. Not a floor plan.',
+      gridQual:{exact:'exact',close:'close',poor:'poor'},
+      webgl:'3D unavailable on this device — showing 2D plan instead.',
+      qexact:'exact', qclose:'close', qpoor:'poor',
+    },
+    ua: {
+      title:'Модуль квартири та золотий перетин', subtitle:'Інструмент пропорційного планування · усі значення в мм',
+      live:'оновлюється наживо', inputs:'Вхідні дані', apartment:'Квартира',
+      ceiling:'Висота стелі', opening:'Висота прорізу', module:'Модуль',
+      rngCeiling:'2000–5000', rngOpening:'1800–стеля', overridable:'змінити',
+      rooms:'Кімнати', addRoom:'Додати кімнату', length:'Довжина', width:'Ширина',
+      suggested:'рекомендовано', optional:'необовʼязково',
+      errCeiling:'Ціле число від 2000 до 5000 мм.',
+      errOpening:'Має бути ≥ 1800 мм та ≤ висоти стелі.',
+      errDim:'Має бути від 500 до 15000 мм.',
+      fillToSee:'Введіть коректні поля квартири та принаймні одну кімнату.',
+      moduleSummary:'Зведення модуля', activeModule:'активний модуль',
+      suggestedFrom:'рекомендовано з висот', suggestedFromRooms:'рекомендовано з розмірів кімнат',
+      snappedTo:'округлено до', residual:'залишок', alternatives:'альтернативи',
+      ruler:'Лінійка модуля', colLabel:'Позначка', colSize:'Розмір', colUse:'Типове застосування',
+      warnLarge:'Модуль може бути надто великим — перевірте ½M для точнішого планування.',
+      warnSmall:'Модуль дуже малий — можливо, варто переглянути дані.',
+      bandDiagram:'Діаграма вертикальних смуг', bands:'смуг', openingLine:'проріз',
+      aligned:'на сітці', offGrid:'поза сіткою', partial:'часткова', leftover:'залишок',
+      perRoom:'Результати по кімнатах', goldenSplit:'Поділ за золотим перетином', longerWall:'довша стіна',
+      exact:'точно', snappedVals:'округлено (½M)', snapOffset:'зсув округлення',
+      approxFit:'приблизна відповідність', cleanFit:'чітка відповідність',
+      gridFit:'Відповідність сітці', remainder:'залишок', quality:'якість',
+      roundUp:'округлити вгору', roundDown:'округлити вниз', onLength:'по довжині', onWidth:'по ширині',
+      walkway:'Прохід', clearance:'просвіт', furniture:'меблі',
+      comfortable:'комфортно', acceptable:'прийнятно', tight:'тісно',
+      wardrobe:'Повз шафу / кухню (600)', sofa:'По центру повз диван / ліжко (900)', facing:'Між двома блоками 600',
+      recComf:'Комфортний двосторонній прохід.', recAcc:'Проходить одна людина; дверцята обмежені.', recTight:'Нижче ергономічного мінімуму — перегляньте розташування.',
+      visualizer:'Візуалізатор модуля', vizNote:'Лише для перегляду — допоміжна схема в масштабі. Не план поверху.',
+      gridQual:{exact:'точно',close:'близько',poor:'погано'},
+      webgl:'3D недоступне — показано 2D-план.',
+      qexact:'точно', qclose:'близько', qpoor:'погано',
+    }
+  };
+
+  state = {
+    lang:'en', theme:'light', mode:'3d',
+    ceiling:2800, opening:2100, module:700,
+    rooms:[
+      {name:'Living room', length:4200, width:3500},
+      {name:'Kitchen', length:3800, width:2500},
+      {name:'Bathroom', length:2150, width:1500},
+    ],
+  };
+
+  componentDidMount(){
+    document.documentElement.dataset.theme = this.state.theme;
+    let drag=false, lx=0, ly=0, rx=-22, ry=-32;
+    const find=()=>document.getElementById('viz3d-scene');
+    this._down=(e)=>{ const sc=find(); if(sc && sc.parentElement && sc.parentElement.contains(e.target)){ drag=true; lx=e.clientX; ly=e.clientY; sc.style.animation='none'; } };
+    this._move=(e)=>{ if(!drag) return; const sc=find(); if(!sc) return; ry+=(e.clientX-lx)*0.45; rx-=(e.clientY-ly)*0.45; rx=Math.max(-78,Math.min(8,rx)); lx=e.clientX; ly=e.clientY; sc.style.transform='rotateX('+rx+'deg) rotateY('+ry+'deg)'; };
+    this._up=()=>{ drag=false; };
+    document.addEventListener('pointerdown',this._down);
+    document.addEventListener('pointermove',this._move);
+    document.addEventListener('pointerup',this._up);
+  }
+  componentWillUnmount(){ document.removeEventListener('pointerdown',this._down); document.removeEventListener('pointermove',this._move); document.removeEventListener('pointerup',this._up); }
+
+  // ---- math helpers ----
+  gcd(a,b){ a=Math.abs(Math.round(a)); b=Math.abs(Math.round(b)); while(b){ [a,b]=[b,a%b]; } return a; }
+  nearestStd(v){ return this.STD.reduce((p,c)=> Math.abs(c-v)<Math.abs(p-v)?c:p, this.STD[0]); }
+  snap(v,step){ return Math.round(v/step)*step; }
+  num(v){ const n=parseInt(v,10); return Number.isFinite(n)?n:NaN; }
+  fmt(v){ if(!Number.isFinite(v)) return '—'; const r=Math.round(v*10)/10; return Number.isInteger(r)? String(r) : r.toFixed(1); }
+  sign(v){ if(v===0||!Number.isFinite(v)) return '0'; return (v>0?'+':'−')+Math.abs(Math.round(v)); }
+
+  // ---- validation ----
+  ceilOK(){ const c=this.num(this.state.ceiling); return Number.isFinite(c)&&c>=2000&&c<=5000; }
+  openOK(){ const o=this.num(this.state.opening), c=this.num(this.state.ceiling); return Number.isFinite(o)&&o>=1800&&o<=c; }
+  roomOK(r){ const l=this.num(r.length), w=this.num(r.width); return l>=500&&l<=15000&&w>=500&&w<=15000; }
+
+  // ---- module suggestion ----
+  suggestion(){
+    const st=this.state;
+    let g;
+    if(st.mode==='3d'){ g=this.gcd(this.num(st.ceiling), this.num(st.opening)); }
+    else { g = st.rooms.filter(r=>this.roomOK(r)).reduce((acc,r)=>{ const d=this.gcd(this.num(r.length),this.num(r.width)); return acc?this.gcd(acc,d):d; },0) || 100; }
+    const snapped=this.nearestStd(g);
+    const residual=Math.abs(g-snapped);
+    const alts=this.STD.filter(x=>x!==snapped).sort((a,b)=>Math.abs(g-a)-Math.abs(g-b)).slice(0,2);
+    return {g, snapped, residual, alts};
+  }
+
+  // ---- per-room results ----
+  roomResult(r, M){
+    const L=this.num(r.length), W=this.num(r.width);
+    const longer=Math.max(L,W);
+    const halfM=M/2, quarterM=M/4;
+    const largerExact=longer*0.618, smallerExact=longer*0.382;
+    const snappedLarger=this.snap(largerExact, halfM);
+    const snappedSmaller=longer-snappedLarger;
+    const offset=Math.abs(largerExact-snappedLarger);
+    const approx=offset>quarterM;
+    // grid fit
+    const nL=Math.round(L/M), nW=Math.round(W/M);
+    const remL=L-nL*M, remW=W-nW*M;
+    let q='exact'; const maxRem=Math.max(Math.abs(remL),Math.abs(remW));
+    if(maxRem===0) q='exact'; else if(maxRem<=quarterM) q='close'; else q='poor';
+    // walkway (corridor dim = width)
+    const rate=(c)=> c>=900?'comfortable': c>=600?'acceptable':'tight';
+    const walk=[
+      {key:'wardrobe', depth:600, c:W-600},
+      {key:'sofa', depth:900, c:W-900},
+      {key:'facing', depth:1200, c:W-1200},
+    ].map(x=>({...x, rating:rate(x.c)}));
+    return {L,W,longer, largerExact,smallerExact,snappedLarger,snappedSmaller,offset,approx,quarterM,
+            nL,nW,remL,remW,q, walk};
+  }
+
+  // ---- vertical bands ----
+  bands(M){
+    const c=this.num(this.state.ceiling), o=this.num(this.state.opening);
+    const full=Math.floor(c/M); const rem=c-full*M;
+    const total=c; const H=460, padT=8, usable=H-padT*2;
+    const scale=usable/total;
+    const yOf=(mm)=> padT + (total-mm)*scale;
+    const names=(i,isLast)=>{ if(i===0) return this.state.mode==='3d'?'base / plinth':'base'; if(isLast&&rem===0) return 'upper / ceiling'; const top=(i+1)*M; if(o&&top===o) return 'door-head zone'; if(o&&i*M<o&&top>o) return 'door-head zone'; return 'work zone'; };
+    const s=this.STR[this.state.lang];
+    const decorate=(b)=>{ b.cy=b.y+b.h/2; b.cy2=b.cy+13; b.span=b.to-b.from;
+      b.fill = b.partial?'var(--accent-bg)':(b.alt?'var(--inset)':'var(--panel2)');
+      b.dash = b.partial?'5 4':'0'; return b; };
+    const list=[];
+    for(let i=0;i<full;i++){ const from=i*M, to=(i+1)*M; list.push(decorate({from,to,y:yOf(to),h:(to-from)*scale, name:names(i,i===full-1&&rem===0), alt:i%2===1, partial:false})); }
+    if(rem>0){ const from=full*M, to=c; list.push(decorate({from,to,y:yOf(to),h:(to-from)*scale, name:'upper / ceiling', alt:full%2===1, partial:true})); }
+    // marks
+    const markVals=[]; for(let i=0;i<=full;i++) markVals.push(i*M); if(rem>0) markVals.push(c);
+    const dense=markVals.length>16; const marks=markVals.filter((_,i)=> !dense || i%4===0 || i===markVals.length-1).map(mm=>({mm, y:yOf(mm)}));
+    const openY = o? yOf(o):null;
+    const aligned = o? (o%M===0):false;
+    const count = full + (rem>0?1:0);
+    return {list, marks, H, openY, hasOpening:openY!==null, openTagY: openY!==null?openY-6:0,
+      opening:o, aligned, openTag: aligned?s.aligned:s.offGrid, rem, count, x:78, w:150, padT, scale, total};
+  }
+
+  // ---- 2D / 3D visualizer geometry ----
+  vizScale(rooms,M){ let mx=0; rooms.forEach(r=>{ mx=Math.max(mx,this.num(r.length),this.num(r.width)); }); return 168/(mx||1); }
+
+  viz2D(rooms,M){
+    const sc=this.vizScale(rooms,M)*1.05;
+    const P=12;
+    return rooms.map(r=>{
+      const L=this.num(r.length), W=this.num(r.width);
+      const w=Math.round(L*sc), h=Math.round(W*sc);
+      const nL=Math.floor(L/M), nW=Math.floor(W/M);
+      const step=M*sc;
+      const gridV=[]; for(let i=1;i<=nL;i++){ const x=P+Math.round(i*step); gridV.push({x1:x,y1:P,x2:x,y2:P+h}); }
+      const gridH=[]; for(let i=1;i<=nW;i++){ const y=P+Math.round(i*step); gridH.push({x1:P,y1:y,x2:P+w,y2:y}); }
+      const cs=Math.min(step,h,w);
+      return {name:r.name, dims:L+' × '+W, w,h,svgW:w+P*2,svgH:h+P*2,viewBox:'0 0 '+(w+P*2)+' '+(h+P*2),
+        roomX:P, roomY:P,
+        gridV, gridH,
+        cellX:P, cellY:P+h-cs, cellS:cs,
+        stripRightX:P+Math.round(nL*step), stripRightW:Math.max(0,w-Math.round(nL*step)), stripRightShow:(w-nL*step)>1.5,
+        stripBotY:P+Math.round(nW*step), stripBotH:Math.max(0,h-Math.round(nW*step)), stripBotShow:(h-nW*step)>1.5,
+        gridLabel:nL+'×'+nW};
+    });
+  }
+
+  viz3D(rooms,M){
+    let sc=this.vizScale(rooms,M)*1.05;
+    const gap=46;
+    const rowW=()=> rooms.reduce((a,r)=> a+Math.max(this.num(r.length),this.num(r.width))*sc,0)+(rooms.length-1)*gap;
+    let guard=0; while(rowW()>440 && guard++<40){ sc*=0.92; }
+    const c=this.num(this.state.ceiling)||2800;
+    const o=this.num(this.state.opening);
+    const is3=this.state.mode==='3d';
+    // dk = dark overlay (0 = brightest face, higher = shaded). Distinct per face → reads as a solid cube.
+    const cface=(k,dk,tf)=>'position:absolute;left:0;top:0;width:'+k+'px;height:'+k+'px;background:linear-gradient(rgba(0,0,0,'+dk+'),rgba(0,0,0,'+dk+')),var(--accent);border:1px solid rgba(0,0,0,.28);backface-visibility:hidden;transform:'+tf;
+    // faint M×M grid tiled on a wall/floor face
+    const gc=this.state.theme==='dark'?'rgba(180,195,225,.22)':'rgba(40,55,90,.16)';
+    const grid=(k,base)=>'background-image:repeating-linear-gradient(to right,'+gc+' 0,'+gc+' 1px,transparent 1px,transparent '+k+'px),repeating-linear-gradient(to bottom,'+gc+' 0,'+gc+' 1px,transparent 1px,transparent '+k+'px);background-color:'+base+';';
+    return rooms.map(r=>{
+      const L=this.num(r.length), W=this.num(r.width);
+      const w=Math.round(L*sc), d=Math.round(W*sc), h=Math.round((is3?c:1200)*sc), k=Math.max(20,Math.round(M*sc));
+      const openY=(o&&is3)? Math.round((c-o)*sc):null;
+      const cubeLeft=Math.round(4+k*0.45), cubeTz=-Math.max(k/2, d-k*0.9);
+      return {name:r.name, w, h, dimsLabel:L+' × '+W+(is3?' × '+c:'')+' mm',
+        roomStyle:'position:relative;width:'+w+'px;height:'+h+'px;transform-style:preserve-3d;flex:none',
+        backStyle:'position:absolute;left:0;top:0;width:'+w+'px;height:'+h+'px;transform:translateZ('+(-d)+'px);'+grid(k,'var(--panel2)')+'border:1px solid var(--line2)',
+        floorStyle:'position:absolute;left:0;top:'+h+'px;width:'+w+'px;height:'+d+'px;transform-origin:top center;transform:rotateX(-90deg);'+grid(k,'var(--inset)')+'border:1px solid var(--line2)',
+        leftStyle:'position:absolute;left:0;top:0;width:'+d+'px;height:'+h+'px;transform-origin:left center;transform:rotateY(90deg);'+grid(k,'var(--panel2)')+'border:1px solid var(--line2);opacity:.92',
+        hasOpen: openY!==null,
+        openStyle: openY!==null? 'position:absolute;left:0;top:'+openY+'px;width:'+w+'px;height:4px;transform:translateZ('+(-d+1)+'px);background:var(--accent);box-shadow:0 0 8px var(--accent)':'',
+        cubeWrap:'position:absolute;left:'+cubeLeft+'px;top:'+(h-k-1)+'px;width:'+k+'px;height:'+k+'px;transform-style:preserve-3d;transform:translateZ('+cubeTz+'px);animation:cellpulse 2.6s ease-in-out infinite',
+        cubeF:cface(k,'.12','translateZ('+(k/2)+'px)'),
+        cubeB:cface(k,'.4','translateZ('+(-k/2)+'px)'),
+        cubeT:cface(k,'0','rotateX(90deg) translateZ('+(k/2)+'px)'),
+        cubeBo:cface(k,'.5','rotateX(-90deg) translateZ('+(k/2)+'px)'),
+        cubeL:cface(k,'.3','rotateY(-90deg) translateZ('+(k/2)+'px)'),
+        cubeR:cface(k,'.22','rotateY(90deg) translateZ('+(k/2)+'px)'),
+        nameStyle:'position:absolute;left:0;bottom:-22px;width:'+w+'px;text-align:center;font-size:11px;color:var(--muted)'};
+    });
+  }
+
+  // ---- handlers ----
+  setLang(l){ return ()=>this.setState({lang:l}); }
+  toggleTheme=()=>{ const t=this.state.theme==='light'?'dark':'light'; document.documentElement.dataset.theme=t; this.setState({theme:t}); };
+  setMode(m){ return ()=>this.setState({mode:m}); }
+  onField(key){ return (e)=>{ const v=e.target.value; this.setState({[key]: v===''?'':this.num(v)}); }; }
+  onModule=(e)=>{ this.setState({module:this.num(e.target.value)}); };
+  onRoom(i,key){ return (e)=>{ const v=e.target.value; const rooms=this.state.rooms.map((r,j)=> j===i?{...r,[key]: key==='name'? v : (v===''?'':this.num(v))}:r); this.setState({rooms}); }; }
+  addRoom=()=>{ const n=this.state.rooms.length+1; this.setState({rooms:[...this.state.rooms,{name:'Room '+n,length:3000,width:2400}]}); };
+  removeRoom(i){ return ()=>{ if(this.state.rooms.length<=1) return; this.setState({rooms:this.state.rooms.filter((_,j)=>j!==i)}); }; }
+
+  renderVals(){
+    const st=this.state, s=this.STR[st.lang];
+    const M=this.num(st.module);
+    const sug=this.suggestion();
+    const ceilOK=this.ceilOK(), openOK=this.openOK();
+    const heights = st.mode==='3d';
+    const apartmentOK = heights ? (ceilOK && openOK) : true;
+    const validRooms = st.rooms.filter(r=>this.roomOK(r));
+    const showResults = apartmentOK && validRooms.length>0 && Number.isFinite(M);
+
+    // module dropdown
+    const moduleOptions=this.STD.map(v=>({value:v, label: v===sug.snapped? (v+' — '+s.suggested) : String(v)}));
+
+    // rooms (inputs)
+    const single=st.rooms.length<=1;
+    const rooms=st.rooms.map((r,i)=>{
+      const lenInvalid = !(this.num(r.length)>=500 && this.num(r.length)<=15000);
+      const widInvalid = !(this.num(r.width)>=500 && this.num(r.width)<=15000);
+      const dimErr = (lenInvalid||widInvalid)? s.errDim : null;
+      const disabled = single;
+      return {...r, tag:'R'+(i+1),
+        onName:this.onRoom(i,'name'), onLen:this.onRoom(i,'length'), onWid:this.onRoom(i,'width'),
+        onRemove:this.removeRoom(i), removeDisabled:disabled,
+        removeStyle:'width:24px;height:24px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:'+(disabled?'not-allowed':'pointer')+';font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:'+(disabled?'.3':'1'),
+        lenInvalid, widInvalid, dimErr,
+        lenBorder: lenInvalid?'var(--err)':'var(--line2)', widBorder: widInvalid?'var(--err)':'var(--line2)'};
+    });
+
+    // results model
+    let mod=null, ruler=null, bandsM=null, roomResults=null, viz2d=null, viz3d=null, warn=null;
+    if(showResults){
+      mod={value:M, gcd:sug.g, snapped:sug.snapped, residual:sug.residual, alts:sug.alts,
+        from: heights? s.suggestedFrom : s.suggestedFromRooms,
+        gcdInputs: heights? (this.num(st.ceiling)+', '+this.num(st.opening)) : 'rooms'};
+      if(M>1000) warn={msg:s.warnLarge}; else if(M<100) warn={msg:s.warnSmall};
+      const rk=[['¼M',0.25,'trim, reveals, small offsets'],['½M',0.5,'sills, steps, counter depth'],['M',1,'base planning unit, door width'],['1.5M',1.5,'corridor width'],['2M',2,'window band, furniture runs'],['3M',3,'door / opening height'],['4M',4,'ceiling height']];
+      const rkUA={'trim, reveals, small offsets':'обробка, відкоси, малі зсуви','sills, steps, counter depth':'підвіконня, сходинки, глибина стільниці','base planning unit, door width':'базовий модуль, ширина дверей','corridor width':'ширина коридору','window band, furniture runs':'смуга вікон, ряди меблів','door / opening height':'висота дверей / прорізу','ceiling height':'висота стелі'};
+      ruler=rk.map(([label,k,use])=>({label, size:Math.round(M*k), use: st.lang==='ua'? rkUA[use]:use}));
+      if(heights) bandsM=this.bands(M);
+      const badge={exact:{c:'var(--good)',b:'var(--good-bg)',i:'✓',l:s.qexact},close:{c:'var(--warn)',b:'var(--warn-bg)',i:'≈',l:s.qclose},poor:{c:'var(--bad)',b:'var(--bad-bg)',i:'✕',l:s.qpoor}};
+      const wmeta={comfortable:{c:'var(--good)',b:'var(--good-bg)',rec:s.recComf,n:3},acceptable:{c:'var(--warn)',b:'var(--warn-bg)',rec:s.recAcc,n:2},tight:{c:'var(--bad)',b:'var(--bad-bg)',rec:s.recTight,n:1}};
+      const wlabel={wardrobe:s.wardrobe,sofa:s.sofa,facing:s.facing};
+      const ratingLbl={comfortable:s.comfortable,acceptable:s.acceptable,tight:s.tight};
+      roomResults=validRooms.map(r=>{
+        const R=this.roomResult(r,M);
+        const ann=[];
+        if(R.remL!==0) ann.push((R.remL>0?s.roundDown:s.roundUp)+' '+s.onLength);
+        if(R.remW!==0) ann.push((R.remW>0?s.roundDown:s.roundUp)+' '+s.onWidth);
+        const bd=badge[R.q];
+        return {...R, name:r.name, dims:this.num(r.length)+' × '+this.num(r.width),
+          largerExactF:this.fmt(R.largerExact), smallerExactF:this.fmt(R.smallerExact), offsetF:this.fmt(R.offset),
+          fitLabel: R.approx? s.approxFit : s.cleanFit,
+          fitColor: R.approx?'var(--warn)':'var(--good)', fitBg: R.approx?'var(--warn-bg)':'var(--good-bg)', fitIcon: R.approx?'≈':'✓',
+          remLF:this.sign(R.remL), remWF:this.sign(R.remW),
+          gridDims:R.nL+' × '+R.nW,
+          qLabel:bd.l, qColor:bd.c, qBg:bd.b, qIcon:bd.i,
+          annotation: ann.join(' · '), hasAnn: ann.length>0,
+          walk:R.walk.map(w=>{ const m=wmeta[w.rating]; return {...w, label:wlabel[w.key], cF:Math.round(w.c), ratingLabel:ratingLbl[w.rating], color:m.c, bg:m.b, rec:m.rec, bars:m.n,
+            barStyle1:'width:5px;height:11px;border-radius:1px;background:'+m.c,
+            barStyle2:'width:5px;height:11px;border-radius:1px;background:'+(m.n>=2?m.c:'var(--line)'),
+            barStyle3:'width:5px;height:11px;border-radius:1px;background:'+(m.n>=3?m.c:'var(--line)') }; }) };
+      });
+      viz2d=this.viz2D(validRooms,M);
+      viz3d=this.viz3D(validRooms,M);
+    }
+
+    const pill=(on)=> on
+      ? 'border:0;padding:5px 11px;background:var(--accent);color:var(--accent-fg);cursor:pointer'
+      : 'border:0;padding:5px 11px;background:var(--panel);color:var(--muted);cursor:pointer';
+    const seg=(on)=> on
+      ? 'border:0;padding:6px 14px;background:var(--accent);color:var(--accent-fg);cursor:pointer'
+      : 'border:0;padding:6px 14px;background:var(--panel);color:var(--muted);cursor:pointer';
+
+    return {
+      s, lang:st.lang, mode:st.mode,
+      themeIcon: st.theme==='light'?'☾':'☀',
+      enPillStyle:pill(st.lang==='en'), uaPillStyle:pill(st.lang==='ua'),
+      mode2dStyle:seg(st.mode==='2d'), mode3dStyle:seg(st.mode==='3d'),
+      setEN:this.setLang('en'), setUA:this.setLang('ua'), toggleTheme:this.toggleTheme,
+      set2D:this.setMode('2d'), set3D:this.setMode('3d'),
+      showHeights:heights,
+      ceiling:st.ceiling, opening:st.opening, module:st.module,
+      onCeiling:this.onField('ceiling'), onOpening:this.onField('opening'), onModule:this.onModule,
+      ceilErr: ceilOK?null:s.errCeiling, openErr: openOK?null:s.errOpening,
+      ceilInvalid:!ceilOK, openInvalid:!openOK,
+      ceilBorder: ceilOK?'var(--line2)':'var(--err)', openBorder: openOK?'var(--line2)':'var(--err)',
+      openingOpt: heights? '' : '',
+      moduleOptions, rooms, roomCount:st.rooms.length, addRoom:this.addRoom,
+      showResults, noResults:!showResults,
+      show2d: showResults && st.mode==='2d', show3d: showResults && st.mode==='3d',
+      mod, warn, ruler, bandsM, roomResults, viz2d, viz3d,
+    };
+  }
+}
+</script>
+</body>
+</html>

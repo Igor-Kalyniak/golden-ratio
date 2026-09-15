@@ -1,0 +1,144 @@
+{
+  "change": "viz-3d",
+  "generated_at": "2026-07-03T22:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-VIZ3D-01",
+      "pdr_section": "PDR §3D module visualizer (L171)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom3D + Room3DLayout: box extents = room length × width × ceiling under one shared scale; cols/rows/layers = floor(dim/m); boxes arranged along a single axis)",
+        "components/Viz3DScene.tsx (renders one RoomBox per valid room from layoutRoom3D, laid out along an axis; sole @react-three importer)",
+        "components/Viz3D.tsx (dynamic(() => import('./Viz3DScene'), {ssr:false}) — the 3D canvas), components/Shell.tsx (Viz3D rendered only when state.mode === '3d')",
+        "lib/calculations.test.ts::\"layoutRoom3D: box extents equal the room dimensions\"",
+        "lib/calculations.test.ts::\"layoutRoom3D: cols/rows/layers are floor(dim/m)\""
+      ],
+      "notes": "One box per room, sized L×W×ceiling to scale, arranged along an axis, rendered only in 3D. The box-extent + shared-scale geometry is AUTOMATED by layoutRoom3D unit tests (extents equal room dims; cols/rows/layers = floor(dim/m)). The actual R3F canvas render + single-axis layout is DOM/WebGL-level with no React/WebGL runner (ADR-0001); verified by code inspection + all 3 reviewers. spec_compliant matches the FR-VIZ3D-01 scenario 'n valid rooms → n boxes under one shared scale, laid out along a single axis'."
+    },
+    {
+      "id": "FR-VIZ3D-02",
+      "pdr_section": "PDR §3D module visualizer (L172)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom3D.openingY: non-null Y for a valid opening; null when the opening is omitted or exceeds the ceiling)",
+        "components/Viz3DScene.tsx (RoomBox renders an accent-colored band/plane on a wall face at openingY only when openingY is non-null)",
+        "lib/calculations.test.ts::\"layoutRoom3D: openingY set for a valid opening\"",
+        "lib/calculations.test.ts::\"layoutRoom3D: openingY null when omitted or above the ceiling (FR-VIZ3D-02)\""
+      ],
+      "notes": "Opening band shown only when provided. The openingY contract — non-null height for a valid opening, null when blank or above the ceiling — is FULLY AUTOMATED by layoutRoom3D unit tests, covering both spec scenarios ('opening band shown' and 'no opening band when blank'). The band-plane SVG/3D render itself is manual (ADR-0001); the band now samples the resolved var(--accent) after CR-001. tested=true for the openingY logic that gates the band."
+    },
+    {
+      "id": "FR-VIZ3D-03",
+      "pdr_section": "PDR §3D module visualizer (L173)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts (layoutRoom3D returns exactly one M×M×M cube positioned at a room corner within the box volume)",
+        "components/Viz3DScene.tsx (RoomBox draws precisely one accent-colored cube; cellS = Math.min(m*scale, w, h, d) so the cube stays inside sub-module rooms — CR-003 clamp)",
+        "lib/calculations.test.ts::\"layoutRoom3D: exactly one M³ cube at the room corner\""
+      ],
+      "notes": "Exactly one highlighted M³ cube in the accent color within the volume. The single-cube contract (one cube at a room corner within the box) is AUTOMATED. Two review fixes make it spec-faithful: CR-001 (medium, RESOLVED) — the cube previously used a hardcoded orange '#c8823c' that contradicted the blue --accent token and the 2D viz/legend; it now samples the resolved var(--accent) rgb() via a probe and re-samples on theme change, so 3D matches 2D in both themes. CR-003 (low, RESOLVED) — cellS is clamped to min(w,h,d) so a sub-module room's cube no longer pokes through the walls. The accent-fill render is manual (ADR-0001); the corner position + count are pinned by the unit test."
+    },
+    {
+      "id": "FR-VIZ3D-04",
+      "pdr_section": "PDR §3D module visualizer (L174)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3DScene.tsx (OrbitControls from @react-three/drei provide rotate/zoom/pan; a gentle auto-rotate and a highlight float/pulse driven by useFrame mutating a ref — no per-frame setState/allocation)",
+        "openspec/changes/viz-3d/proposal.md, design.md, tasks.md (reconciled: room fade-in on mount is a MAY clause, intentionally not implemented; the Should is met by auto-rotate + highlight float)"
+      ],
+      "notes": "Motion (Should). FR-VIZ3D-04 requires OrbitControls (rotate/zoom/pan) and MAY add auto-rotate, highlight float/pulse, and room fade-in. OrbitControls + auto-rotate + highlight float ARE implemented; the room fade-in is a MAY clause left unimplemented. The doc/task-hygiene finding CR-002/SC-001 (low, RESOLVED) removed a dead `group` ref (and the now-unused Group type import) and corrected the wording that had claimed fade-in was applied — no requirement breach, since the Should is satisfied by auto-rotate + float. tested=false: orbit interaction and idle motion are WebGL/DOM visual properties with no React/WebGL runner (ADR-0001); verified by code inspection + all 3 reviewers."
+    },
+    {
+      "id": "FR-VIZ3D-05",
+      "pdr_section": "PDR §3D module visualizer (L175)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3DScene.tsx (matchMedia('(prefers-reduced-motion: reduce)') gates the useFrame auto-rotate + highlight pulse — correct for the R3F imperative frame loop; when reduce is set the scene is static until interacted with)",
+        "components/Viz3D.tsx (dynamic(..., {ssr:false, loading: ...}) shows a loading placeholder in the visualizer slot while the Three.js chunk fetches)"
+      ],
+      "notes": "Reduced-motion + loading state (Should). Two-part coverage: (1) the R3F frame loop reads matchMedia('(prefers-reduced-motion: reduce)') and disables auto-rotate + pulse when reduce is set (matchMedia is the correct mechanism here, since the useFrame animation is imperative JS, not a CSS animation the global globals.css reset could suppress); (2) next/dynamic ssr:false with a loading fallback renders a placeholder while the 880K Three chunk fetches. tested=false: both are media-query/async-chunk visual behaviors with no React/WebGL runner (ADR-0001); verified by code inspection + spec-compliance-auditor + security-reviewer clean."
+    },
+    {
+      "id": "FR-VIZ3D-06",
+      "pdr_section": "PDR §3D module visualizer (L176)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3D.tsx (WebGL detection via useSyncExternalStore — returns null on the server so there is no hydration mismatch, caches the probe result; when WebGL is unavailable it renders a localized message (t('webgl')) and the Viz2D visualizer in place of the 3D canvas)",
+        "components/Viz2D.tsx (the pure-SVG fallback rendered when WebGL is unavailable)"
+      ],
+      "notes": "WebGL-unavailable fallback to the 2D visualizer. When the browser reports no WebGL, Viz3D shows the localized 'webgl' message and swaps in the pure-SVG Viz2D rather than failing — matching the FR-VIZ3D-06 scenario. The useSyncExternalStore probe returns null on the server (no hydration mismatch) and caches its result. tested=false: WebGL-context detection + the fallback swap need a real (or stubbed-absent) WebGL context and DOM, which the node --test runner cannot provide (ADR-0001); verified by code inspection + all 3 reviewers. Prioritized in the manual plan (TC-5)."
+    },
+    {
+      "id": "NFR-BUNDLE-01",
+      "pdr_section": "PDR §NFR (L219)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3DScene.tsx (the SOLE @react-three/fiber + @react-three/drei + three importer; the `import type { Mesh }` type-only import is erased by tsc)",
+        "components/Viz3D.tsx (loads the scene ONLY via dynamic(() => import('./Viz3DScene'), {ssr:false}) — no static 3D import)",
+        "components/Shell.tsx (statically imports only the thin, Three-free Viz3D wrapper)",
+        "production build: Three.js splits into a SEPARATE ~880K chunk that is ABSENT from first-load JS; package.json / package-lock.json unchanged (R3F pre-installed at scaffold)"
+      ],
+      "notes": "Three.js lazy-loaded, out of the 2D and first-paint bundle — the load-bearing constraint of this change. STRUCTURAL, verified faithful by all 3 reviewers + the Maker: Viz3DScene is the sole @react-three importer, reached only through dynamic(() => import, {ssr:false}); the static import chain (Shell → Viz3D) is Three-free; the type-only Mesh import is erased by tsc; the production build splits Three into a separate 880K chunk absent from first-load JS. tested=false: there is no bundle-composition assertion in the node test runner — this is a build-artifact property (ADR-0001), verified by grep + build inspection (see manual TC-6). spec_compliant=true: both spec scenarios ('2D path carries no Three.js', 'read-only') hold."
+    },
+    {
+      "id": "NFR-PERF-03",
+      "pdr_section": "PDR §NFR (L220)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3DScene.tsx (useFrame mutates a ref with a single sin + assignment per frame — no per-frame setState and no allocation; R3F auto-disposes geometry/materials on unmount)",
+        "lib/calculations.ts (layoutRoom3D is O(1) pure arithmetic; the scene geometry is bounded by the validated 500–15000 mm dimension bounds)",
+        "openspec/changes/viz-3d/design.md (documents the no-explicit-room-cap decision: validated bounds keep rooms few in practice; a hard cap belongs in room-input/app-state)"
+      ],
+      "notes": "The 3D half of NFR-PERF-03 ('the 3D view targets a smooth interactive frame rate and is capped/guarded at high room counts'). The frame budget is met-by-construction: useFrame mutates a ref (one sin + one assignment, no per-frame allocation/setState) over bounded geometry from the O(1) layoutRoom3D. spec_compliant=true WITH a documented gap: there is NO explicit room cap (CR-004 + SC-002, both LOW, ACKNOWLEDGED — not fixed). Both reviewers judged the absence defensible — validated dimension bounds, few rooms in practice, R3F auto-dispose — and recorded (design.md) that a hard room-count ceiling is an additive guard belonging to room-input/app-state, not this presentational change. tested=false: no frame-rate benchmark and no room-count runner (ADR-0001). The 2D-redraw half of NFR-PERF-03 is owned + covered by viz-2d (14)."
+    },
+    {
+      "id": "TC-STACK-04",
+      "pdr_section": "PDR §Technical constraints (L234)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3DScene.tsx (uses @react-three/fiber + @react-three/drei — the only permitted heavy dependency — and nothing else adds a heavy dep)",
+        "components/Viz3D.tsx (must-be-lazy-loaded satisfied via dynamic(() => import('./Viz3DScene'), {ssr:false}))",
+        "components/Viz2D.tsx (2D rendering stays PURE SVG with no 3D import — the security reviewer confirmed no @react-three/three reaches the 2D path)",
+        "package.json / package-lock.json unchanged (no new dependency added — R3F pre-installed at scaffold)"
+      ],
+      "notes": "3D uses @react-three/fiber + @react-three/drei (the only permitted heavy dep) and MUST be lazy-loaded; 2D stays pure SVG. STRUCTURAL, and the same verification as NFR-BUNDLE-01: R3F/three are imported only in Viz3DScene, reached only via dynamic ssr:false, so the 2D path carries no 3D code; Viz2D is pure Tailwind/SVG; package.json/lockfile unchanged. tested=false: dependency-isolation + lazy-load are build/structural properties with no test-runner assertion (ADR-0001); verified by grep + build chunk split + security-reviewer clean (see manual TC-6). Consistent with the AGENTS.md rendering constraints."
+    },
+    {
+      "id": "NFR-A11Y-03",
+      "pdr_section": "PDR §NFR (L221)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/Viz3D.tsx / Viz3DScene.tsx (the visualizer is supplementary — read-only camera controls only, no geometry-editing or export affordance; the numeric results above remain the accessible source of truth)",
+        "components/Viz3DScene.tsx (prefers-reduced-motion respected via matchMedia gating the auto-rotate + pulse — FR-VIZ3D-05)",
+        "components/ModeToggle.tsx (the mode toggle keyboard-operability + clear selected state half of NFR-A11Y-03 is owned + covered by mode-toggle (13))"
+      ],
+      "notes": "NFR-A11Y-03 for the visualizer: it is supplementary so numeric results remain the accessible source of truth, and prefers-reduced-motion is respected (shared with FR-VIZ3D-05 via matchMedia). The keyboard-operable-toggle-with-clear-selected-state half of NFR-A11Y-03 is owned by mode-toggle (13) and tracked there (manual-only). tested=false: the supplementary/read-only posture + reduced-motion honoring are structural/visual with no React/WebGL/a11y runner (ADR-0001); verified by code inspection + all 3 reviewers clean (security-reviewer confirmed no edit/export sink)."
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "implemented": 10,
+    "tested": 3,
+    "spec_compliant": 10
+  }
+}

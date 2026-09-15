@@ -1,0 +1,97 @@
+{
+  "change": "walkway",
+  "generated_at": "2026-07-03T18:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-WALK-01",
+      "pdr_section": "PDR §Walkway check (L127)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:429-438 (computeWalkways(roomWidth, furnitureDepth, oppositeDepth?) returns { available, rating, recommendation } — the exact shape FR-WALK-01 specifies)",
+        "components/WalkwayBlock.tsx:51 (const { available, rating, recommendation } = computeWalkways(room.width, depth) — the block consumes all three fields, once per preset row)",
+        "components/PerRoomResults.tsx:58 (<WalkwayBlock room={room} /> — third and final block in each per-room card)",
+        "lib/calculations.test.ts::\"computeWalkways: worked-example ratings\"",
+        "lib/calculations.test.ts::\"computeWalkways: recommendation is a locale-independent key, not English prose\"",
+        "openspec/changes/walkway/specs/walkway/spec.md (Requirement: Per-room walkway clearances for common furniture presets)"
+      ],
+      "notes": "The computeWalkways engine function shipped and is fully automated in change 1 (calculation-engine) — that matrix row stays. walkway (capability 11) owns the PRESENTATION layer that consumes it: WalkwayBlock destructures { available, rating, recommendation } once per preset row. tested: true — the return shape and values are pinned by the pre-existing computeWalkways unit tests. spec_compliant confirmed by spec-compliance-auditor strict PASS (verdict clean, 0 findings). The block DOM render (row layout) is manual (ADR-0001)."
+    },
+    {
+      "id": "FR-WALK-02",
+      "pdr_section": "PDR §Walkway check (L128)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:434 (available = roomWidth − furnitureDepth − (oppositeDepth ?? 0) — the FR-WALK-02 formula; corridor dimension is the room width)",
+        "lib/calculations.ts:41 (FURNITURE_DEPTHS = { wardrobeKitchen: 600, sofa: 900, facingUnits: 1200 } — the standard depths, not inline literals)",
+        "components/WalkwayBlock.tsx:14-18 (PRESETS derives its three depths from FURNITURE_DEPTHS.wardrobeKitchen/sofa/facingUnits — 600/900/1200)",
+        "components/WalkwayBlock.tsx:51 (computeWalkways(room.width, depth) — width is the corridor dimension, depth is the preset)",
+        "lib/calculations.test.ts::\"computeWalkways: worked-example ratings\" (3500−600=2900; 1500−900=600; 1500−1200=300)",
+        "lib/calculations.test.ts::\"walkway preset rows: a 3500-wide room clears all three presets comfortably\" (3500−600=2900, 3500−900=2600, 3500−1200=2300)",
+        "lib/calculations.test.ts::\"computeWalkways: opposite depth subtracted\" (3500−600−600=2300)",
+        "openspec/changes/walkway/specs/walkway/spec.md (Scenario: Clearance is width minus depth)"
+      ],
+      "notes": "AUTOMATED. available = width − depth is pinned at the worked-example widths (3500 → 2900/2600/2300) and the boundary rooms (1500 → 600/300). The three-arg opposite-depth form is also tested (3500−600−600=2300), though the block wires only the two-arg presets (oppositeDepth intentionally not wired — Could/out-of-scope per proposal). Depths come from FURNITURE_DEPTHS, not literals. Engine shipped in change 1; walkway feeds room.width + preset depth. The mm-clearance render per row is manual (ADR-0001)."
+    },
+    {
+      "id": "FR-WALK-03",
+      "pdr_section": "PDR §Walkway check (L129)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:419-423 (rateWalkway: ≥ 900 comfortable, ≥ 600 acceptable, < 600 tight — fixed mm thresholds)",
+        "lib/calculations.ts:44 (WALKWAY_THRESHOLDS = { comfortable: 900, acceptable: 600 } — absolute mm constants, no M term)",
+        "components/WalkwayBlock.tsx:51 (rating read straight from computeWalkways → rateWalkway; the block takes NO module prop, so the rating cannot be derived from M)",
+        "components/WalkwayBlock.tsx:25-29 (RATING_META maps rating → colored token + label; color is not the sole cue — see FR-WALK-04)",
+        "lib/calculations.test.ts::\"computeWalkways: thresholds are fixed mm, independent of module\" (rateWalkway 899→acceptable, 900→comfortable, 599→tight, 600→acceptable)",
+        "lib/calculations.test.ts::\"computeWalkways: worked-example ratings\" (2900/2600/1900 comfortable, 600 acceptable, 300 tight)",
+        "openspec/changes/walkway/specs/walkway/spec.md (Requirement: Fixed ergonomic ratings decoupled from the module)"
+      ],
+      "notes": "AUTOMATED. The three tiers are pinned at their exact boundaries: 899→acceptable / 900→comfortable and 599→tight / 600→acceptable — the ≥ 900 and ≥ 600 thresholds inclusive. Thresholds are module-free WALKWAY_THRESHOLDS constants; the block takes no module prop so a rating cannot drift with M (this is also the BC-WALK-01 crux). Engine shipped in change 1; walkway reads rating verbatim. The colored-label render is manual (ADR-0001)."
+    },
+    {
+      "id": "FR-WALK-04",
+      "pdr_section": "PDR §Walkway check (L130)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:444-448 (walkwayMeterBars: comfortable → 3, acceptable → 2, tight → 1 — one tested definition shared by the UI so the meter can't drift from the rating)",
+        "components/WalkwayBlock.tsx:14-18,50 (three preset rows over PRESETS: wardrobe 600, sofa 900, facing 1200 — the common-furniture estimates FR-WALK-04 requires)",
+        "components/WalkwayBlock.tsx:53,61-68 (bars = walkwayMeterBars(rating); 3-bar meter fills i <= bars with meta.bar, else bg-line2; the meter is aria-hidden — meaning also carried by the label)",
+        "components/WalkwayBlock.tsx:57,59,69,72 (per row: furniture label t(labelKey), available mm in mono, colored rating label t(meta.label), guidance p via t(RECOMMENDATION_I18N[recommendation]))",
+        "components/WalkwayBlock.tsx:32-36 (RECOMMENDATION_I18N: walkway.comfortable→recComf, walkway.acceptable→recAcc, walkway.tight→recTight — the engine key → localized guidance mapping)",
+        "lib/calculations.test.ts::\"walkwayMeterBars: comfortable 3, acceptable 2, tight 1\"",
+        "lib/calculations.test.ts::\"walkway preset rows: a 3500-wide room clears all three presets comfortably\"",
+        "openspec/changes/walkway/specs/walkway/spec.md (Requirement: Rating meter, colored rating, and localized guidance)"
+      ],
+      "notes": "tested: false for the RENDER — FR-WALK-04 is the presentation requirement (three preset rows, each with a bar meter, a colored rating label, and a localized guidance sentence), which is DOM-level with no React/DOM runner (ADR-0001), so it is verified manually (test-plans/walkway.md TC-1/TC-3/TC-4). The underlying values ARE automated: walkwayMeterBars 3/2/1 is unit-tested, the three preset clearances (2900/2600/2300) are pinned, and the recommendation-key mapping is tested. The RECOMMENDATION_I18N and RATING_META Tailwind classes are written out statically (no dynamic .replace) so JIT keeps them — confirmed by code-reviewer. All 12 i18n keys pre-shipped in EN+UA (locales/en.json:76-87, ua.json:76-87). Manual step: walkway.md TC-1 (rows), TC-3 (meter), TC-4 (colored label + localized guidance)."
+    },
+    {
+      "id": "BC-WALK-01",
+      "pdr_section": "PDR §Business constraints (L243)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:43-44 (WALKWAY_THRESHOLDS fixed at 900/600 mm — commented BC-WALK-01: never scale with M)",
+        "lib/calculations.ts:419-423 (rateWalkway compares available against the absolute mm thresholds only — no module term anywhere in the rating path)",
+        "components/WalkwayBlock.tsx:43 (WalkwayBlock({ room }) — takes ONLY a room prop, NO module prop; the rating physically cannot be derived from M)",
+        "components/WalkwayBlock.tsx:51 (computeWalkways(room.width, depth) — no module passed; rating comes straight from the fixed-threshold engine)",
+        "lib/calculations.test.ts::\"computeWalkways: thresholds are fixed mm, independent of module\" (rateWalkway pinned at 899/900/599/600 with no module argument — the module-independence proof)",
+        "openspec/changes/walkway/specs/walkway/spec.md (Requirement: Fixed ergonomic ratings decoupled from the module; Scenario: Ratings do not depend on the module)"
+      ],
+      "notes": "AUTOMATED and this change's crux. BC-WALK-01: walkway comfort is an absolute human dimension in fixed mm and must NEVER scale with M. Proven three ways: (1) the rating engine (rateWalkway) takes only a clearance and compares it against module-free WALKWAY_THRESHOLDS constants; (2) WalkwayBlock takes NO module prop — there is no code path by which M could reach the rating — verified as the crux by all three fresh Checkers (review-findings.json verdict clean, 0 findings); (3) the \"thresholds are fixed mm, independent of module\" unit test pins the boundaries with no module argument. The spec scenario 'changing M from 700 to 350 leaves every rating unchanged' holds by construction because M is not an input to the block. The read-only recompute-from-room render is DOM-level (ADR-0001), but module-independence is a structural/tested property, not a render property."
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "implemented": 5,
+    "tested": 4,
+    "spec_compliant": 5
+  }
+}

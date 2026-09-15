@@ -1,0 +1,85 @@
+{
+  "change": "room-input",
+  "generated_at": "2026-07-03T12:30:00+03:00",
+  "base_sha": "19d23a1c97e5bc72f081754786e0536c2aba1893",
+  "head_sha": "260bc9d5c73bf24601646134777afb6abb816e21",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 3 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). Security clean. code-reviewer and spec-compliance-auditor each raised only low findings. The visible-label finding was reported by BOTH reviewers (CR-002 + SC-001) — agreement kept it low (a wording/UX nit, not a functional a11y gap since htmlFor association was always intact) and it was RESOLVED by making the room-name <label> visible like Length/Width. CR-001 (field duplication) and CR-003 (duplicate default names after removal) are acknowledged/deferred by design — see per-finding status.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "concerns",
+      "summary": "Room-CRUD reducers are pure, correctly guard the last room (enforced in the reducer, not only the disabled UI), and mint deterministic ids; UI mirrors the established apartment-field pattern and all 56 tests pass. No correctness or security defects. Findings limited to low-severity duplication, one design-spec label deviation, and a cosmetic duplicate-name edge case.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["FR-ROOM-04"],
+          "file": "components/RoomList.tsx",
+          "line": 90,
+          "summary": "RoomList reimplements the NumberField + InlineError field/error pattern that already exists in ApartmentForm.tsx (near-identical markup, aria-describedby assembly, empty->NaN coercion). Two copies must now be kept in sync.",
+          "recommendation": "Extract a shared NumberField/InlineError consumed by both ApartmentForm and RoomList.",
+          "status": "deferred",
+          "resolution": "Deferred by design (design.md 'UI reuses the apartment-input field pattern, not a shared abstraction yet'): YAGNI until a third consumer; extracting now would churn the already-archived apartment-input. Tracked for module-summary/result sections when a 3rd field consumer lands."
+        },
+        {
+          "id": "CR-002",
+          "severity": "low",
+          "category": "a11y",
+          "requirement_ids": ["FR-ROOM-04"],
+          "file": "components/RoomList.tsx",
+          "line": 130,
+          "summary": "The room-name input used an sr-only label while DESIGN §5.4 and the change's own spec say 'Every input has a visible <label>'. Length/Width had visible labels; the name field alone hid its. (Also reported independently as SC-001.)",
+          "recommendation": "Render a visible label for the name field to match §5.4 and the other fields.",
+          "status": "resolved",
+          "resolution": "Restructured the card so R{n} tag + remove button sit in a header row and the name field renders a visible `mb-1 block` label identical to Length/Width; htmlFor association preserved. Re-verified: lint clean, 56/56, build+tsc green."
+        },
+        {
+          "id": "CR-003",
+          "severity": "low",
+          "category": "correctness",
+          "requirement_ids": ["FR-ROOM-01"],
+          "file": "lib/app-state.ts",
+          "line": 132,
+          "summary": "addRoom derives the default name from state.rooms.length + 1, so after removals a new room can reuse an existing visible name (e.g. add to Room 4, remove Room 2, add -> 'Room 4' again). Cosmetic only; ids stay unique so keys/matching are unaffected.",
+          "recommendation": "Name from the id sequence or max existing index, or accept as cosmetic.",
+          "status": "acknowledged",
+          "resolution": "Accepted as cosmetic and intentional: DESIGN §5.3 specifies the count-based 'Room N' label and the name is immediately user-editable and validated on its own merits (1-50 chars); a duplicate label is not an error. Recorded for a future polish pass alongside OQ-04."
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "concerns",
+      "strict_validation": "PASS",
+      "summary": "openspec validate room-input --strict: PASS. All four owned IDs implemented, covered, and spec-compliant — FR-ROOM-01 (default single room + defaulted append), FR-ROOM-02 (reducer last-room guard + disabled/aria-disabled UI), FR-ROOM-03 (name 1-50 trimmed default 'Room N', dims 500-15000) unit-tested in app-state.test.ts; FR-ROOM-04 mirrors the FR-APT-04 pattern verified in RoomList.tsx per ADR-0001. Tests 56/56, no new dependency, i18n key-parity intact (81 keys each), no scope drift. One low deviation on the visible-label wording.",
+      "findings": [
+        {
+          "id": "SC-001",
+          "severity": "low",
+          "category": "spec-compliance",
+          "requirement_ids": ["FR-ROOM-04"],
+          "file": "components/RoomList.tsx",
+          "line": 132,
+          "summary": "Room name field's <label> was sr-only while specs/room-input/spec.md and tasks.md 3.4 require a visible <label>; Length/Width labels were visible but the name label was not. Accessibility association via htmlFor was intact, so it was a wording/UX mismatch, not a functional a11y gap. (Same issue as CR-002.)",
+          "recommendation": "Render a visible label for the name field (or reconcile spec wording with DESIGN §5.3 inline intent).",
+          "status": "resolved",
+          "resolution": "Fixed alongside CR-002 — name field now renders a visible label consistent with Length/Width; spec text and implementation now agree."
+        }
+      ]
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Pure client-side, in-memory feature with no security or privacy violations. User-controlled room names render only as controlled React input values (auto-escaped; no dangerouslySetInnerHTML or SVG/HTML sink). No persistence, network, analytics, or export sinks introduced; room ids come from a module-level monotonic counter never serialized (BC-PRIVACY-01/TC-DATA-01/BC-SCOPE-01). package.json/lockfile unchanged. Hostile numeric/name input terminates safely via Number.isInteger bounds and simple trim/length checks (no loops, no ReDoS); the updateRoom patch spread cannot pollute the prototype or overwrite id.",
+      "findings": []
+    }
+  ]
+}

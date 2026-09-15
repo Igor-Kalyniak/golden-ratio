@@ -1,0 +1,35 @@
+{
+  "change": "mode-toggle",
+  "generated_at": "2026-07-03T19:30:00+03:00",
+  "base_sha": "ed5c8098a643bfccb1108206c6c102f845f6b1f6",
+  "head_sha": "1a0635c491bf3d8172884921f78036039006a6c7",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean with zero findings — a substantial behavioral change (2D/3D mode) shipped clean. Verified: (1) the resyncModule funnel is behaviour-preserving in the 3D default (moduleSuggestion in 3D = suggestModule(ceiling,opening), so routing the room reducers through it recomputes the same height-derived value — a no-op; existing withCeiling/withOpening tests stay green, 89/89), and mode-aware in 2D (untouched module tracks room edits — FR-MODE-02); (2) FR-MODE-04 shared-state preservation holds — withMode only flips mode + resyncs, rooms/heights preserved, a TOUCHED (selected) module is sticky, an UNTOUCHED one re-derives (spec.md scenario documents this — an untouched module 'followed the suggestion', was never selected); (3) BC-PRIVACY-01/FR-MODE-05 — mode lives only in Calculator useState, repo-wide grep finds no localStorage/sessionStorage/cookie/indexedDB/network sink; (4) mode-aware isApartmentValid (2D ignores hidden heights) is additive and necessary for 2D usability, does not overreach apartment-input's spec; (5) the band-diagram gate on mode==='3d' completes the documented deferral from vertical-bands (change 8), in its correct home; (6) TC-ARCH-01 single-owner preserved — Calculator computes moduleSuggestion once (memoized), flows it down; (7) NFR-A11Y-03 role=group + two aria-pressed tabbable buttons is a legitimate pattern. Scope clean: no visualizer (viz-2d/viz-3d) code — 'active visualizer changes' deferred to 14/15; no new dependency; i18n +1 key (mode) with parity held (93/93). Runtime-verified by the Maker before review: 3D default renders height fields + band diagram + 'suggested from heights'; a reverted DEFAULT_STATE.mode='2d' flip rendered with those hidden + 'suggested from room dimensions' + 2D aria-pressed. strict PASS.",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "mode-toggle is correct and clean: the resyncModule funnel is behaviour-preserving in 3D (89/89 incl. the pre-existing withCeiling/withOpening cases) and mode-aware in 2D; touched-module stickiness holds across all reducers and mode switch; FR-MODE-04 shared-state preservation holds; suggestModule2D([]) degrades gracefully (rawGcd 0 → 100, no NaN); mode-aware isApartmentValid correct; no persistence (grep clean); TC-ARCH-01 single-owner preserved (moduleSuggestion memoized in Calculator, no leaf recomputation); role=group + aria-pressed is a legitimate NFR-A11Y-03 pattern; i18n parity intact. Reuses suggestModule/suggestModule2D rather than reimplementing. No defects.",
+      "findings": []
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "mode-toggle delivers its 7 owned IDs and nothing more. FR-MODE-01 (segmented toggle, default 3D), FR-MODE-02 (2D hides ceiling/opening + gates BandDiagram, module from suggestModule2D), FR-MODE-03 (3D heights via suggestModule), FR-MODE-04 (shared-state preservation, sticky touched module, untouched re-derives), FR-MODE-05/BC-PRIVACY-01 (in-memory only, no persistence in diff), NFR-A11Y-03 (role=group aria-pressed, numeric results as truth) — all covered. Automated via app-state.test.ts (withMode, moduleSuggestion 3D-vs-2D, room-edit resync, mode-aware isApartmentValid); manual toggle/field-hiding/band-gating per ADR-0001 with the Maker running both surfaces. All three judgment calls resolve for the impl: (a) re-deriving an untouched module is faithful to 'preserve shared state' (it was never selected; spec.md documents it); (b) mode-aware isApartmentValid is additive + necessary; (c) the band-diagram gate lands in its documented home (change-8 deferral). No viz code, no new dependency, i18n +1 key with parity. strict PASS; all tasks code-backed.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Clean for a pure client-side app. Mode is held only in Calculator useState and never persisted — BC-PRIVACY-01/FR-MODE-05 satisfied (AppState.mode documented in-memory-only; repo-wide grep finds no localStorage/sessionStorage/cookie/indexedDB/network/beacon/export sink in components/lib/app). No new XSS sinks — ModeToggle renders static 2D/3D + t('mode'); ModuleSummary/ApartmentForm render numbers + static i18n strings, all React-escaped, no dangerouslySetInnerHTML or HTML/SVG sink. No analytics/telemetry/network added. package.json/lockfile unchanged. Hostile-input path (suggestModule2D over filtered valid rooms) terminates safely. No findings.",
+      "findings": []
+    }
+  ]
+}

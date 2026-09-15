@@ -1,0 +1,92 @@
+{
+  "change": "module-summary",
+  "generated_at": "2026-07-03T14:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-MODULE-02",
+      "pdr_section": "PDR §Module engine (L88)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ModuleSummary.tsx:34 (props { module: activeModule, ceiling, opening } — read-only, no setter)",
+        "components/ModuleSummary.tsx:48-50 (hero renders `M = {activeModule}` verbatim, never rawGcd/recomputed)",
+        "components/Shell.tsx:99-103 (<ModuleSummary module={state.module} …> — the active state value is passed straight through)",
+        "lib/app-state.ts:module/moduleTouched + withCeiling/withOpening/withModule reducers (state.module IS the user selection defaulting to suggested) — pinned by lib/app-state.test.ts:\"default state: module is the live suggestion and untouched\", \"withModule: sets the value and marks it touched\", \"a touched module is sticky across ceiling/opening edits\"",
+        "openspec/changes/module-summary/specs/module-summary/spec.md (Scenario: Summary reflects the active state module)"
+      ],
+      "notes": "The active-module STATE + auto-follow reducers shipped in apartment-input and are fully automated in lib/app-state.test.ts (default = live suggestion, sticky once touched) — supporting evidence, not an assertion of this card. The DELIVERABLE here is the read-only DISPLAY: the hero value is props.module verbatim (Shell passes state.module), never rawGcd and never a second derivation — Calculator stays the single state owner (TC-ARCH-01). That render/prop-flow is DOM-level and NOT automated (no React/DOM runner, ADR-0001), so tested: false with a manual step — covered by module-summary.md TC-1. code-reviewer + spec-compliance-auditor both confirmed ModuleSummary is read-only."
+    },
+    {
+      "id": "FR-MODULE-03",
+      "pdr_section": "PDR §Module engine (L89)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ModuleSummary.tsx:36 (const { rawGcd, suggested, residual, alternatives } = suggestModule(ceiling, opening))",
+        "components/ModuleSummary.tsx:47-51 (hero `M = {activeModule}` mono + `mm` unit + activeModule label)",
+        "components/ModuleSummary.tsx:56-59 (hint `GCD({ceiling}, {opening}) = {rawGcd} → {snappedTo} {suggested}`)",
+        "components/ModuleSummary.tsx:62-79 (residual chip — good-bg when 0, warn-bg otherwise — plus alternatives chips)",
+        "lib/calculations.test.ts:\"suggestModule: worked example 2800/2100 → M=700\" (rawGcd/suggested/residual/alternatives source values are pinned)",
+        "openspec/changes/module-summary/specs/module-summary/spec.md (Scenario: Worked example at M = 700; Scenario: Coprime heights surface a non-zero residual)"
+      ],
+      "notes": "The hint's underlying numbers come from suggestModule(ceiling, opening), whose worked-example output (GCD 700 → snapped 700, residual 0, alternatives) is automated in lib/calculations.test.ts (shipped with calculation-engine). The card's RENDERING of the hero (mono, mm), the `GCD → snapped` line, the residual chip, and the alternatives chips is DOM-level and NOT automated (no React/DOM runner, ADR-0001) — verified by build+tsc+eslint clean, 61/61 tests, and module-summary.md TC-1/TC-2. spec_compliant confirmed against the spec worked example (2800/2100 → M=700, residual 0 mm) and by spec-compliance-auditor (strict validation PASS)."
+    },
+    {
+      "id": "FR-MODULE-04",
+      "pdr_section": "PDR §Module engine (L90)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:38 (RULER_FACTORS = [0.25, 0.5, 1, 1.5, 2, 3, 4], index-aligned to CALC_LABELS)",
+        "lib/calculations.ts:195-200 (computeModuleRuler(m): RULER_FACTORS.map((k,i) => ({ label: CALC_LABELS[i], k, size: round(m*k) })))",
+        "components/ModuleSummary.tsx:95-112 (ruler <table> Label | Size | Typical use; label cell font-mono text-accent from CALC_LABELS, use cell localized via RULER_USE_KEYS)",
+        "components/ModuleSummary.tsx:17-26 (RULER_USE_KEYS index-aligned to CALC_LABELS/RULER_FACTORS: useQuarterM…useM4)",
+        "lib/calculations.test.ts:\"computeModuleRuler: sizes at M=700\"",
+        "lib/calculations.test.ts:\"computeModuleRuler: labels equal CALC_LABELS (never translated)\"",
+        "lib/calculations.test.ts:\"computeModuleRuler: fractional module rounds each size\"",
+        "openspec/changes/module-summary/specs/module-summary/spec.md (Scenario: Ruler sizes at M = 700; Fractional rounding; Labels are never translated)"
+      ],
+      "notes": "AUTOMATED at the engine level. computeModuleRuler is pinned by three unit tests: sizes at M=700 → [175,350,700,1050,1400,2100,2800]; labels equal the fixed CALC_LABELS (¼M…4M) so they are never translated; and fractional rounding (150 → ¼M rounds to 38). The seven typical-use strings are localized via RULER_USE_KEYS (EN/UA parity 88/88 confirmed); the never-translate contract is that the LABEL cells come from CALC_LABELS while only the use prose is a dictionary key. The <table> DOM rendering + mono-accent label styling is manual (ADR-0001), covered by module-summary.md TC-3."
+    },
+    {
+      "id": "FR-MODULE-05",
+      "pdr_section": "PDR §Module engine (L91)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:32 (MODULE_WARNING = { large: 1000, small: 100 })",
+        "lib/calculations.ts:213-216 (moduleWarning(m): m > 1000 → 'large', m < 100 → 'small', else null)",
+        "components/ModuleSummary.tsx:38,85-92 (banner rendered only when moduleWarning(activeModule) !== null; role=\"alert\", bg-warn-bg; warnLarge/warnSmall text)",
+        "lib/calculations.test.ts:\"moduleWarning: none within the practical range\" (700/1000/100 all → null, boundaries inclusive)",
+        "lib/calculations.test.ts:\"moduleWarning: large above 1000, small below 100\" (1001 → 'large', 99 → 'small')",
+        "openspec/changes/module-summary/design.md:60-75 (Risks/Trade-offs: banner unreachable through UI under current STANDARD_MODULES — disclosed)",
+        "openspec/changes/module-summary/review-findings.json:CR-001 + SC-001 (banner UI-unreachable, resolved — accepted, doc comment added)"
+      ],
+      "notes": "The moduleWarning LOGIC is fully automated at its boundaries: 700/1000/100 → null (1000 and 100 inclusive → no banner), 1001 → 'large', 99 → 'small'. The banner is correctly wired (role=\"alert\", warnLarge/warnSmall, shown only when non-null). IMPORTANT NUANCE recorded truthfully: the warning banner is currently UNREACHABLE through the UI because STANDARD_MODULES = [100,150,200,300,350,600,700] can never yield a module > 1000 or < 100, so moduleWarning(state.module) is always null from a valid selection. This is deliberate (dormant-by-data, not dead code — FR-MODULE-05 is a Should + spec contract, gated on the swappable STANDARD_MODULES per ADR-0002/OQ-01), disclosed in design.md and accepted by BOTH reviewers (CR-001/SC-001, resolved with a documenting comment on moduleWarning). tested: true = the logic is pinned by unit tests; observing the actual banner in the app requires a TEMPORARY STANDARD_MODULES edit — captured as module-summary.md TC-4. spec_compliant: true = behavior matches the spec (>1000 large, <100 small, 100–1000 inclusive no banner) and the logic is proven independent of the current module set."
+    },
+    {
+      "id": "BC-MODULE-01",
+      "pdr_section": "PDR §Business constraints (L242)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ModuleSummary.tsx:34-38 (takes module/ceiling/opening as props; calls suggestModule only for the hint; hero = props.module verbatim; never a setter)",
+        "components/Shell.tsx:99-103 (module <select> stays in ApartmentForm/input column; Shell passes state.module read-only to ModuleSummary)",
+        "lib/app-state.ts:withCeiling/withOpening (untouched module follows suggested), withModule (user override sticky) — pinned by lib/app-state.test.ts:\"withCeiling: untouched module follows the new suggestion\", \"withModule: sets the value and marks it touched\", \"a touched module is sticky across ceiling/opening edits\"",
+        "openspec/changes/module-summary/specs/module-summary/spec.md (Requirement: Active module is the user-selected value; Scenario: Overriding the module updates the summary)"
+      ],
+      "notes": "BC-MODULE-01: every downstream calc uses the ACTIVE module (user selection defaulting to suggested), never the raw GCD, and the summary displays that same value without re-deriving/overriding it. The reducer contract (default = suggested, user override sticky, untouched follows the heights) is automated in lib/app-state.test.ts — supporting evidence. This change's contribution — the summary's read-only display of state.module (selector remains in the apartment card) — is a DOM/prop-flow property with no React/DOM runner, so tested: false with a manual step, covered by module-summary.md TC-1. Confirmed read-only by both code-reviewer and spec-compliance-auditor; no scope drift into the module-consuming result sections (changes 8–11)."
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "implemented": 5,
+    "tested": 2,
+    "spec_compliant": 5
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "change": "grid-fit",
+  "generated_at": "2026-07-03T17:00:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-GRID-01",
+      "pdr_section": "PDR §Room grid fit (L117)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:386-401 (computeRoomGrid returns { lengthModules, widthModules, lengthRemainder, widthRemainder, quality } — the exact shape FR-GRID-01 specifies)",
+        "components/GridFitBlock.tsx:27-31 (the block destructures all five RoomGrid fields from computeRoomGrid(room.length, room.width, activeModule) per valid room)",
+        "components/PerRoomResults.tsx:56 (<GridFitBlock room={room} module={activeModule} /> — second block in each per-room card)",
+        "lib/calculations.test.ts::\"computeRoomGrid: exact fit (living room)\"",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Requirement: Per-room grid fit shows module counts and signed remainders)"
+      ],
+      "notes": "The computeRoomGrid engine function shipped and is fully automated in change 1 (calculation-engine) — that matrix row stays. grid-fit (capability 10) owns the PRESENTATION layer that consumes it: GridFitBlock reads all five RoomGrid fields once per valid room. tested: true — the return shape is pinned by the pre-existing computeRoomGrid unit tests. spec_compliant confirmed by spec-compliance-auditor strict PASS (verdict clean)."
+    },
+    {
+      "id": "FR-GRID-02",
+      "pdr_section": "PDR §Room grid fit (L118)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:387-388 (lengthModules = Math.round(length / m); widthModules = Math.round(width / m) — nearest, not floor)",
+        "components/GridFitBlock.tsx:59-61 ({lengthModules} × {widthModules} rendered in mono)",
+        "lib/calculations.test.ts::\"computeRoomGrid: poor fit (kitchen), signed remainders\" (3800/700→5, 2500/700→4 — round-to-nearest, not floor 5/3)",
+        "lib/calculations.test.ts::\"computeRoomGrid: 1mm short reads close, not poor\" (4199/700 rounds to 6, not floor 5)",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Scenario: Exact fit; Scenario: Signed remainders)"
+      ],
+      "notes": "AUTOMATED. Round-to-nearest (not floor) is proven by the kitchen (2500/700 → 4, floor would be 3) and the 1mm-short case (4199/700 → 6, floor would be 5). Engine shipped in change 1; grid-fit displays nL×nW in mono. The DOM render of the count string is manual (ADR-0001), but the count values are fully asserted."
+    },
+    {
+      "id": "FR-GRID-03",
+      "pdr_section": "PDR §Room grid fit (L119)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:389-390 (lengthRemainder = length − lengthModules·m; widthRemainder = width − widthModules·m — signed nearest-distance, magnitude ≤ m/2)",
+        "lib/calculations.ts:408-412 (gridRoundDirection: remainder > 0 → 'roundDown' [over grid], < 0 → 'roundUp' [under grid], 0 → null — the FR-GRID-03 sign convention as a locale-independent key)",
+        "lib/calculations.ts:156 (corrected RoomGrid.lengthRemainder doc comment: positive ⇒ over grid/round down, negative ⇒ under grid/round up — was previously reversed)",
+        "components/GridFitBlock.tsx:7-8 (signed() renders an explicit + / − sign; 0 stays \"0\")",
+        "components/GridFitBlock.tsx:34-45 (per non-zero remainder: `${t(gridRoundDirection(rem))} ${t(dimKey)}` → e.g. 'round down on length'; zero remainder yields no annotation via the null filter)",
+        "lib/calculations.test.ts::\"gridRoundDirection: positive over grid rounds down, negative under rounds up\" (300→roundDown, −300→roundUp, 0→null)",
+        "lib/calculations.test.ts::\"gridRoundDirection: matches the signed remainders of the kitchen worked example\" (computeRoomGrid(3800,2500,700) → length +300 → roundDown, width −300 → roundUp)",
+        "lib/calculations.test.ts::\"computeRoomGrid: poor fit (kitchen), signed remainders\" (lengthRemainder +300, widthRemainder −300)",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Requirement: Round-up / round-down annotation follows the sign convention)"
+      ],
+      "notes": "AUTOMATED and this change's crux. SIGN CONVENTION (authoritative = the engine's): a POSITIVE remainder ⇒ dimension is OVER the grid ⇒ round DOWN; a NEGATIVE remainder ⇒ UNDER the grid ⇒ round UP. For the kitchen 3800×2500 at M=700 the engine returns length +300 (round down) and width −300 (round up). This change (a) added gridRoundDirection encoding that convention and (b) corrected a stale reversed RoomGrid doc comment in lib/calculations.ts (comment-only; returned values were always correct). IMPORTANT DOC DRIFT: the DESIGN §6.3 worked-example table lists the kitchen signs REVERSED (−300/+300); the shipped/authoritative values are the engine's (+300/−300) and the spec.md scenarios + tests use the engine signs. During Apply the Maker caught and fixed a test/spec that had copied DESIGN's reversed signs. All three fresh Checkers verified the convention internally consistent across gridRoundDirection, computeRoomGrid, the corrected comment, the frozen prototype (prototype.dc.html:677), and spec.md — verdict clean, strict PASS. The annotation DOM render is manual (ADR-0001); the direction logic and signs are fully pinned."
+    },
+    {
+      "id": "FR-GRID-04",
+      "pdr_section": "PDR §Room grid fit (L120)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/calculations.ts:391-400 (maxAbs = max(|lengthRemainder|, |widthRemainder|); quality = 'exact' when maxAbs === 0, 'close' when maxAbs ≤ m/4, else 'poor')",
+        "components/GridFitBlock.tsx:32,50-57 (quality drives the QUALITY_BADGE lookup and the rendered badge)",
+        "lib/calculations.test.ts::\"computeRoomGrid: close fit (bathroom)\" (2150×1500 → rem +50/+100, both ≤ 175 → close)",
+        "lib/calculations.test.ts::\"computeRoomGrid: poor fit (kitchen), signed remainders\" (rem +300/−300, |300| > 175 → poor)",
+        "lib/calculations.test.ts::\"computeRoomGrid: exact fit (living room)\" (rem 0/0 → exact)",
+        "lib/calculations.test.ts::\"computeRoomGrid: 1mm short reads close, not poor\" (rem −1 → close, the boundary the PDR calls out explicitly)",
+        "lib/calculations.test.ts::\"computeRoomGrid: exactly ¼M remainder still reads close (boundary)\" (rem +175 = M/4 → close, ≤ not <)",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Requirement: Accessible quality badge — exact/close/poor rules and the 1mm-short case)"
+      ],
+      "notes": "AUTOMATED. All three quality tiers are pinned at the worked-example rooms, plus both edge cases the PDR names: a dimension 1 mm short reads close (rem −1, not poor) and the exactly-¼M remainder (+175 at M=700) still reads close (≤ boundary, inclusive). Engine shipped in change 1; grid-fit maps quality to the badge. spec_compliant confirmed by strict PASS."
+    },
+    {
+      "id": "FR-GRID-05",
+      "pdr_section": "PDR §Room grid fit (L121)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/GridFitBlock.tsx:47-70 (the block renders `{lengthModules} × {widthModules}` in mono, the signed `remainder +L / −W` in mono, and the colored quality badge — the three things FR-GRID-05 requires per-room results to show)",
+        "components/GridFitBlock.tsx:50-57 (badge: rounded pill, QUALITY_BADGE color classes bg-good/warn/err, glyph + t(key) label)",
+        "components/PerRoomResults.tsx:56 (GridFitBlock is the second block in each per-room card, below GoldenSplitBlock, inside the showResults gate)",
+        "lib/calculations.test.ts::\"computeRoomGrid: exact fit (living room)\", ::\"computeRoomGrid: poor fit (kitchen), signed remainders\", ::\"computeRoomGrid: close fit (bathroom)\" (the values fed to the display are pinned)",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Requirement: Per-room grid fit shows module counts and signed remainders; FR-GRID-05)"
+      ],
+      "notes": "tested: false for the RENDER — FR-GRID-05 is the presentation requirement (block DOM: the nL×nW module string, the signed remainder display, and the colored quality badge), which is DOM-level with no React/DOM runner (ADR-0001), so it is verified manually (test-plans/grid-fit.md TC-1/TC-2/TC-4). The underlying values (module counts, signed remainders, quality) are all automated via computeRoomGrid. The badge being label+glyph (not color alone) is verified by code inspection (GridFitBlock.tsx:54 aria-hidden glyph + t(key) text) and confirmed clean by all three reviewers. Manual step: grid-fit.md TC-1 (modules × modules + signed remainders), TC-4 (badge)."
+    },
+    {
+      "id": "NFR-A11Y-02",
+      "pdr_section": "PDR §NFR (L216)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/GridFitBlock.tsx:10-18 (QUALITY_BADGE maps each quality to a text key + a glyph ✓/≈/✕ + color classes — meaning carried by text AND glyph)",
+        "components/GridFitBlock.tsx:50-57 (badge renders <span aria-hidden=\"true\">{glyph}</span> followed by t(key) — the glyph is decorative, the text label conveys state, color is not the sole cue)",
+        "components/GridFitBlock.tsx:15-17 (uses bg-good/text-good, bg-warn/text-warn, bg-err/text-err — the AA-passing status tokens, deliberately avoiding the sub-AA --faint/accent tokens)",
+        "openspec/changes/grid-fit/specs/grid-fit/spec.md (Requirement: Accessible quality badge; Scenario: Badge does not rely on color alone)"
+      ],
+      "notes": "PARTIAL requirement, owned primarily by design-system (matrix row: partial — contrast computed by hand, no a11y runner). THIS change discharges the grid-badge portion of NFR-A11Y-02: the quality badge does NOT rely on color alone — it pairs a text label (t('qexact'/'qclose'/'qpoor')) with an aria-hidden glyph (✓/≈/✕), mirroring the golden-ratio fit badge. It also uses the AA-passing good/warn/err status tokens rather than the sub-AA --faint/accent tokens. tested: false — a11y/contrast is a rendered property with no a11y/visual runner (ADR-0001); verified by code inspection + all three reviewers (clean) + manual step grid-fit.md TC-4. The remaining OPEN part of NFR-A11Y-02 is the sub-AA --faint / accent token contrast issue tracked on the design-system row — outside this change's scope. So this change moves the grid-badge sub-requirement to satisfied while the design-system row stays partial."
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "implemented": 6,
+    "tested": 4,
+    "spec_compliant": 6
+  }
+}

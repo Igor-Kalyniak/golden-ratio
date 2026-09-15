@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "docs-maintenance-after-work",
+  "owner": "j-pster",
+  "repo": "psters_ai_workflow",
+  "path": "plugins/psters-ai-workflow/skills/docs-maintenance-after-work",
+  "branch": "main",
+  "sha": "806cfa20a31f4d79f52ffaf272b7399f0cb2b80d",
+  "source": "manual"
+}

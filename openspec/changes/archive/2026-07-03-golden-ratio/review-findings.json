@@ -1,0 +1,48 @@
+{
+  "change": "golden-ratio",
+  "generated_at": "2026-07-03T15:30:00+03:00",
+  "base_sha": "aee7a63c4079707aa66eb29fc3cf1f1b040135af",
+  "head_sha": "ed3b25c3bb59c9c4b3813a3a3241e74034b36952",
+  "maker": "ship-capability / opsx-apply (opus)",
+  "gate_policy": "advisory",
+  "verdict_advisory": "clean",
+  "counts": { "critical": 0, "high": 0, "medium": 0, "low": 1 },
+  "notes": "3 fresh read-only Checkers on base..head (Maker != Checker). All three verdicts clean. code-reviewer raised one low: computeGoldenSplit + the approximate-fit decision ran twice per room (once in PerRoomResults for the header badge, once in GoldenSplitBlock for the block) — no divergence possible today (identical inputs, trivial O(1)) but a latent maintenance hazard since the fit threshold lived in two places. RESOLVED: PerRoomResults now computes the split + approx flag once and passes them down to GoldenSplitBlock as props, giving the fit decision a single source of truth. spec-compliance + security clean. Worked-example numbers verified against DESIGN §6.3 (living 4200 off 145.6 clean since ≤175; bathroom 2150 off 71.3). No new i18n keys, no new dependency, no scope drift into grid-fit/walkway (the shared per-room card scaffold this change creates is expected — 10/11 extend it).",
+  "reviewers": [
+    {
+      "reviewer": "code-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Helpers match FR-GOLD-03/04 exactly (longerWall = max; isApproximateFit = snapOffset > m/4 with the strict > boundary tested at 174/175/176); computeGoldenSplit reused unchanged; components pure/read-only with text+glyph a11y fit badge and resolved i18n keys; no empty-state bug (showResults already gates on >=1 valid room); 72/72 pass. Only a low, non-diverging duplicate-computation note.",
+      "findings": [
+        {
+          "id": "CR-001",
+          "severity": "low",
+          "category": "quality",
+          "requirement_ids": ["FR-GOLD-04"],
+          "file": "components/PerRoomResults.tsx",
+          "line": 29,
+          "summary": "computeGoldenSplit + isApproximateFit ran twice per room — once for the header badge (PerRoomResults) and again inside GoldenSplitBlock — duplicating the fit decision. Identical inputs mean no divergence today and perf is negligible, but the fit threshold lived in two places and could silently desync on a future edit.",
+          "recommendation": "Compute the split/fit once in PerRoomResults and pass the derived GoldenSplit + approx flag down to GoldenSplitBlock as props, so the fit decision has a single source of truth.",
+          "status": "resolved",
+          "resolution": "Refactored exactly as recommended: PerRoomResults computes longerWall + computeGoldenSplit + isApproximateFit once per room and passes { longer, split, approx } to GoldenSplitBlock (now a pure presentational component with no calc imports). Single source of truth for the fit decision; the badge and block can no longer desync. Re-verified: 72/72, lint clean, build+tsc green."
+        }
+      ]
+    },
+    {
+      "reviewer": "spec-compliance-auditor",
+      "model": "opus",
+      "verdict": "clean",
+      "strict_validation": "PASS",
+      "summary": "golden-ratio (capability 9) fully delivers FR-GOLD-01/02/03/04 with no scope drift. computeGoldenSplit reused unchanged (exact 0.618/0.382 + ½M snap); longerWall + isApproximateFit are pure, unit-tested helpers with a strict >¼M boundary (174/175/176). Per-room card renders exact + snapped + snapOffset with a cleanFit/approxFit badge (glyph+text, not color alone). Worked example matches DESIGN §6.3 (living 4200 off 145.6 clean; bathroom 2150 off 71.3). No grid-fit/walkway logic added, no new i18n keys (all 8 present in en+ua, 92/92 parity), no new dependency. Tests green, build clean, strict PASS.",
+      "findings": []
+    },
+    {
+      "reviewer": "security-reviewer",
+      "model": "opus",
+      "verdict": "clean",
+      "summary": "Two pure math helpers + two read-only presentational components. User-controlled room.name renders as an auto-escaped React text node (no dangerouslySetInnerHTML or HTML/SVG sink); all other rendered values are numbers. No network, persistence, analytics, or export (BC-PRIVACY-01/TC-DATA-01/BC-SCOPE-01 upheld). package.json/lockfile unchanged. Helpers + computeGoldenSplit terminate in constant time over inputs filtered by isRoomValid; render maps a bounded filtered array with no eval/Function or unbounded loop.",
+      "findings": []
+    }
+  ]
+}

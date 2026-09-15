@@ -1,0 +1,113 @@
+{
+  "change": "mode-toggle",
+  "generated_at": "2026-07-03T19:50:00+03:00",
+  "requirements": [
+    {
+      "id": "FR-MODE-01",
+      "pdr_section": "PDR §Mode toggle (L144)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ModeToggle.tsx:18-45 (segmented 2D⇄3D control: role=group labelled t('mode'), two type=button segments over SEGMENTS=['3d','2d'], each aria-pressed={mode===seg}, onClick→onModeChange)",
+        "components/Shell.tsx:87 (ModeToggle rendered atop the input column, next to the Inputs heading)",
+        "lib/app-state.ts:57 (DEFAULT_STATE.mode = '3d' — default is 3D)",
+        "lib/app-state.test.ts::\"default mode is 3d\" (asserts DEFAULT_STATE.mode === '3d')",
+        "runtime: `next dev` — 3D default renders the toggle with 3D aria-pressed=true / 2D aria-pressed=false (Maker verify-skill capture)"
+      ],
+      "notes": "Segmented toggle + default-3D. The default-3D clause is AUTOMATED (default-mode test); the toggle DOM (segmented control, aria-pressed, click→switch) is manual per ADR-0001 (no React/DOM runner) but was runtime-verified by the Maker: the server-rendered 3D default showed the group with 3D selected, and a temporary DEFAULT_STATE.mode='2d' flip (reverted) showed 2D selected. tested=false reflects no automated DOM assertion on the control itself."
+    },
+    {
+      "id": "FR-MODE-02",
+      "pdr_section": "PDR §Mode toggle (L145)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ApartmentForm.tsx:41 (`mode === '3d' &&` wraps the ceiling + opening NumberFields — hidden in 2D)",
+        "components/Shell.tsx:122 (`state.mode === '3d' &&` gates <BandDiagram> — vertical bands hidden in 2D)",
+        "lib/app-state.ts:92-97 (moduleSuggestion: 2D → suggestModule2D(rooms.filter(isRoomValid)))",
+        "lib/app-state.ts:118-121,163-192 (resyncModule funnels the room reducers so an untouched module tracks the 2D room-dimension suggestion)",
+        "lib/app-state.test.ts::\"moduleSuggestion: 3D uses heights, 2D uses room dimensions\" (2D returns suggestModule2D(validRooms))",
+        "lib/app-state.test.ts::\"room edits resync the untouched module in 2D but not in 3D\" (2D room edit re-derives module from rooms)",
+        "runtime: 2D render (reverted flip) showed ceiling/opening HIDDEN (0 matches), band diagram HIDDEN (0 matches), hint 'suggested from room dimensions' (Maker capture)"
+      ],
+      "notes": "2D hides heights + vertical bands and sources the module from room dims. The module-source logic (moduleSuggestion 2D branch, room-edit resync) is AUTOMATED; the field-hiding and band-gating are manual per ADR-0001 but runtime-verified (both surfaces observed). suggestModule2D shipped + fully tested in change 12."
+    },
+    {
+      "id": "FR-MODE-03",
+      "pdr_section": "PDR §Mode toggle (L146)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:92-97 (moduleSuggestion: 3D → suggestModule(ceiling, opening))",
+        "components/ApartmentForm.tsx:41 (ceiling + opening fields rendered in 3D)",
+        "components/ModuleSummary.tsx (3D hint reads GCD(ceiling, opening) + 'suggested from heights')",
+        "lib/app-state.test.ts::\"moduleSuggestion: 3D uses heights, 2D uses room dimensions\" (3D returns suggestModule(ceiling, opening))",
+        "runtime: 3D default render showed ceiling/opening fields + 'suggested from heights' (Maker capture)"
+      ],
+      "notes": "3D uses heights and suggests the module from them — AUTOMATED via the moduleSuggestion 3D branch test; the field rendering is manual/runtime-verified. suggestModule shipped in change 1."
+    },
+    {
+      "id": "FR-MODE-04",
+      "pdr_section": "PDR §Mode toggle (L147)",
+      "implemented": true,
+      "tested": true,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:124-126 (withMode(state, mode) = resyncModule({ ...state, mode }) — changes only mode + resyncs)",
+        "lib/app-state.ts:118-121 (resyncModule re-derives the module only when !moduleTouched; a touched module is left alone)",
+        "lib/app-state.test.ts::\"withMode: untouched module re-derives from the new mode's source\" (3D→2D switches an untouched module to the room-derived value)",
+        "lib/app-state.test.ts::\"withMode: a touched module is sticky across a mode switch\" (a selected module 350 survives the switch)",
+        "lib/app-state.test.ts::\"withMode: switching preserves rooms and heights (shared state)\" (rooms, ceiling, opening unchanged)"
+      ],
+      "notes": "Switching preserves shared state — FULLY AUTOMATED. Three tests pin the contract: rooms/names/dims + ceiling/opening are preserved; a TOUCHED (user-selected) module is sticky across the switch; an UNTOUCHED module (which merely followed the suggestion, was never 'selected') re-derives from the new mode's source. The 'active visualizer changes' clause of FR-MODE-04 is deferred to viz-2d (14) / viz-3d (15) — no visualizer exists yet; recorded in the proposal scope note."
+    },
+    {
+      "id": "FR-MODE-05",
+      "pdr_section": "PDR §Mode toggle (L148)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:39-40 (AppState.mode documented 'in-memory only, never persisted (FR-MODE-05, BC-PRIVACY-01)')",
+        "components/Calculator.tsx (mode lives in useState<AppState>, mutated only via withMode — no persistence)",
+        "repo-wide grep: no localStorage / sessionStorage / cookie / indexedDB / network write anywhere in the diff or codebase (confirmed by all 3 reviewers)"
+      ],
+      "notes": "Mode is in-memory only — structural. Verified by grep (no persistence API) and by the security reviewer; on reload the mode returns to the '3d' default. tested=false = no asserting unit test (a structural/negative property), but the reviewers and grep confirm it."
+    },
+    {
+      "id": "BC-PRIVACY-01",
+      "pdr_section": "PDR §Business constraints (L245)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "lib/app-state.ts:39-40 (mode in-memory only), components/Calculator.tsx (useState, no persistence)",
+        "security-reviewer verdict clean: repo-wide grep finds no localStorage/sessionStorage/cookie/indexedDB/analytics/network/beacon/export sink introduced by this change",
+        "package.json / package-lock.json unchanged (no new dependency / supply-chain change)"
+      ],
+      "notes": "No analytics/trackers/persistence — the owned privacy constraint for this change. The mode toggle adds in-memory state only. Structural; all 3 reviewers clean. Consistent with the BC-PRIVACY-01 posture upheld across every prior change."
+    },
+    {
+      "id": "NFR-A11Y-03",
+      "pdr_section": "PDR §NFR (L221)",
+      "implemented": true,
+      "tested": false,
+      "spec_compliant": true,
+      "evidence": [
+        "components/ModeToggle.tsx:22-40 (role=group labelled t('mode'); two type=button segments, each aria-pressed={selected}, tab-focusable, visible selected style bg-accent/text-accent-fg)",
+        "numeric results remain the source of truth — the visualizer is supplementary and not built yet; the toggle only changes inputs/derivations, never hides a numeric result value except the 3D-only band diagram",
+        "runtime: 3D and 2D renders both showed the correct segment aria-pressed=true (Maker capture)"
+      ],
+      "notes": "Keyboard-operable toggle with a clear selected state — manual/structural per ADR-0001. role=group + two aria-pressed buttons is a legitimate pattern (code-reviewer endorsed vs radiogroup); both buttons are native <button type=button>, tab-focusable, with a distinct selected style. prefers-reduced-motion is a visualizer concern (14/15), not this change. tested=false = no automated a11y assertion."
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "implemented": 7,
+    "tested": 3,
+    "spec_compliant": 7
+  }
+}
