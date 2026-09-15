@@ -1,680 +1,702 @@
-# Verified Room Plan — продуктова специфікація
+# Verified Room Plan — product design spec
 
-> **Статус:** design spec, не затверджено до реалізації.
-> **Дата:** 2026-09-15
-> **Автор сесії:** брейншторм-сесія (skill `brainstorming`)
-> **Відношення до `golden-ratio`:** цей документ описує **окремий продукт**, який
-> органічно виростає з рушія `lib/calculations.ts`. Це не зміна поточного додатка.
-> **Простір ідентифікаторів:** нові вимоги цього документа живуть у власному
-> просторі (`FR-*`, `BC-VRP-*`, `TC-VRP-*`, `LC-*`, `OQ-VRP-*`, `GAP-*`, `RISK-*`, `M-*`)
-> і НЕ перетинаються з `docs/PDR.md`. Ідентифікатори `golden-ratio`
-> (`BC-WALK-01`, `BC-PRIVACY-01`, `TC-DATA-01`, `BC-SCOPE-01`) цитуються як існуючі.
-> **Мова документа:** російська (робоча мова сесії); ідентифікатори, поля та
-> маркетингові формулювання — англійською/українською за призначенням.
+> **Status:** design spec; not approved for implementation.
+> **Date:** 2026-09-15
+> **Origin:** brainstorming session (skill `brainstorming`)
+> **Relationship to `golden-ratio`:** this document describes a **separate
+> product** that grows organically out of the `lib/calculations.ts` engine.
+> It is not a change to the current app.
+> **Identifier namespace:** requirements defined here live in their own
+> namespace (`FR-*`, `BC-VRP-*`, `TC-VRP-*`, `LC-*`, `OQ-VRP-*`, `GAP-*`,
+> `RISK-*`, `M-*`) and do NOT collide with `docs/PDR.md`. Existing
+> `golden-ratio` identifiers (`BC-WALK-01`, `BC-PRIVACY-01`, `TC-DATA-01`,
+> `BC-SCOPE-01`) are cited, never redefined.
+> **Document language:** English. Ukrainian-language product copy (taglines,
+> UI strings) is kept verbatim in Ukrainian with an English gloss, because it
+> is the shipped wording for the Ukrainian market, not prose to be translated.
 
 ---
 
 ## 0. TL;DR
 
-Продукт превращает проверку «поместится ли мебель» из обещания в вычисление.
+The product turns "will the furniture fit?" from a promise into a computation.
 
-Одна строка преемственности:
+The continuity thesis, in one line:
 
-> **`golden-ratio` проверяет проходы по обобщённым глубинам мебели
-> (`FURNITURE_DEPTHS`). Бизнес — это проверка проходов по реальным габаритам
-> конкретного SKU.**
+> **`golden-ratio` verifies clearances against generic furniture depths
+> (`FURNITURE_DEPTHS`). The business is verifying clearances against the real
+> dimensions of a specific SKU.**
 
-Одна строка позиционирования (Украина):
+Positioning, in one line (Ukraine):
 
-> **Кімната під ваш бюджет. Усе поміститься, усе є в наявності, усе привезуть —
-> з повною вартістю до копійки.**
+> **«Кімната під ваш бюджет. Усе поміститься, усе є в наявності, усе привезуть —
+> з повною вартістю до копійки.»**
+> *(A room that fits your budget. Everything fits, everything is in stock,
+> everything can be delivered — with the full cost down to the last kopiyka.)*
 
-Одна строка против главного конкурента (его же словами):
+Against the main competitor, in its own words:
 
-> **MeltFlex пише «Always confirm dimensions with a tape measure before buying».
-> Ми — це та перевірка.**
+> **MeltFlex says "Always confirm dimensions with a tape measure before buying."
+> We are that check.**
+> Ukrainian: «Вони кажуть: "перевірте рулеткою". Ми — це та перевірка.»
 
 ---
 
-## 1. Проблема и гипотеза
+## 1. Problem and hypothesis
 
-### 1.1 Что не работает у существующих решений
+### 1.1 What fails in existing solutions
 
-Типовой AI-интерьерный пайплайн: фото → скрытый prompt → красивая картинка →
-visual search → «похожие» товары → paywall. Пользователь получает вдохновение,
-но не получает исполнимого плана.
+The typical AI interior pipeline: photo → hidden prompt → attractive image →
+visual search → "similar" products → paywall. The user gets inspiration but no
+executable plan.
 
-### 1.2 Центральная гипотеза продукта
+### 1.2 The central product hypothesis
 
-**H1.** Существует сегмент, для которого *уверенность в покупке* ценнее
-*качества картинки*, и он готов платить за проверенный результат, а не за
-AI-кредиты.
+**H1.** A segment exists for which *confidence in the purchase* is worth more
+than *image quality*, and it will pay for a verified result rather than for
+AI credits.
 
-**H2 (украинская версия H1, приоритетная).** В Украине связывающее ограничение —
-не сантиметры, а деньги. Сегмент платит за ответ на вопрос «что я реально могу
-купить на ₴25 000, чтобы всё поместилось и всё привезли».
+**H2 (the Ukrainian form of H1, and the priority one).** In Ukraine the binding
+constraint is not centimetres but money. The segment pays for an answer to
+"what can I actually buy for ₴25,000 so that everything fits and everything can
+be delivered?"
 
-**Статус гипотез: НЕ ПРОВЕРЕНЫ.** См. §16 и §17. Это главный риск документа.
+**Status of both hypotheses: UNVALIDATED.** See §16 and §17. This is the
+single largest risk in this document.
 
-### 1.3 Внешнее свидетельство (слабое, n=1)
+### 1.3 External evidence (weak, n=1)
 
-Обзор MeltFlex AI (The Gila Herald, 2026-07-29) — положительный обзор, но его
-вердикт дословно:
+A MeltFlex AI review (The Gila Herald, 2026-07-29) — a *favourable* review whose
+verdict reads, verbatim:
 
-> «It did not decorate the room for us. It gave me a shopping list, showed me the
+> "It did not decorate the room for us. It gave me a shopping list, showed me the
 > sofa I wanted was the wrong sofa, and stopped us buying furniture that would
 > have made the room worse… that turned out to be worth more than the picture
-> itself.»
+> itself."
 
-Пользователь, который хвалит конкурента, ценит **отрицательный отбор**, а не
-рендер. Это первое внешнее подтверждение H1.
+A user praising a competitor values **negative selection**, not the render.
+That is the first external support for H1.
 
-**Оговорка об источнике (обязательна к соблюдению).** Текст имеет признаки
-SEO/партнёрского размещения: keyword-заголовки, FAQ-блок, таблица «плюсы/минусы»
-и **статистика без источников** («58% возвратов мебели из-за несоответствия
-размеру», «просмотр в контексте снижает size-related возвраты на 71%»).
-**Эти два числа запрещено использовать в питч-деке и в маркетинге до нахождения
-первоисточника.** Достоверная часть отзыва — это признания против собственного
-интереса (§4.2), а не похвала и не цифры.
+**Mandatory caveat about the source.** The text shows the hallmarks of SEO or
+affiliate placement: keyword-shaped headings, an FAQ block, a tidy pros/cons
+table, and **statistics with no source given** ("roughly 58 percent of furniture
+returns down to… the piece not fitting the space", "seeing an item in context
+cuts size related returns by around 71 percent").
+**Those two figures are barred from the pitch deck and from marketing until a
+primary source is found.** The trustworthy part of the review is its admissions
+against interest (§4.2) — not its praise and not its numbers.
 
 ---
 
-## 2. Преемственность от `golden-ratio`
+## 2. Continuity from `golden-ratio`
 
-### 2.1 Что переносится (проверено чтением кода)
+### 2.1 What carries over (verified by reading the code)
 
-`lib/calculations.ts` — 598 строк чистых функций, 107 юнит-тестов:
+`lib/calculations.ts` — 598 lines of pure functions, 107 unit tests:
 
-| Актив | Что даёт бизнесу |
+| Asset | What it gives the business |
 |---|---|
-| `computeWalkways(roomWidth, furnitureDepth, oppositeDepth)` | ядро проверки проходов |
-| `WALKWAY_THRESHOLDS = { comfortable: 900, acceptable: 600 }` | абсолютные эргономические пороги (`BC-WALK-01`: не масштабируются с M) |
-| `rateWalkway`, `walkwayMeterBars` | рейтинг и его визуализация |
-| `FURNITURE_DEPTHS = { wardrobeKitchen: 600, sofa: 900, facingUnits: 1200 }` | **прототип каталога на трёх архетипах** |
-| `computeRoomGrid` | оценка попадания в сетку, знаковые остатки, направление округления |
-| `layoutRoom2D` / `layoutRoom3D` / `interiorModuleLines` | масштабная отрисовка SVG + ленивый three.js |
-| `suggestModule`, `computeGoldenSplit`, `computeVerticalBands` | **детерминированный генератор раскладок** (см. §2.2) |
-| `BOUNDS`, `isValidCeiling/Opening/Dimension` | валидация ввода |
-| i18n UA/EN, `CALC_LABELS` (never-translate) | локализация уже есть |
+| `computeWalkways(roomWidth, furnitureDepth, oppositeDepth)` | the core of the clearance check |
+| `WALKWAY_THRESHOLDS = { comfortable: 900, acceptable: 600 }` | absolute ergonomic thresholds (`BC-WALK-01`: never scale with M) |
+| `rateWalkway`, `walkwayMeterBars` | the rating and its visual meter |
+| `FURNITURE_DEPTHS = { wardrobeKitchen: 600, sofa: 900, facingUnits: 1200 }` | **a prototype catalog with three archetypes** |
+| `computeRoomGrid` | grid-fit quality, signed remainders, rounding direction |
+| `layoutRoom2D` / `layoutRoom3D` / `interiorModuleLines` | to-scale rendering, SVG plus lazy three.js |
+| `suggestModule`, `computeGoldenSplit`, `computeVerticalBands` | **a deterministic layout generator** (see §2.2) |
+| `BOUNDS`, `isValidCeiling/Opening/Dimension` | input validation |
+| UA/EN i18n, `CALC_LABELS` (never-translate) | localisation already exists |
 
-### 2.2 Модуль как layout prior — ключевое архитектурное решение
+### 2.2 The module as a layout prior — the key architectural decision
 
-Модульная сетка M и золотое сечение — это **детерминированный генератор
-примерного плана**. Не AI. Сетка даёт пропорционально осмысленные позиции,
-золотое сечение делит зоны, `computeWalkways` валидирует результат.
+The module grid M and the golden ratio are a **deterministic generator of a
+first-pass plan**. Not AI. The grid yields proportionally sound positions, the
+golden ratio divides zones, and `computeWalkways` validates the outcome.
 
-Формулируемое отличие от всех конкурентов:
+The resulting claim, which no competitor can make:
 
-> Наши раскладки выводятся из архитектурных пропорций и проверенных зазоров,
-> а не из галлюцинации диффузионной модели.
+> Our layouts are derived from architectural proportion and verified clearances,
+> not from a diffusion model's hallucination.
 
-**`BC-VRP-MODULE-UI-01`.** Модуль M, золотое сечение и термин «модуль» **не выходят
-в UI** нового продукта. Это концепции для архитектора, а не для человека,
-покупающего диван. Наружу выходит только результат: «шафа стане тут, прохід
-870 мм — прийнятно». Нарушение этого правила означает наследование аудитории
-архитекторов, от которой продукт сознательно отказался.
+**`BC-VRP-MODULE-UI-01`.** The module M, the golden ratio, and the word "module"
+**must not surface in the UI** of the new product. These are concepts that
+delight an architect and mean nothing to someone buying a sofa. Only the result
+surfaces: "the wardrobe goes here; clearance 870 mm — acceptable." Violating
+this rule inherits the architect audience the product deliberately declined.
 
-### 2.3 Что НЕ переносится
+### 2.3 What does not carry over
 
-- **Архитектурные ограничения.** `golden-ratio` — принципиально клиентский:
-  без бэкенда, без персистентности, без аналитики (`BC-PRIVACY-01`,
-  `TC-DATA-01`, `BC-SCOPE-01`). Бизнесу нужны аккаунты, облачный проект,
-  каталог-сервис, платежи, GPU-рендер. Переносимый актив — **`lib/calculations.ts`
-  и визуализаторы**, не оболочка приложения.
-- **Оценка актива без иллюзий.** 598 строк чистой математики — примерно
-  3 недели работы для конкурента. Преемственность даёт скорость и уверенность
-  в корректности. **Она не даёт moat.** Не закладываться на неё как на защиту.
+- **The architectural constraints.** `golden-ratio` is client-side by principle:
+  no backend, no persistence, no analytics (`BC-PRIVACY-01`, `TC-DATA-01`,
+  `BC-SCOPE-01`). The business needs accounts, a cloud project, a catalog
+  service, payments, and GPU rendering. The transferable asset is
+  **`lib/calculations.ts` and the visualisers**, not the app shell.
+- **An honest valuation of the asset.** 598 lines of pure maths is roughly three
+  weeks of work for a competitor. Continuity buys speed and confidence in
+  correctness. **It does not buy a moat.** Do not treat it as a defence.
 
-### 2.4 Судьба текущего приложения (ОТКРЫТЫЙ ВОПРОС)
+### 2.4 Fate of the current app (OPEN QUESTION)
 
-Не решено: остаётся ли `golden-ratio` жить как отдельный продукт, становится ли
-он бесплатным уровнем нового продукта, или архивируется. См. §19 `OQ-VRP-09`.
+Undecided: whether `golden-ratio` continues as a standalone product, becomes the
+free tier of the new product, or is archived. See §19, `OQ-VRP-09`.
 
 ---
 
-## 3. Рынок и сегмент
+## 3. Market and segment
 
-### 3.1 Рынок №1: Украина
+### 3.1 Market #1: Ukraine
 
-**Решение:** Украина — первый и единственный рынок первой версии.
+**Decision:** Ukraine is the first and only market for version one.
 
-**Почему это чинит главный риск.** В расчётах для ЕС CAC выходил €40–75 при
-цене €39 — юнит-экономика не сходилась. В Украине CPC в этой категории
-кратно ниже, конкурентов с локальным каталогом нет вообще, а язык и доступ
-к ритейлерам у основателя есть. Выбор рынка чинит ровно ту переменную,
-которая убивала модель.
+**Why this repairs the main risk.** In the EU calculation, CAC came out at
+€40–75 against a €39 price — the unit economics did not close. In Ukraine the
+CPC in this category is several times lower, there is no competitor with a local
+catalog at all, and the founder has the language and access to retailers. The
+choice of market repairs precisely the variable that was killing the model.
 
-**Что становится проще:**
-- приложение уже двуязычное UA/EN — локализация существует;
-- ни MeltFlex, ни IKEA Kreativ, ни Planner 5D не локализованы под UA-каталог;
-- договориться с украинской фабрикой реалистичнее, чем с IKEA Group;
-- Delivery Path Check получает локальную опору: у Нової Пошти опубликованы
-  ограничения по габаритам для разных типов доставки и отделений;
-- сильный SEO-спрос на «чи влізе диван у ліфт / у двері».
+**What gets easier:**
+- the app is already bilingual UA/EN — localisation exists;
+- neither MeltFlex, IKEA Kreativ, nor Planner 5D is localised to a UA catalog;
+- a deal with a Ukrainian factory is far more achievable than one with IKEA Group;
+- Delivery Path Check gains a local anchor: Nova Poshta publishes dimensional
+  limits for its delivery types and branch classes;
+- strong SEO demand for "чи влізе диван у ліфт / у двері" ("will the sofa fit in
+  the lift / through the door").
 
-**Что становится сложнее (принято сознательно):**
-- **ARPU падает.** €39 нереальны; целевая цена ₴299–599 (~€7–13);
-- **качество товарных данных хуже** — маркетплейсы заполняются продавцами;
-- **партнёрская инфраструктура слабее** — Awin/CJ/Impact Украину почти не
-  покрывают; работать через SalesDoubler, Admitad и прямые программы;
-- **каталог не переносится** — расширение в ЕС = нормализация с нуля.
-  Переносимы рушій и *процесс* нормализации, но не данные;
-- **инвесторы дисконтируют UA-only B2C.** Формулировка для внешнего мира:
-  «полигон проверки на рынке, где у нас несправедливое преимущество;
-  рушій географически нейтрален».
+**What gets harder (accepted deliberately):**
+- **ARPU drops.** €39 is unrealistic; target price is ₴299–599 (~€7–13);
+- **product data quality is worse** — marketplaces are populated by sellers;
+- **affiliate infrastructure is weaker** — Awin/CJ/Impact barely cover Ukraine;
+  work through SalesDoubler, Admitad, and retailers' own programmes;
+- **the catalog does not transfer** — expanding to the EU means normalising from
+  zero. The engine and the normalisation *process* transfer; the data does not;
+- **investors discount UA-only B2C.** External framing: "a proving ground in a
+  market where we hold an unfair advantage; the engine is geography-neutral."
 
 ### 3.2 Beachhead
 
-> **Люди, обустраивающие жильё с жёстким фиксированным бюджетом, где покупка
-> практически необратима.**
+> **People furnishing a home on a hard, fixed budget, where the purchase is
+> effectively irreversible.**
 
-Два признака, оба обязательны:
+Two markers, both required:
 
-1. **Фиксированный бюджет, заданный извне** и не двигающийся. Переехавшие
-   в другой город, снявшие пустую квартиру, обустраивающиеся заново, молодые
-   семьи. Бюджет — ограничение, а не итог.
-2. **Необратимость покупки.** Значительная часть украинской мебели продаётся
-   **під замовлення** — срок 2–6 недель, фактически без возврата; плюс обратная
-   логистика шкафа Новою Поштою. Необратимость и есть максимальная цена
-   проверки до покупки.
+1. **An externally fixed budget** that does not move. People who relocated to
+   another city, took an empty flat, are starting over, or young families. The
+   budget is a constraint, not an outcome.
+2. **Irreversibility of the purchase.** A significant share of Ukrainian
+   furniture is sold **під замовлення** (made to order) — 2–6 week lead times
+   and effectively no right of return — plus the reverse logistics of shipping a
+   wardrobe back via Nova Poshta. Irreversibility is what makes pre-purchase
+   verification maximally valuable.
 
-Это жёстче американского кейса из обзора MeltFlex (там цена ошибки — три часа
-дороги до Финикса).
+This is sharper than the US case in the MeltFlex review, where the cost of a
+mistake is a three-hour drive to Phoenix.
 
-**`OQ-VRP-01`:** юридические детали прав потребителя при дистанционной продаже и при
-изготовлении на заказ — проверить по актуальному законодательству Украины.
+**`OQ-VRP-01`:** verify the specifics of Ukrainian consumer rights for distance
+selling and for made-to-order goods against current legislation.
 
-### 3.3 Отвергнутые сегменты (и почему)
+### 3.3 Rejected segments (and why)
 
-| Сегмент | Почему отвергнут |
+| Segment | Why rejected |
 |---|---|
-| Все домовладельцы | не таргетируется, боль размыта |
-| Переезжающие в пустую квартиру (широко) | невозможно узнать факт переезда; потребность на всю квартиру, не на комнату |
-| Арендодатели / Airbnb-хосты | экономически лучший (повторяемость, ROI, LTV), но противоречит зафиксированному B2C-ограничению. **Оставлен как путь расширения, см. §18.3** |
-| Дизайнеры и архитекторы | явно исключены заказчиком |
+| All homeowners | untargetable; the pain is diffuse |
+| People moving into an empty flat (broad) | the fact of moving is unobservable; the need spans a whole flat, not a room |
+| Landlords / Airbnb hosts | economically the best (repeat use, ROI, LTV) but contradicts the fixed B2C constraint. **Retained as an expansion path — see §18.3** |
+| Designers and architects | explicitly excluded by the client |
 
 ---
 
-## 4. Конкуренты
+## 4. Competitors
 
-### 4.1 Поле
+### 4.1 The field
 
-| Игрок | Сильное | Слабое для нашей задачи |
+| Player | Strengths | Weakness for our job |
 |---|---|---|
-| **MeltFlex AI** | 20-секундный рендер, 25+ стилей, широчайшее покрытие, IKEA/Amazon/Wayfair, API/B2B, web+iOS+Android | не меряет (см. §4.2); «exact or similar»; подписка под эпизодическую задачу |
-| **IKEA Kreativ** | LiDAR-скан, удаление мебели, IKEA SKU в масштабе, корзина, вертикальная интеграция | только IKEA; в Украине ассортимент и логистика ограничены |
-| **Planner 5D / Homestyler** | большие 3D-каталоги, редактирование, рендеры | нет реальных локальных SKU, нет полной стоимости, нет проверки доставки |
-| **Локальные UA-игроки** | — | **`OQ-VRP-02`: не проверено, существуют ли.** Обязательная задача перед стартом |
+| **MeltFlex AI** | 20-second render, 25+ styles, very broad coverage, IKEA/Amazon/Wayfair, API/B2B, web + iOS + Android | does not measure (see §4.2); "exact or similar"; a subscription against an episodic task |
+| **IKEA Kreativ** | LiDAR scan, removes existing furniture, IKEA SKUs to scale, cart, vertical integration | IKEA only; limited assortment and logistics in Ukraine |
+| **Planner 5D / Homestyler** | large 3D catalogs, editing, renders | no real local SKUs, no total cost, no delivery verification |
+| **Local UA players** | — | **`OQ-VRP-02`: not checked whether any exist.** Mandatory task before launch |
 
-### 4.2 Признания MeltFlex — каждое соответствует нашей функции
+### 4.2 MeltFlex's admissions — each maps to one of our features
 
-Источник: обзор The Gila Herald + собственный FAQ MeltFlex, процитированный там.
+Source: the Gila Herald review plus the MeltFlex FAQ quoted within it.
 
-| Их слова | Наш ответ |
+| Their words | Our answer |
 |---|---|
-| «Do not treat the render as a measured floor plan» / «takes small liberties with scale» / «Not to the inch» | интервальный рушій (§6) |
-| **«Always confirm dimensions with a tape measure before buying»** | **это наш продукт целиком** |
-| «The match is the exact item **or a close alternative**» → «strong shortlist, not a guaranteed cart» | точный SKU либо его отсутствие; «похожих» нет |
-| «A dim, cluttered snap gives a muddy render, **and the app will not warn you**» | confidence-модель по построению не может молчать |
-| «4K» на деле ближе к 2K | не обещать непроверяемого |
-| $29/мес standard, $59/мес pro + инструкция по churn в положительном отзыве | разовая цена за готовую комнату |
+| "Do not treat the render as a measured floor plan" / "takes small liberties with scale" / "Not to the inch" | the interval engine (§6) |
+| **"Always confirm dimensions with a tape measure before buying"** | **this is our entire product** |
+| "The match is the exact item **or a close alternative**" → "strong shortlist, not a guaranteed cart" | the exact SKU or nothing; no "similar" |
+| "A dim, cluttered snap gives a muddy render, **and the app will not warn you**" | the confidence model cannot stay silent by construction |
+| "4K" that actually lands closer to 2K | never promise what cannot be verified |
+| $29/mo standard, $59/mo pro — with churn instructions inside a *positive* review | a one-time price for a finished room |
 
-### 4.3 Поправка к исходной гипотезе конкурентного анализа
+### 4.3 Correction to the original competitive hypothesis
 
-Исходно предполагалось, что главная жалоба на AI-редизайн — «AI меняет стены,
-окна и размеры комнаты». **Обзор это опровергает:** «The window stayed where the
-window is… The ceiling fan did not vanish.» В photo-redesign MeltFlex геометрию
-сохраняет, и это воспринимается как их сила.
+The original brief assumed the main complaint about AI redesign was "the AI
+changes walls, windows and room dimensions." **The review refutes this:** "The
+window stayed where the window is… The ceiling fan did not vanish." In
+photo-redesign MeltFlex preserves geometry, and this is perceived as a strength.
 
-**Вывод: линия атаки «оно придумывает вашу комнату» — слабая и снята.
-Работающая линия — «оно не меряет».**
+**Conclusion: the attack line "it invents your room" is weak and is withdrawn.
+The line that works is "it does not measure."**
 
-### 4.4 Где не воевать
+### 4.4 Where not to fight
 
-Не конкурировать за рендер. 20 секунд, десятки стилей, геометрия сохраняется —
-коммодити, и даже довольный пользователь ставит картинку ниже списка покупок.
+Do not compete on the render. Twenty seconds, dozens of styles, geometry
+preserved — that is a commodity, and even a satisfied user ranked the picture
+below the shopping list.
 
 ---
 
-## 5. Граница бесплатного и платного
+## 5. The free/paid boundary
 
-**Принцип: линия проходит по наличию каталога.** Она совпадает и с границей
-издержек, и с границей ценности, и с линией, по которой `golden-ratio`
-превращается в бизнес (`FURNITURE_DEPTHS` слева, каталог справа).
+**Principle: the line follows the presence of a catalog.** It coincides with the
+cost boundary, the value boundary, and the exact line along which `golden-ratio`
+becomes a business (`FURNITURE_DEPTHS` on the left, the catalog on the right).
 
-### 5.1 Бесплатный уровень — обобщённое
+### 5.1 Free tier — the generic
 
-- `FR-FREE-01` геометрия комнаты из введённых размеров;
-- `FR-FREE-02` план в масштабе (2D SVG) + 3D-просмотр — наследие `golden-ratio`;
-- `FR-FREE-03` проходы по архетипам (`FURNITURE_DEPTHS`) с рейтингом
+- `FR-FREE-01` room geometry from entered dimensions;
+- `FR-FREE-02` to-scale plan (2D SVG) plus 3D view — inherited from `golden-ratio`;
+- `FR-FREE-03` clearances against archetypes (`FURNITURE_DEPTHS`) rated
   comfortable / acceptable / tight;
 - `FR-FREE-04` **Delivery Path Check** (§9);
-- `FR-FREE-05` **«Друга думка» / негативний відбір** (§5.3) — головний гачок;
-- `FR-FREE-06` **атмосферный AI-рендер**: настроение и стиль, **без размерных
-  линий, без подписей, без названий товаров, без цен**, с вотермаркой и явной
-  плашкой «не для замовлення».
+- `FR-FREE-05` **"Second opinion" / negative selection** (§5.4) — the main hook;
+- `FR-FREE-06` **atmospheric AI render**: mood and style only, **no dimension
+  lines, no labels, no product names, no prices**, watermarked, with an explicit
+  "не для замовлення" ("not for ordering") banner.
 
-### 5.2 Платный уровень — конкретное
+### 5.2 Paid tier — the specific
 
-- `FR-PAID-01` реальные SKU с реальными габаритами изделия **и упаковки**;
-- `FR-PAID-02` зазоры, пересчитанные по этим габаритам; карта конфликтов;
-- `FR-PAID-03` технический план с размерными линиями;
-- `FR-PAID-04` полная стоимость с доставкой и сборкой (§10);
-- `FR-PAID-05` список покупок и ссылки;
+- `FR-PAID-01` real SKUs with real product **and packaging** dimensions;
+- `FR-PAID-02` clearances recomputed against those dimensions; a conflict map;
+- `FR-PAID-03` the technical plan with dimension lines;
+- `FR-PAID-04` full cost including delivery and assembly (§10);
+- `FR-PAID-05` shopping list and links;
 - `FR-PAID-06` Safe Swap;
 - `FR-PAID-07` Availability Recovery;
-- `FR-PAID-08` рендер, выведенный из проверенной сцены, с легендой товаров.
+- `FR-PAID-08` a render derived from the verified scene, with a product legend.
 
-### 5.3 Формулировка для пользователя
+### 5.3 The one-line explanation to the user
 
-> **Бесплатно — поместится ли диван.
-> Платно — поместится ли вот этот диван и сколько он на самом деле стоит.**
+> **Free — will a sofa fit.
+> Paid — will *this* sofa fit, and what it actually costs.**
 
-### 5.4 «Не купуйте це» как заголовочная функция
+### 5.4 "Don't buy this" as a headline feature
 
-`FR-FREE-05`. Пользователь вставляет ссылку на товар, который уже присмотрел,
-и получает вердикт: **влезет / не влезет / влезет, но убьёт проход**.
+`FR-FREE-05`. The user pastes a link to a product they are already considering
+and gets a verdict: **fits / does not fit / fits but kills the walkway**.
 
-Обоснование: это ровно то, за что пользователь публично поблагодарил MeltFlex
-(§1.3). Мгновенная ценность, ноль вкусовой ответственности, легко шарится,
-не требует каталога (габариты одного товара — факт, см. §12).
+Rationale: this is precisely what the user publicly thanked MeltFlex for (§1.3).
+Instant value, zero taste liability, highly shareable, and it needs no catalog —
+the dimensions of a single product are facts (see §12).
 
-### 5.5 Принятый риск каннибализации
+### 5.5 Accepted cannibalisation risk
 
-**`RISK-CANNIBAL`.** Бесплатный уровень может оказаться достаточным для
-большинства. «Диван глубиной 90 см встанет, проход 870 мм» — многим хватит.
+**`RISK-CANNIBAL`.** The free tier may be sufficient for most users. "A sofa
+900 mm deep will fit; clearance 870 mm" is enough for many people.
 
-Это **не дефект, а главный эксперимент**: конверсия free → paid прямо измеряет,
-стоит ли обещание денег. Метрика `M-CONV-01` (§16).
+This is **not a defect but the central experiment**: free → paid conversion
+measures directly whether the promise is worth money. Metric `M-CONV-01` (§16).
 
 ---
 
-## 6. Рушій достоверности — ядро продукта
+## 6. The confidence engine — the core of the product
 
-### 6.1 Отвергнутое решение: общий score комнаты
+### 6.1 Rejected design: a single room-level score
 
-**`BC-CONF-01`. Единый «score точности комнаты» запрещён.** Комната может быть
-на 90% уверенной, и при этом единственная стена, решающая судьбу шкафа, —
-чистая догадка. Такой показатель дезинформирует.
+**`BC-CONF-01`. A single "room accuracy score" is forbidden.** A room can be 90%
+confident overall while the one wall that decides the wardrobe is pure guesswork.
+Such a number misinforms.
 
-### 6.2 Принятое решение: confidence как свойство связи
+### 6.2 Accepted design: confidence as a property of each edge
 
-**Confidence принадлежит каждому входному числу и распространяется по
-вычислению. Результат наследует худшую уверенность своих входов.**
+**Confidence belongs to every input number and propagates through the
+computation. A result inherits the worst confidence among its inputs.**
 
 ```
 computeWalkways(roomWidth, furnitureDepth, oppositeDepth)
-→ confidence(available) = min(confidence входов)
+→ confidence(available) = min(confidence of inputs)
 ```
 
-`FR-GEO-01`. Каждая чистая функция в `lib/calculations.ts` получает обёртку,
-переносящую источник и погрешность.
+`FR-GEO-01`. Every pure function in `lib/calculations.ts` gains a wrapper that
+carries source and error margin through.
 
-### 6.3 Интервальная арифметика — механизм
+### 6.3 Interval arithmetic — the mechanism
 
-`FR-GEO-02`. Рушій считает не числа, а интервалы:
+`FR-GEO-02`. The engine computes intervals, not scalars:
 
 ```
 available = (roomWidth ± e₁) − (depth ± e₂)
 ```
 
-`FR-GEO-03`. `rateWalkway` применяется к **интервалу**, а не к точке, и решает
-по одному признаку — **пересекает ли интервал порог**:
+`FR-GEO-03`. `rateWalkway` is applied to the **interval**, not to a point, and
+decides on a single criterion — **does the interval straddle the threshold?**
 
-| Случай | Интервал vs порог 900 мм | Действие |
+| Case | Interval vs 900 mm threshold | Action |
 |---|---|---|
-| 1400 ± 50 | весь выше порога | скана достаточно, **замер не нужен** |
-| 910 ± 50 | **седлает порог** | **просим рулетку** |
-| 700 ± 50 | весь ниже порога | конфликт, замер не спасёт |
+| 1400 ± 50 | entirely above | the scan suffices, **no measurement needed** |
+| 910 ± 50 | **straddles the threshold** | **ask for the tape measure** |
+| 700 ± 50 | entirely below | conflict; measuring will not save it |
 
-**Следствие — главная UX-ценность продукта:** система просит померить **только
-то, что решает исход**. Обычно 1–3 числа, а не 7. Пользователь видит не «дайте
-нам данные», а «от этого зависит, встанет ли шкаф».
+**Consequence — the product's principal UX value:** the system asks the user to
+measure **only what actually decides the outcome**. Usually 1–3 numbers, not 7.
+The user does not see "give us data" but "this determines whether the wardrobe
+fits."
 
-### 6.4 Четыре статуса — выводятся, не назначаются
+### 6.4 The four statuses — derived, never assigned
 
 `FR-GEO-04`:
 
-| Статус | Условие |
+| Status | Condition |
 |---|---|
-| `Verified` | все входы результата обмерены вручную |
-| `Estimated` | часть входов из скана/фото, но интервал не седлает порог |
-| `Needs measurement` | вход слабый **и** интервал седлает порог |
-| `Conflict` | не проходит даже по оптимистичной границе интервала |
+| `Verified` | every input to the result was measured by hand |
+| `Estimated` | some inputs come from a scan or photo, but the interval does not straddle a threshold |
+| `Needs measurement` | an input is weak **and** the interval straddles a threshold |
+| `Conflict` | fails even at the optimistic bound of the interval |
 
-### 6.5 UI-правило
+### 6.5 UI rule
 
-`BC-CONF-02`. Наружу это **не число и не «score»**. Как только показатель —
-число, его начинают набивать. Показывать состояние: **«готово до перевірки» /
-«потрібен 1 замір» / «потрібно 3 заміри»**.
+`BC-CONF-02`. This must **not** surface as a number or a "score". The moment a
+measure becomes a number, people start gaming it. Show a state instead:
+**"ready to verify" / "1 measurement needed" / "3 measurements needed"**
+(UA: «готово до перевірки» / «потрібен 1 замір» / «потрібно 3 заміри»).
 
-### 6.6 Обход — сознательно не защищаемся
+### 6.6 Circumvention — deliberately not defended against
 
-`BC-CONF-03`. Пользователь может вбить выдуманные числа и разблокировать платный
-уровень. Ловить не надо. Следствие: **confidence — сигнал качества для
-пользователя, а не сигнал доверия для системы.** Никакая внутренняя логика
-(риски, гарантии, аналитика качества) не строится на нём.
+`BC-CONF-03`. A user can enter invented numbers to unlock the paid tier. Do not
+police this. The consequence: **confidence is a quality signal for the user, not
+a trust signal for the system.** No internal logic — risk, guarantees, quality
+analytics — may be built on it.
 
-### 6.7 Юридическая формулировка
+### 6.7 Legal framing
 
-`BC-LEGAL-01`. Продукт выдаёт **FitProof Report**, а не гарантию. Формулировки
-в UI и в договоре-оферте не должны создавать впечатление гарантии результата.
-См. `RISK-ASYM` (§18).
+`BC-LEGAL-01`. The product issues a **FitProof Report**, not a guarantee.
+Neither the UI nor the terms of service may create the impression of a guaranteed
+outcome. See `RISK-ASYM` (§18).
 
 ---
 
-## 7. Ввод геометрии
+## 7. Geometry input
 
-### 7.1 Решение
+### 7.1 Decision
 
-**Три источника работают параллельно с первого дня**, различаются только
-величиной погрешности `e`:
+**Three sources operate in parallel from day one**, differing only in the size of
+the error term `e`:
 
-| Источник | Погрешность | Статус по умолчанию |
+| Source | Error | Default status |
 |---|---|---|
-| Ручной обмер (рулетка) | малая | `Verified` |
-| iOS LiDAR / RoomPlan | ±2–5 см по стенам, хуже по нишам, радиаторам, откосам | `Estimated` |
-| Фото / план | большая, честно объявленная | `Estimated` |
+| Manual measurement (tape) | small | `Verified` |
+| iOS LiDAR / RoomPlan | ±2–5 cm on walls, worse on niches, radiators, reveals | `Estimated` |
+| Photo / floor plan | large, honestly declared | `Estimated` |
 
-`FR-GEO-05`. Комбинация: скан или фото даёт быструю черновую геометрию,
-далее §6.3 определяет, какие 1–3 числа надо подтвердить рулеткой, чтобы
-результат стал `Verified`.
+`FR-GEO-05`. The combination: a scan or photo produces fast draft geometry, then
+§6.3 determines which 1–3 numbers must be confirmed with a tape measure for the
+result to become `Verified`.
 
-### 7.2 Почему это лучше обоих крайних вариантов
+### 7.2 Why this beats either extreme
 
-- Обмер превращается из барьера на входе в **адресный запрос по факту**.
-- Paywall перестаёт быть удержанием — он становится **честным условием
-  качества**: платный план нельзя выдать, пока данных не хватает на проверку.
-- Скан больше не обязан быть точным. Он обязан быть **приблизительно верным
-  и честным насчёт своей погрешности**. Это кардинально более низкая планка.
+- Measurement changes from an entry barrier into an **on-demand, targeted
+  request**.
+- The paywall stops being a withholding tactic and becomes an **honest quality
+  condition**: the paid plan cannot be issued until the data supports
+  verification.
+- The scan no longer has to be accurate. It has to be **approximately right and
+  honest about its own error**. That is a dramatically lower bar.
 
-### 7.3 Фото — только контекст
+### 7.3 Photos are context only
 
-`BC-GEO-01`. Фото используется для стиля, рендера и понимания «что уже стоит».
-**Ни одно число из фото не попадает в расчёт как `Verified`.**
+`BC-GEO-01`. Photos are used for style, rendering, and understanding what is
+already in the room. **No number extracted from a photo may enter a computation
+as `Verified`.**
 
-### 7.4 Входная модель — обязательные поля
+### 7.4 Input model — required fields
 
-`FR-GEO-06`. Помимо длины/ширины/высоты:
+`FR-GEO-06`. Beyond length/width/height:
 
-- ширина дверного проёма комнаты, **сторона и направление открывания**;
-- положение и размер окон; высота подоконника;
-- ниши и выступы;
-- **радиаторы, трубы, розетки и выключатели** (определяют, куда можно ставить
-  ТВ, стол, кровать) — см. `GAP-04` (§20);
-- **существующая мебель, которая остаётся** — как обмеренное препятствие без
-  SKU, см. `GAP-01` (§20);
-- **данные дома для Delivery Path Check** — этаж, лифт (габариты кабины и
-  дверей), ширина подъезда и лестничных маршей, повороты — см. `GAP-03`.
+- room door opening width, **hinge side and swing direction**;
+- window positions and sizes; sill height;
+- niches and projections;
+- **radiators, pipes, sockets and switches** (they determine where a TV, desk or
+  bed can go) — see `GAP-04` (§20);
+- **existing furniture that stays** — as a measured obstacle with no SKU, see
+  `GAP-01` (§20);
+- **building data for Delivery Path Check** — floor, lift (cabin and door
+  dimensions), stairwell and entrance width, turns — see `GAP-03`.
 
-### 7.5 Единицы
+### 7.5 Units
 
-`BC-UNITS-01`. Внутреннее представление — **миллиметры** (как в `golden-ratio`).
-Отображение потребителю — **сантиметры и метры**. Архитектор думает в мм,
-покупатель — в см; смешение недопустимо.
+`BC-UNITS-01`. Internal representation is **millimetres** (as in `golden-ratio`).
+Consumer-facing display is **centimetres and metres**. Architects think in mm,
+buyers think in cm; mixing the two is not permitted.
 
 ---
 
-## 8. Платформы
+## 8. Platforms
 
-### 8.1 Решение: iOS — это датчик, а не клиент
+### 8.1 Decision: iOS is a sensor, not a client
 
-| Платформа | Роль |
+| Platform | Role |
 |---|---|
-| **iOS** | RoomPlan-скан → геометрия с интервалами → в проект. Плюс **весь бесплатный уровень** работает внутри приложения |
-| **Web** | весь продукт: обмер, уточнение, каталог, SKU, стоимость, список покупок, рендер, оплата |
-| **Android** | загрузка плана/фото + ручной обмер через веб; нативного скана нет |
-| **Общее** | один бэкенд, один проект; скан приземляется в проект, работа продолжается на вебе |
+| **iOS** | RoomPlan scan → geometry with intervals → into the project. Plus **the entire free tier** runs inside the app |
+| **Web** | the whole product: measurement, refinement, catalog, SKUs, cost, shopping list, render, payment |
+| **Android** | plan/photo upload and manual measurement via the web; no native scan |
+| **Shared** | one backend, one project; the scan lands in a project and work continues on the web |
 
-`TC-PLATFORM-01`. LiDAR/RoomPlan **недоступен из браузера** — это нативный
-iOS-фреймворк, WebXR его не отдаёт. «Скан с первого дня» означает нативное
-iOS-приложение.
+`TC-PLATFORM-01`. LiDAR/RoomPlan is **not available from a browser** — it is a
+native iOS framework and WebXR does not expose it. "Scanning from day one"
+therefore implies a native iOS app.
 
-### 8.2 Обязательное условие App Store
+### 8.2 Mandatory App Store condition
 
-`BC-IOS-01`. **Бесплатный уровень обязан работать внутри приложения и давать
-результат без перехода на веб.** Приложение, которое только сканирует и
-отправляет на сайт, отклоняется по guideline 4.2 («минимальная
-функциональность»). Это условие прохождения ревью, а не украшение.
+`BC-IOS-01`. **The free tier must work inside the app and produce a result
+without sending the user to the web.** An app that only scans and hands off to a
+website is rejected under guideline 4.2 ("minimal functionality"). This is a
+review-passing requirement, not a nicety.
 
-Реализация: бесплатный слой — уже написанная чистая математика; отдавать через
-встроенный веб-вью, **не переписывая на Swift**.
+Implementation: the free tier is already-written pure maths; serve it through an
+embedded web view, **do not rewrite it in Swift**.
 
-### 8.3 Деградация
+### 8.3 Degradation
 
-`NFR-DEGRADE-01`. Если iOS отсутствует или отвалился — веб работает полностью,
-просто с более широкими интервалами и бóльшим числом запросов на обмер.
-Архитектура от этого не меняется.
+`NFR-DEGRADE-01`. If iOS is absent or fails, the web works in full — simply with
+wider intervals and more measurement requests. The architecture does not change.
 
-### 8.4 Мобильный веб
+### 8.4 Mobile web
 
-`NFR-MOBILE-01`. Основная аудитория в Украине — mobile-first. Поток обмера
-обязан работать **одной рукой, пока вторая держит рулетку**: один экран — одно
-число, крупные поля, сохранение после каждого ввода. См. `GAP-13` (§20).
+`NFR-MOBILE-01`. The core Ukrainian audience is mobile-first. The measurement
+flow must work **one-handed, while the other hand holds the tape measure**: one
+screen per number, large targets, save after every entry. See `GAP-13` (§20).
 
 ---
 
 ## 9. Delivery Path Check
 
-### 9.1 Что проверяется
+### 9.1 What is checked
 
-`FR-DPC-01`. Последовательность препятствий как цепочка 3D-прямоугольников
-с поворотами: входная дверь подъезда → лестница/лифт → повороты коридора →
-входная дверь квартиры → дверь комнаты.
+`FR-DPC-01`. The obstacle sequence as a chain of 3D rectangles with rotations:
+building entrance door → stairs or lift → corridor turns → flat entrance door →
+room door.
 
-### 9.2 Критично: коробка против собранного изделия
+### 9.2 Critical: the box versus the assembled item
 
-`FR-DPC-02`, **`GAP-02` — крупнейший выявленный пробел**.
+`FR-DPC-02`, **`GAP-02` — the single largest gap identified**.
 
-Для flat-pack мебели проверять надо **габариты упаковки**, а не собранного
-изделия. Шкаф, который не проходит в дверь собранным, свободно проходит
-в коробках. Для собранной мягкой мебели (диван) — наоборот, проверять надо
-изделие целиком.
+For flat-pack furniture the check must use **packaging dimensions**, not those of
+the assembled item. A wardrobe that will not pass through the door assembled
+passes easily in boxes. For pre-assembled upholstered furniture (a sofa) the
+opposite holds: the whole item must be checked.
 
-**Следствие:** каждый SKU обязан нести признак `assembly: 'flat-pack' |
-'assembled' | 'partial'`, и Delivery Path Check выбирает габариты по нему.
-Без этого признака функция даёт **систематически неверный ответ** на самой
-массовой категории украинской мебели.
+**Consequence:** every SKU must carry `assembly: 'flat-pack' | 'assembled' |
+'partial'`, and Delivery Path Check selects dimensions accordingly. Without this
+flag the feature returns a **systematically wrong answer** for the largest
+category of Ukrainian furniture.
 
-### 9.3 Нова Пошта
+### 9.3 Nova Poshta
 
-`FR-DPC-03`. Ограничения по габаритам для разных типов доставки и отделений
-опубликованы перевозчиком. Брать из актуальной документации НП.
+`FR-DPC-03`. Dimensional limits per delivery type and branch class are published
+by the carrier. Take them from current Nova Poshta documentation.
 
-**`BC-DPC-01`. Запрещено зашивать числовые лимиты НП из памяти или из вторичных
-источников.** Только из официальной документации, с датой проверки в данных.
+**`BC-DPC-01`. Hard-coding Nova Poshta limits from memory or from secondary
+sources is forbidden.** Official documentation only, with a check date stored
+alongside the data.
 
-### 9.4 Роль в продукте
+### 9.4 Role in the product
 
-Delivery Path Check — **верх воронки, а не продукт**. Ценность одноразовая,
-механика объясняется за 5 секунд, отлично шарится, есть поисковый спрос
-(«чи влізе диван у ліфт»). Бесплатный, без регистрации.
-
----
-
-## 10. Полная стоимость
-
-`FR-COST-01`. Итоговая сумма обязана включать: товары, доставку, сборку, налоги,
-расходники, скидки, **минимальные суммы заказов** по каждому магазину.
-
-`FR-COST-02`. Режимы оптимизации: минимальная итоговая стоимость / минимум
-магазинов и доставок / самая быстрая доставка / баланс цены и качества.
-
-`FR-COST-03`. **Окно валидности цены.** Цены в гривне двигаются с курсом.
-План, сгенерированный 3 недели назад, может расходиться на 10%. Каждая смета
-несёт дату расчёта и срок валидности; по истечении — пересчёт.
-См. `GAP-09` (§20).
-
-`FR-COST-04` **Availability Recovery.** Если товар кончился или подорожал:
-найти совместимую замену → проверить габариты → сохранить стиль → пересчитать
-бюджет → показать разницу.
-
-**`BC-COST-01`.** Мульти-ритейл — одновременно USP и главный операционный риск:
-он ломает доставку, сборку и минимальные заказы. Полная стоимость обязана это
-показывать, а не прятать.
+Delivery Path Check is **top of funnel, not the product**. Its value is
+one-shot, the mechanic explains itself in five seconds, it shares well, and
+search demand exists ("чи влізе диван у ліфт"). Free, no registration.
 
 ---
 
-## 11. Каталог
+## 10. Total cost
 
-### 11.1 Критерий отбора (неочевидный)
+`FR-COST-01`. The final figure must include: goods, delivery, assembly, taxes,
+consumables, discounts, and **per-retailer minimum order values**.
 
-Нужен **не самый большой ассортимент, а чистые данные и опубликованные габариты
-упаковки**. Упаковку почти никто не публикует — кроме тех, кто отгружает
-плоскими коробками. Поэтому flat-pack и производители идут выше маркетплейсов.
+`FR-COST-02`. Optimisation modes: lowest total cost / fewest retailers and
+deliveries / fastest delivery / best price-quality balance.
 
-### 11.2 Объём первой версии
+`FR-COST-03`. **Price validity window.** Hryvnia prices move with the exchange
+rate. A plan generated three weeks ago may be off by 10%. Every estimate carries
+a calculation date and a validity period; past that, it is recomputed.
+See `GAP-09` (§20).
 
-`BC-CAT-01`. Один-два ритейлера, одна страна, одна категория комнаты
-(гостиная **или** спальня), **300–600 SKU**. Не 1500: на комнату достаточно
-~8 типов предметов × ~50 вариантов.
+`FR-COST-04` **Availability Recovery.** When an item goes out of stock or rises
+in price: find a compatible substitute → verify dimensions → preserve style →
+recompute the budget → show the user the difference.
 
-### 11.3 Обязательные поля SKU
+**`BC-COST-01`.** Multi-retailer sourcing is simultaneously the USP and the
+principal operational risk: it breaks delivery, assembly and minimum order
+values. Total cost must expose this, not hide it.
+
+---
+
+## 11. Catalog
+
+### 11.1 The selection criterion (non-obvious)
+
+What is needed is **not the largest assortment but clean data and published
+packaging dimensions**. Almost nobody publishes packaging — except those who ship
+flat. Flat-pack retailers and manufacturers therefore rank above marketplaces.
+
+### 11.2 Scope of version one
+
+`BC-CAT-01`. One or two retailers, one country, one room category (living room
+**or** bedroom), **300–600 SKUs**. Not 1500: a room needs roughly 8 item types ×
+~50 variants.
+
+### 11.3 Required SKU fields
 
 `FR-CAT-01`:
 
-| Поле | Источник |
+| Field | Source |
 |---|---|
-| габариты изделия (Д×Ш×В) | карточка товара, ручная сверка |
-| **габариты упаковки** | почти нет в фидах; критично для §9.2 |
-| **`assembly`** (`flat-pack` / `assembled` / `partial`) | **выводится вручную; определяет §9.2** |
-| **clearance-зона** (выдвижение ящика, открывание дверцы) | **выводится из типа предмета вручную — этого нет нигде** |
-| цена, валюта, наличие, регион | партнёрский фид |
-| срок доставки, стоимость сборки | ритейлер |
-| **`made_to_order`** + срок | ритейлер; определяет необратимость (§3.2) |
-| 2D-футпринт + высота | выводится из габаритов |
-| источник, `checked_at`, confidence | наша система |
+| product dimensions (L×W×H) | product page, manual verification |
+| **packaging dimensions** | rarely in feeds; critical for §9.2 |
+| **`assembly`** (`flat-pack` / `assembled` / `partial`) | **derived manually; governs §9.2** |
+| **clearance zone** (drawer pull-out, door swing) | **derived from item type manually — exists nowhere** |
+| price, currency, availability, region | affiliate feed |
+| delivery lead time, assembly cost | retailer |
+| **`made_to_order`** plus lead time | retailer; determines irreversibility (§3.2) |
+| 2D footprint plus height | derived from dimensions |
+| source, `checked_at`, confidence | our system |
 
-Строки «clearance» и «assembly» — **реальный дифференциатор в данных**.
-`FURNITURE_DEPTHS` в `golden-ratio` — прототип этой таблицы на трёх архетипах.
+The `clearance` and `assembly` rows are the **real differentiator in the data**.
+`FURNITURE_DEPTHS` in `golden-ratio` is the three-archetype prototype of this
+table.
 
-### 11.4 Версионирование
+### 11.4 Versioning
 
-`TC-CAT-01`. Каталог версионируется снимками; план ссылается на
-`catalog_snapshot_id`. **Без этого Availability Recovery технически невозможен.**
+`TC-CAT-01`. The catalog is versioned by snapshot; a plan references a
+`catalog_snapshot_id`. **Without this, Availability Recovery is technically
+impossible.**
 
-### 11.5 Топ-5 кандидатов (Украина)
+### 11.5 Top five candidates (Ukraine)
 
-| # | Кандидат | За | Против |
+| # | Candidate | For | Against |
 |---|---|---|---|
-| 1 | **JYSK Україна** (jysk.ua) | моно-бренд, flat-pack (упаковка реально существует), единая дисциплина данных, ценовой сегмент совпадает с beachhead | корпоративные решения датские; наличие UA-партнёрки не подтверждено |
-| 2 | **Епіцентр К** (epicentrk.ua) | крупнейшая home-сеть, собственные ТМ = чистые данные, 230+ пунктов выдачи в 200 городах | часть ассортимента маркетплейсная |
-| 3 | **Украинские фабрики с собственным онлайном** (Blest; корпусные бренды — Black Red White, ANOVA, ADK, Baltic House) | нормальные спецификации, заинтересованы в канале, **лучшие шансы на первый договор** | каждая по отдельности мала |
-| 4 | **Taburetka.ua / 4ROOM** | один договор покрывает много фабрик; 4ROOM — крупнейший мебельный ТЦ Киева | агрегатор, данные сводные, упаковки скорее нет |
-| 5 | **Rozetka** | доминирующий маркетплейс, реальная партнёрская инфраструктура | габариты заполняют продавцы, упаковки нет, дубли SKU |
+| 1 | **JYSK Ukraine** (jysk.ua) | mono-brand, flat-pack (packaging data genuinely exists), uniform data discipline, price tier matches the beachhead | decisions are made in Denmark; a UA affiliate programme is unconfirmed |
+| 2 | **Epicentr K** (epicentrk.ua) | largest home retail network, own brands mean clean data, 230+ pickup points across 200 cities | part of the assortment is marketplace-like |
+| 3 | **Ukrainian factories with their own online stores** (Blest; case-goods brands — Black Red White, ANOVA, ADK, Baltic House) | proper specifications, motivated by the sales channel, **the best odds for a first contract** | each is individually small |
+| 4 | **Taburetka.ua / 4ROOM** | one agreement covers many factories; 4ROOM is Kyiv's largest furniture mall | aggregator, aggregated data, packaging unlikely |
+| 5 | **Rozetka** | dominant marketplace, real affiliate infrastructure | dimensions entered by sellers, no packaging, duplicate SKUs |
 
-**`BC-CAT-02`. Rozetka — слой цены и наличия, НЕ источник размеров.**
+**`BC-CAT-02`. Rozetka is a price-and-availability layer, NOT a source of
+dimensions.**
 
-**IKEA Україна — вне пятёрки.** Лучшее в мире качество данных для задачи, но
-традиционно без партнёрской программы, ассортимент в UA ограничен.
-`BC-CAT-03`: **неофициальный IKEA API запрещён** (легальный риск, история
-поломок). Только официальное партнёрство и только позже.
+**IKEA Ukraine — outside the top five.** The best data quality in the world for
+this job, but traditionally no affiliate programme and a limited UA assortment.
+`BC-CAT-03`: **the unofficial IKEA API is forbidden** (legal risk, history of
+breakage). Official partnership only, and later.
 
-**Sinsay — отвергнут.** Fast-fashion + home decor: текстиль, посуда, мелкий
-декор. Не мебельный каталог. Для несущих предметов бесполезен, а габариты
-декора рушію не нужны — подушка не создаёт конфликта проходов. Максимум — слой
-аксессуаров позже.
+**Sinsay — rejected.** Fast fashion plus home decor: textiles, tableware, small
+decorative items. Not a furniture catalog. Useless for load-bearing items, and
+the engine does not need decor dimensions — a cushion creates no walkway
+conflict. At most an accessories layer, later.
 
-### 11.6 Якорная стратегия
+### 11.6 Anchor strategy
 
-**JYSK + одна украинская фабрика** как якорная пара, **Rozetka сверху** как слой
-цены и наличия. Этого достаточно для 300–600 SKU на гостиную и спальню.
+**JYSK plus one Ukrainian factory** as the anchor pair, **Rozetka on top** as the
+price-and-availability layer. That is sufficient for 300–600 SKUs covering a
+living room and a bedroom.
 
-### 11.7 Скрипт первого обращения
+### 11.7 First-contact script
 
-Просить четыре вещи:
-1. товарный фид XML/CSV с ценой и наличием;
-2. **письменное разрешение на использование фото и названий для продвижения**;
-3. поля габаритов изделия **и упаковки**;
-4. условия доставки и сборки.
+Ask for four things:
+1. a product feed (XML/CSV) with price and availability;
+2. **written permission to use photographs and product names for promotion**;
+3. product **and packaging** dimension fields;
+4. delivery and assembly terms.
 
-Предлагать взамен: трафик с подтверждённым намерением купить, снижение возвратов
-«не подошло по размеру», бесплатный виджет проверки на их карточке товара
-(вход в retailer-side, §18.3).
+Offer in return: traffic with confirmed purchase intent, a reduction in
+"wrong size" returns, and a free verification widget on their product page
+(the entry point to retailer-side, §18.3).
 
-Партнёрские сети в Украине: **SalesDoubler**, **Admitad**, прямые программы
-ритейлеров.
+Affiliate networks operating in Ukraine: **SalesDoubler**, **Admitad**, and
+retailers' own programmes.
 
 ---
 
-## 12. Правовой режим данных
+## 12. Legal regime for product data
 
-> Структурный разбор, не юридическое заключение. Перед первым договором —
-> украинский юрист по IP. Основание: Закон «Про авторське право і суміжні права»
-> (ред. 2022, №2811-IX).
+> A structural analysis, not legal advice. Engage a Ukrainian IP lawyer before
+> the first contract. Basis: the Law of Ukraine "Про авторське право і суміжні
+> права" (2022 revision, No. 2811-IX).
 
-### 12.1 Ключевое разделение
+### 12.1 The key distinction
 
-**Размеры — это факты. Фото — это произведение.**
+**Dimensions are facts. Photographs are works.**
 
-| Объект | Статус | Можно ли |
+| Object | Status | Permitted? |
 |---|---|---|
-| Габариты одного товара | факт, не охраняется | **да** |
-| Цена, наличие, срок доставки | факт | **да** |
-| Название товара / артикул | как правило не охраняется | **да** |
-| Текстовое описание | твір | пересказ своими словами — да, копирование — нет |
-| **Фото товара** | **фотографічний твір** | **только по лицензии** |
-| 3D-модель производителя | твір | только по лицензии |
-| **Массовая выгрузка каталога** | **sui generis право на БД** | **только по договору** |
-| Логотип, название бренда | ТМ | номинативно — да; «офіційний партнер» без договора — нет |
+| Dimensions of a single product | fact, unprotected | **yes** |
+| Price, availability, lead time | fact | **yes** |
+| Product name / article number | generally unprotected | **yes** |
+| Textual description | a work | paraphrasing yes, copying no |
+| **Product photograph** | **a photographic work** | **licence required** |
+| Manufacturer's 3D model | a work | licence required |
+| **Bulk extraction of a catalog** | **sui generis database right** | **contract required** |
+| Brand logo and name | trade mark | nominative use yes; "official partner" without a contract no |
 
-### 12.2 Две ловушки
+### 12.2 Two traps
 
-**`LC-01` Право на базу данных.** Редакция 2022 ввела sui generis охрану баз
-данных по образцу директивы ЕС 96/9/EC — защищает **существенные инвестиции**
-в сбор, проверку и представление содержимого. Посмотреть габариты одного товара,
-на который даётся ссылка пользователю, — законно. Систематически выкачать
-существенную часть каталога — нарушение, **даже если каждый отдельный факт
-свободен**. Именно это делает scraping как основу бизнеса противоправным,
-а не просто неэтичным.
+**`LC-01` The database right.** The 2022 revision introduced sui generis
+protection for databases modelled on EU Directive 96/9/EC, protecting
+**substantial investment** in obtaining, verifying and presenting the contents.
+Looking up the dimensions of a single product you are linking the user to is
+lawful. Systematically extracting a substantial part of a catalog is
+infringement, **even though every individual fact is free**. This is what makes
+scraping-as-a-foundation unlawful rather than merely distasteful.
 
-**`LC-02` Умови користування.** Даже там, где IP молчит, ToS может запрещать
-автоматизированный доступ — договорное нарушение, основание для претензии
-и блокировки. Агрессивный автоматический доступ в недобросовестной трактовке
-может задеть ст. 361 ККУ.
+**`LC-02` Terms of use.** Even where IP law is silent, a site's terms may
+prohibit automated access — a contractual breach, grounds for a claim and for
+blocking. Aggressive automated access could, on a bad-faith reading, touch
+Article 361 of the Criminal Code.
 
-**`BC-LEGAL-02`. Scraping как основа каталога запрещён. Неофициальные API
-запрещены.**
+**`BC-LEGAL-02`. Scraping as the basis of the catalog is forbidden. Unofficial
+APIs are forbidden.**
 
-### 12.3 Три легальных пути для фото
+### 12.3 Three lawful routes for photographs
 
-1. **Партнёрская программа** — участие обычно включает прямое разрешение
-   использовать фото, названия и цены для продвижения этих товаров. Закрывает
-   вопрос одним договором.
-2. **Прямой договор с производителем** — лучший вариант: фид + лицензия на фото +
-   готовность дать габариты упаковки.
-3. **Собственные рендеры — архитектурный козырь.** Есть геометрия → можно
-   отрисовать нейтральное изображение из габаритов и атрибутов (цвет, материал),
-   а это факты. **Визуальный слой продукта не зависит от чужих фото.**
-   MeltFlex зависит от чужих изображений и visual search — мы нет.
-   Оговорка `LC-03`: точная репродукция узнаваемого авторского изделия может
-   задеть промисловий зразок; для типовой корпусной мебели это не проблема.
+1. **An affiliate programme** — participation normally includes express
+   permission to use photographs, names and prices to promote those products.
+   One contract settles the question.
+2. **A direct contract with a manufacturer** — the best option: feed, photo
+   licence, and a willingness to supply packaging dimensions.
+3. **Our own renders — the architectural trump card.** We hold the geometry, so
+   we can render a neutral image from dimensions and attributes (colour,
+   material), all of which are facts. **The product's visual layer therefore does
+   not depend on anyone else's photography.** MeltFlex depends on third-party
+   imagery and visual search; we do not.
+   Caveat `LC-03`: faithfully reproducing a recognisable designer piece may
+   engage registered design rights (промисловий зразок); for generic case goods
+   this is not an issue.
 
-### 12.4 Недобросовестная конкуренция
+### 12.4 Unfair competition
 
-`LC-04`. Закон «Про захист від недобросовісної конкуренції» — неправомерное
-использование чужих обозначений и деловой репутации. Нельзя представлять чужой
-каталог как свой.
+`LC-04`. The Law "Про захист від недобросовісної конкуренції" covers the
+improper use of another party's designations and business reputation. Another
+company's catalog may not be presented as our own.
 
 ---
 
-## 13. Архитектура
+## 13. Architecture
 
-### 13.1 Контракт: Scene Graph
+### 13.1 The contract: Scene Graph
 
-`TC-VRP-ARCH-01`. **Единственный носитель состояния.** Все сервисы общаются только
-через него. Всё остальное — производное.
+`TC-VRP-ARCH-01`. **The sole carrier of state.** All services communicate only
+through it. Everything else is derived.
 
 ```
 SceneGraph {
   room {
-    outline: Polygon                     // мм
+    outline: Polygon                     // mm
     openings[]  { type: door|window, pos, width, height,
                   swing: in|out, hinge: left|right }
     obstacles[] { type: radiator|pipe|socket|niche|existing_furniture,
                   bbox, source, confidence }
     building    { floor, lift {w,d,h,doorW}, stairW, corridorW, turns[] }
-    // каждое число несёт: value, error, source, measured_at, confidence
+    // every number carries: value, error, source, measured_at, confidence
   }
   items[] {
     sku_ref, catalog_snapshot_id
@@ -683,288 +705,294 @@ SceneGraph {
     placed_by: solver|user
     dims_source, confidence
   }
-  constraints[]  // см. §14
+  constraints[]  // see §14
   budget { total, currency: UAH, spent, mode }
   verdicts[]     // Verified | Estimated | Needs measurement | Conflict
 }
 ```
 
-### 13.2 Четыре сервиса
+### 13.2 Four services
 
-**1. Catalog Service** — единственный источник товарной правды. Нормализация
-(§11.3), версионирование снимками, ingestion-пайплайн (фид + ручная нормализация
-+ QA).
+**1. Catalog Service** — the single source of product truth. Normalisation
+(§11.3), snapshot versioning, ingestion pipeline (feed plus manual normalisation
+plus QA).
 
-**2. Geometry Engine** — детерминированный, **без AI**, offline-тестируемый.
-Вход: контур + проёмы + препятствия + SKU + constraints. Выход: валидные позиции
-или структурированный конфликт. Внутри: интервальная арифметика (§6), коллизии,
-clearance, дуги открывания дверей, **циркуляция как граф проходимости**
-(а не попарные расстояния), delivery path как цепочка 3D-прямоугольников
-с поворотами. **Это moat-код.**
+**2. Geometry Engine** — deterministic, **AI-free**, offline-testable. Input:
+outline, openings, obstacles, SKUs, constraints. Output: valid positions or a
+structured conflict. Internals: interval arithmetic (§6), collisions, clearances,
+door swing arcs, **circulation as a traversability graph** (not pairwise
+distances), and the delivery path as a chain of 3D rectangles with rotations.
+**This is the moat code.**
 
-**3. AI Layer** — **без права решать факты**. Три роли:
-- извлечение ограничений из естественного языка → структурированные constraints;
-- генерация кандидатов-наборов SKU, которые Geometry Engine **валидирует**
-  (**generate-and-verify, не generate-and-trust**);
-- объяснение результата словами.
+**3. AI Layer** — **with no authority over facts**. Three roles:
+- extracting constraints from natural language into structured constraints;
+- generating candidate SKU sets that the Geometry Engine then **validates**
+  (**generate-and-verify, never generate-and-trust**);
+- explaining the result in human language.
 
-`BC-AI-01`. **LLM никогда не возвращает координаты как истину.
-LLM не решает, помещается ли диван в нишу.**
+`BC-AI-01`. **The LLM never returns coordinates as truth. The LLM does not decide
+whether a sofa fits in an alcove.**
 
-**4. Renderer** — детерминированный из Scene Graph (three.js). Diffusion —
-только img2img со структурным контролем поверх готового рендера; **не меняет
-стены, положение предметов и форму выбранных товаров**. Это Later.
+**4. Renderer** — deterministic from the Scene Graph (three.js). Diffusion is
+img2img with strict structural control over a finished render only; **it must not
+alter walls, object positions, or the shape of selected products**. This is Later.
 
-### 13.3 Тест архитектуры
+### 13.3 The architecture test
 
-`TC-VRP-ARCH-02`. **Удалите AI Layer целиком — продукт обязан остаться
-работоспособным** (хуже, но корректным). Если нет — построена обёртка над
-image-generation API.
-
----
-
-## 14. Constraint Memory и Safe Swap
-
-`FR-CONSTR-01`. Пользователь фиксирует правила: эту стену не менять; эта мебель
-остаётся; здесь нужен проход 90 см; диван должен раскладываться; материалы для
-дома с животными; без стеклянных столов; доставка до конкретной даты; бюджет
-не превышать.
-
-`FR-CONSTR-02`. Система **обязана сохранять правила во всех итерациях либо
-объяснять конфликт**. Повторная генерация не разрушает предыдущие решения.
-
-`FR-SWAP-01` **Safe Swap.** Замена по командам: дешевле на ₴X; меньше на 20 см;
-доступно до пятницы; из того же магазина; другого цвета; для детей/животных.
-Замена не должна нарушать проходы, бюджет, стиль и остальные решения.
-
-`FR-CONFLICT-01` **Поведение при неразрешимом конфликте** (`GAP-06`). Для
-маленькой украинской квартиры с маленьким бюджетом «ничего не помещается» —
-частый исход. Это момент, где продукт либо зарабатывает доверие, либо теряет
-пользователя. Требуется спроектированный ответ: **какое именно ограничение надо
-ослабить и что это даст** («уберите второй шкаф — освободится 60 см прохода»;
-«+₴3 000 к бюджету открывает 4 варианта»), а не пустой экран «конфликт».
+`TC-VRP-ARCH-02`. **Remove the AI Layer entirely and the product must remain
+functional** — worse, but correct. If it does not, what has been built is a
+wrapper around an image-generation API.
 
 ---
 
-## 15. Пользовательский поток
+## 14. Constraint Memory and Safe Swap
 
-1. **Вход без регистрации.** «Що у вас є?» → фото / план / скан / ручной обмер.
-   Плюс два поля: **бюджет** и дедлайн.
-2. **Геометрия.** Показываем восстановленный контур; запрашиваем подтверждение
-   только тех размеров, чьи интервалы седлают пороги (§6.3).
-3. **Ограничения.** Максимум 5 вопросов: кто живёт, что остаётся, что нельзя
-   двигать, стиль по трём картинкам, бюджет.
-4. **Бесплатное превью.** Один вариант: **план виден полностью, полная
-   стоимость видна полностью, список SKU скрыт**, атмосферный рендер
-   с вотермаркой.
-5. **Paywall.** `BC-PAY-01`: **после полной стоимости, но до списка SKU.**
-   Стоимость доказывает ценность, SKU и есть товар.
-6. **Результат.** Три варианта + FitProof-отчёт + карта проходов + landed cost.
-7. **Редактирование.** Safe Swap, lock, пересчёт.
-8. **Покупка.** Разбивка по магазинам, ссылки, чеклист «що зміряти перед
-   замовленням», **Delivery Path Check финальным шагом**.
-9. **После.** Напоминание через 7 дней, Availability Recovery, follow-up
-   «що купили» (питает North Star).
+`FR-CONSTR-01`. The user pins rules: this wall cannot change; this furniture
+stays; a 90 cm walkway is required here; the sofa must fold out; pet-safe
+materials only; no glass tables; delivery by a specific date; the budget must not
+be exceeded.
+
+`FR-CONSTR-02`. The system **must preserve those rules across every iteration or
+explain the conflict**. Re-generation must not destroy prior decisions.
+
+`FR-SWAP-01` **Safe Swap.** Substitution by command: ₴X cheaper; 20 cm smaller;
+available by Friday; from the same retailer; a different colour; child- or
+pet-safe. A swap must not break walkways, budget, style, or the other decisions.
+
+`FR-CONFLICT-01` **Behaviour when nothing fits** (`GAP-06`). For a small
+Ukrainian flat on a small budget, "nothing fits" is a frequent outcome, not an
+edge case. It is the moment the product either earns trust or loses the user. A
+designed response is required: **which constraint to relax and what that buys**
+("remove the second wardrobe and you gain 60 cm of walkway"; "+₴3,000 to the
+budget opens up four options") — not an empty "conflict" screen.
 
 ---
 
-## 16. Метрики
+## 15. User workflow
+
+1. **Entry, no registration.** "What do you have?" → photo / plan / scan / manual
+   measurement. Plus two fields: **budget** and deadline.
+2. **Geometry.** Show the reconstructed outline; request confirmation only of
+   those dimensions whose intervals straddle a threshold (§6.3).
+3. **Constraints.** Five questions maximum: who lives here, what stays, what
+   cannot move, style from three images, budget.
+4. **Free preview.** One variant: **the plan fully visible, the total cost fully
+   visible, the SKU list hidden**, plus a watermarked atmospheric render.
+5. **Paywall.** `BC-PAY-01`: **after the total cost, before the SKU list.** The
+   cost proves the value; the SKUs are the goods.
+6. **Result.** Three variants plus the FitProof report, walkway map, and landed
+   cost.
+7. **Editing.** Safe Swap, lock, recompute.
+8. **Purchase.** Split by retailer, links, a "measure this before ordering"
+   checklist, and **Delivery Path Check as the final step**.
+9. **After.** A reminder at day 7, Availability Recovery, and a "what did you
+   buy?" follow-up (this feeds the North Star).
+
+---
+
+## 16. Metrics
 
 ### 16.1 North Star
 
-`M-NSM`. **Количество комнат, реально обставленных по проекту приложения.**
-Не количество сгенерированных изображений.
+`M-NSM`. **The number of rooms actually furnished according to the app's plan.**
+Not the number of images generated.
 
-`BC-METRIC-01`. Метрика измерима только через самоотчёт (§18, `RISK-ATTR`).
-Follow-up на 30-й день — обязательная часть продукта, а не опция.
+`BC-METRIC-01`. The metric is measurable only via self-report (§18, `RISK-ATTR`).
+The day-30 follow-up is a mandatory part of the product, not an option.
 
-### 16.2 Продуктовые
+### 16.2 Product metrics
 
-| ID | Метрика |
+| ID | Metric |
 |---|---|
-| `M-CONV-01` | конверсия free → paid (**главный тест гипотезы**, §5.5) |
-| `M-FIT-01` | доля физически допустимых layouts |
-| `M-VER-01` | доля решений со статусом `Verified` |
-| `M-MEAS-01` | среднее число запрошенных замеров на комнату (цель: ≤3) |
-| `M-DROP-01` | доля отвала на шаге обмера |
-| `M-TTF-01` | время до первого исполнимого варианта |
-| `M-AVAIL-01` | доступность выбранных SKU на момент покупки |
-| `M-BUDGET-01` | отклонение итоговой цены от бюджета |
-| `M-BUY-01` | переходы к покупке → подтверждённые покупки |
-| `M-RET-01` | возвраты из-за размеров |
-| `M-CAC-01` | CAC по каналам, отдельно органика и платный |
+| `M-CONV-01` | free → paid conversion (**the primary test of the hypothesis**, §5.5) |
+| `M-FIT-01` | share of physically valid layouts |
+| `M-VER-01` | share of decisions at status `Verified` |
+| `M-MEAS-01` | average measurements requested per room (target ≤3) |
+| `M-DROP-01` | drop-off rate at the measurement step |
+| `M-TTF-01` | time to the first executable variant |
+| `M-AVAIL-01` | availability of chosen SKUs at purchase time |
+| `M-BUDGET-01` | deviation of final price from budget |
+| `M-BUY-01` | click-throughs to purchase → confirmed purchases |
+| `M-RET-01` | returns caused by size |
+| `M-CAC-01` | CAC by channel, organic and paid reported separately |
 
 ---
 
-## 17. Go / No-Go после первого пилота
+## 17. Go / No-Go after the first pilot
 
-### 17.1 Go — только при одновременном выполнении
+### 17.1 Go — only if all hold simultaneously
 
-- ≥20 оплат при CAC ≤ 15% от цены;
-- ≥60% клиентов через 30 дней купили ≥50% позиций;
-- ≥50% возвращаются за второй комнатой или приводят кого-то;
-- `M-VER-01` ≥70% (иначе продукт — домашнее задание);
-- `M-MEAS-01` ≤3 замера;
-- в интервью причиной покупки называют **уверенность и полную стоимость**,
-  а не картинку.
+- ≥20 payments at a CAC ≤15% of price;
+- ≥60% of customers bought ≥50% of the listed items within 30 days;
+- ≥50% return for a second room or refer someone;
+- `M-VER-01` ≥70% (otherwise the product is homework);
+- `M-MEAS-01` ≤3 measurements;
+- in interviews, customers cite **confidence and total cost** as the reason for
+  buying — not the picture.
 
-### 17.2 No-Go / разворот
+### 17.2 No-Go / pivot
 
-- покупают отчёт, но не покупают мебель → продаётся развлечение;
-- **в A/B рендер-группа довольна так же** → USP не ценен (§17.3);
-- >40% решений `Needs measurement` и отвал на этом шаге;
-- CAC без признаков органики;
-- невозможно легально получить размеры для >30% нужных SKU.
+- they buy the report but do not buy furniture → we are selling entertainment;
+- **the render cohort in the A/B is equally satisfied** → the USP has no value
+  (§17.3);
+- >40% of decisions land at `Needs measurement` and users drop off there;
+- CAC shows no sign of an organic component;
+- dimensions cannot be lawfully obtained for >30% of required SKUs.
 
-### 17.3 Обязательный A/B внутри пилота
+### 17.3 Mandatory A/B inside the pilot
 
-**Половине — красивый рендер с примерными товарами; половине — скучный
-технический план с точными SKU и полной стоимостью.**
+**Half receive an attractive render with approximate products; half receive a
+plain technical plan with exact SKUs and total cost.**
 
-Если рендер-группа покупает так же — центральная гипотеза опровергнута.
-Это надо узнать на 20 пользователях, а не через два года.
+If the render cohort buys at the same rate, the central hypothesis is refuted.
+This must be learned across 20 users, not across two years.
 
 ---
 
-## 18. Риски
+## 18. Risks
 
-### 18.1 Непроверенные допущения
+### 18.1 Unvalidated assumptions
 
-| ID | Риск |
+| ID | Risk |
 |---|---|
-| `RISK-WTP` | **платят ли вообще.** Ни одного датапоинта. Первый рубль отодвинут на ~полгода (§18.2) |
-| `RISK-TASTE` | вкусовая неуверенность >> размерной. Человек посмотрит на идеальный план и скажет «но мне не нравится диван» |
-| `RISK-FREQ` | комнату обставляют раз в 5–7 лет. Нет retention → нет органики → каждый евро выручки куплен |
-| `RISK-MOMENT` | обустройство — 20 решений за 3 месяца с участием партнёра и родителей. Продукт «финального ответа» воюет с природой процесса |
-| `RISK-DATA` | точных габаритов и clearance в открытом виде нет почти ни у кого; обещание точности упирается не в алгоритм, а в данные |
-| `RISK-SCAN` | RoomPlan ±2–5 см; при высокой доле `Needs measurement` продукт ощущается как домашнее задание |
-| `RISK-RETAIL` | как только fit-проверка станет ценной, её встроят ритейлеры — данные у них есть, мотивация (возвраты) сильнее. **Мы строим фичу для чужого продукта** |
-| `RISK-ROT` | 1500 SKU — ручной труд; при обороте ассортимента 20–30%/год бежим, чтобы стоять |
-| `RISK-ASYM` | «Verified» асимметрично: 95% успеха не создают репутацию, 5% провалов её убивают. Один вирусный пост «їхній додаток сказав, що поміститься» дороже всего маркетинга |
-| `RISK-ATTR` | человек купит 60% позиций, две поменяет, одну возьмёт с рук. North Star почти неизмерима без самоотчёта |
-| `RISK-WAR` | волатильность наличия, логистика, отключения электричества (влияет на GPU-рендер), аппетит инвесторов к UA-only B2C |
+| `RISK-WTP` | **whether anyone pays at all.** Zero data points. First revenue is pushed out ~six months (§18.2) |
+| `RISK-TASTE` | taste uncertainty far exceeds size uncertainty. A user will look at a perfect plan and say "but I don't like that sofa" |
+| `RISK-FREQ` | a room is furnished once every 5–7 years. No retention → no organic growth → every unit of revenue is bought |
+| `RISK-MOMENT` | furnishing is 20 decisions over 3 months involving a partner and parents. A "final answer in one sitting" product fights the nature of the process |
+| `RISK-DATA` | exact dimensions and clearances are openly available almost nowhere; the accuracy promise is bounded by data, not by algorithms |
+| `RISK-SCAN` | RoomPlan is ±2–5 cm; a high share of `Needs measurement` makes the product feel like homework |
+| `RISK-RETAIL` | once fit-checking proves valuable, retailers will build it in — they already hold the data and their motivation (returns) is stronger. **We may be building a feature for someone else's product** |
+| `RISK-ROT` | 1500 SKUs is manual labour; with 20–30% annual assortment churn we run to stand still |
+| `RISK-ASYM` | "Verified" is asymmetric: 95% success builds no reputation, 5% failure destroys it. One viral post — "their app said it would fit" — costs more than the entire marketing budget |
+| `RISK-ATTR` | a user buys 60% of the list, swaps two items, and gets one second-hand. The North Star is barely measurable without self-report |
+| `RISK-WAR` | availability volatility, logistics, power outages (affecting GPU rendering), and limited investor appetite for UA-only B2C |
 
-### 18.2 Риск объёма — зафиксирован сознательно
+### 18.2 Scope risk — accepted knowingly
 
-За сессию объём вырос до: скан + фото + ручной обмер + iOS + веб + каталог +
-генерация раскладок + рендер + оплата + облачные проекты.
+Over the course of the session, scope grew to: scan + photo + manual measurement
++ iOS + web + catalog + layout generation + rendering + payments + cloud
+projects.
 
-**Оценка: 5–8 месяцев командой 2–3 инженера + 80–250 человеко-часов ручной
-нормализации каталога — до первого платящего пользователя.**
+**Estimate: 5–8 months with 2–3 engineers, plus 80–250 person-hours of manual
+catalog normalisation — before the first paying user.**
 
-Исходная альтернатива (ручной сервис + бесплатный инструмент) стоила ~3 недели
-и давала ответ на `RISK-WTP`. Она отвергнута заказчиком сознательно.
+The original alternative (a manual service plus a free tool) cost ~3 weeks and
+answered `RISK-WTP`. It was declined deliberately.
 
-**Рекомендация, остающаяся в силе:** если есть способ поставить платный слой
-на месяц раньше даже в уродливом виде — он стоит больше, чем любая фича
-из списка.
+**The recommendation still stands:** if there is any way to put the paid layer in
+front of users a month earlier, even in an ugly form, it is worth more than any
+feature on the list.
 
-### 18.3 Контраргумент: почему провалится даже при хорошем продукте
+### 18.3 The counter-argument: why this fails even with a good product
 
-Продукт работает идеально — и всё равно не выживает: низкочастотная и не главная
-боль, категория с высоким CAC и нулевым retention, на данных, которые нам не
-принадлежат, против игроков, которым эта фича нужнее, чем нам.
+The product works perfectly and still does not survive: a real but
+**low-frequency and secondary** pain, in a category with **high CAC and zero
+retention**, built on **data we do not own**, against players **who need this
+feature more than we do**.
 
-**Более сильные альтернативы позиционирования (сохранены как пути разворота):**
+**Stronger alternative positionings (retained as pivot paths):**
 
-1. **Retailer-side (сильнейшая).** «Fit & Delivery check для мебельного
-   e-commerce» — виджет в карточке и в корзине. Платит ритейлер, потому что
-   возврат дивана стоит ему заметную долю заказа, а обратная логистика дороже
-   товара. Тот же рушій, экономика сходится. B2C-приложение становится демо.
-2. **«Друга думка» (§5.4) как самостоятельный продукт.** Нулевая вкусовая
-   ответственность, вся ценность в проверке, мгновенно понятно, легко вирусится.
-3. **Одна покупка вместо комнаты.** «Купи правильний диван»: один дорогой,
-   рискованный, часто возвращаемый предмет. На порядок меньше данных, выше
-   конверсия, ясный поисковый спрос. Строится за ~6 недель.
-4. **Prosumer (арендодатели, хосты).** Повторяемость 3–10 объектов, ROI,
-   оправданный CAC. Отвергнут из-за B2C-ограничения, но экономически лучший.
+1. **Retailer-side (strongest).** "Fit & Delivery check for furniture
+   e-commerce" — a widget on the product page and in the cart. The retailer pays,
+   because a returned sofa costs a significant share of the order and reverse
+   logistics costs more than the item. Same engine, and the economics close. The
+   B2C app becomes a demo.
+2. **"Second opinion" (§5.4) as a standalone product.** Zero taste liability,
+   all value in verification, instantly comprehensible, highly shareable.
+3. **One purchase instead of one room.** "Buy the right sofa": a single
+   expensive, high-risk, frequently returned item. An order of magnitude less
+   data, higher conversion, clear search demand. Buildable in ~6 weeks.
+4. **Prosumer (landlords, hosts).** Repeat use across 3–10 properties, clear ROI,
+   justified CAC. Rejected because of the B2C constraint, but economically the
+   strongest.
 
-Ранжирование по юнит-экономике: **1 > 2 > 3 > 4 > текущее позиционирование.**
+Ranking by unit economics: **1 > 2 > 3 > 4 > the current positioning.**
 
 ---
 
-## 19. Открытые вопросы
+## 19. Open questions
 
-| ID | Вопрос |
+| ID | Question |
 |---|---|
-| `OQ-VRP-01` | права потребителя в Украине: дистанционная продажа и изготовление на заказ |
-| `OQ-VRP-02` | существуют ли локальные украинские конкуренты — **проверить до старта** |
-| `OQ-VRP-03` | есть ли у JYSK Україна партнёрская программа (поиском не подтверждено) |
-| `OQ-VRP-04` | актуальные габаритные лимиты Нової Пошти по типам доставки |
-| `OQ-VRP-05` | первоисточник статистики возвратов мебели (58% / 71% из обзора) |
-| `OQ-VRP-06` | платёжный провайдер: LiqPay / Fondy / WayForPay / Monobank; форма (ФОП), налоги, оферта |
-| `OQ-VRP-07` | политика возврата денег за сам сервис, если FitProof ошибся |
-| `OQ-VRP-08` | язык интерфейса для UA-рынка: UA основной, EN вторичный; RU — решение не принято |
-| `OQ-VRP-09` | судьба текущего `golden-ratio`: отдельный продукт / бесплатный уровень / архив |
-| `OQ-VRP-10` | реальные CPC и конверсия в UA по целевым запросам — заменить оценки данными |
-| `OQ-VRP-11` | название продукта и домен |
+| `OQ-VRP-01` | Ukrainian consumer rights: distance selling and made-to-order goods |
+| `OQ-VRP-02` | do local Ukrainian competitors exist — **check before launch** |
+| `OQ-VRP-03` | does JYSK Ukraine run an affiliate programme (unconfirmed by search) |
+| `OQ-VRP-04` | current Nova Poshta dimensional limits by delivery type |
+| `OQ-VRP-05` | primary source for the furniture return statistics (58% / 71% from the review) |
+| `OQ-VRP-06` | payment provider: LiqPay / Fondy / WayForPay / Monobank; legal form (ФОП), taxation, terms of service |
+| `OQ-VRP-07` | refund policy for the service itself when FitProof is wrong |
+| `OQ-VRP-08` | interface language for the UA market: UA primary, EN secondary; RU undecided |
+| `OQ-VRP-09` | fate of the current `golden-ratio`: standalone product / free tier / archive |
+| `OQ-VRP-10` | real UA CPCs and conversion rates for target queries — replace estimates with data |
+| `OQ-VRP-11` | product name and domain |
 
 ---
 
-## 20. Выявленные пробелы (feedback по полноте)
+## 20. Identified gaps (completeness review)
 
-Пробелы, найденные при сведении спеки. Перечислены по убыванию опасности.
+Gaps found while consolidating this spec, ordered by danger.
 
-| ID | Пробел | Почему опасен |
+| ID | Gap | Why it is dangerous |
 |---|---|---|
-| `GAP-02` | **коробка vs собранное изделие** в Delivery Path Check | функция даёт **систематически неверный ответ** на flat-pack — самой массовой категории. Учтён в §9.2 и §11.3 (`assembly`) |
-| `GAP-01` | **существующая мебель** пользователя | вся сессия проектировала пустую комнату; у большинства что-то уже стоит. Нужна как обмеренное препятствие без SKU. Учтено в §7.4 |
-| `GAP-06` | **поведение при «ничего не помещается»** | частый исход для малых квартир и малых бюджетов; момент потери доверия. Учтено в `FR-CONFLICT-01` |
-| `GAP-11` | **спрос не проверен вообще** | главный риск всего документа; `RISK-WTP` |
-| `GAP-03` | **данные дома** (этаж, лифт, лестница, повороты) | без них Delivery Path Check неполон. Учтено в §7.4, §13.1 |
-| `GAP-04` | **розетки, выключатели, трубы** | определяют, куда встанет ТВ, стол, кровать. Учтено в §7.4 |
-| `GAP-13` | **мобильный UX обмера одной рукой** | обмер делается с рулеткой в другой руке; десктопная форма здесь не работает. Учтено в `NFR-MOBILE-01` |
-| `GAP-09` | **окно валидности цены** (курс гривны) | смета «протухает» быстрее, чем наличие. Учтено в `FR-COST-03` |
-| `GAP-05` | **межкомнатные двери, открывающиеся внутрь** | съедают полезную площадь; учтено в модели проёмов (`swing`, `hinge`) |
-| `GAP-07` | **возврат денег за сервис** | доверие + потребительское право. `OQ-VRP-07` |
-| `GAP-12` | **язык UA/RU** | чувствительный вопрос для рынка. `OQ-VRP-08` |
-| `GAP-08` | **платежи и юрлицо** | блокирует приём денег. `OQ-VRP-06` |
-| `GAP-10` | **локальные конкуренты не проверены** | `OQ-VRP-02` |
-| `GAP-14` | **единицы измерения мм vs см** | смешение недопустимо. Учтено в `BC-UNITS-01` |
-| `GAP-15` | **судьба `golden-ratio`** | `OQ-VRP-09` |
+| `GAP-02` | **box vs assembled item** in Delivery Path Check | the feature returns a **systematically wrong answer** for flat-pack, the largest category. Addressed in §9.2 and §11.3 (`assembly`) |
+| `GAP-01` | **the user's existing furniture** | the whole session designed an empty room; most people already own something. Needed as a measured obstacle with no SKU. Addressed in §7.4 |
+| `GAP-06` | **behaviour when nothing fits** | a frequent outcome for small flats and small budgets; the moment trust is lost. Addressed in `FR-CONFLICT-01` |
+| `GAP-11` | **demand is entirely unvalidated** | the largest risk in this document; `RISK-WTP` |
+| `GAP-03` | **building data** (floor, lift, stairs, turns) | Delivery Path Check is incomplete without it. Addressed in §7.4, §13.1 |
+| `GAP-04` | **sockets, switches, pipes** | they determine where a TV, desk or bed can go. Addressed in §7.4 |
+| `GAP-13` | **one-handed mobile measurement UX** | measuring is done with a tape measure in the other hand; a desktop form does not work here. Addressed in `NFR-MOBILE-01` |
+| `GAP-09` | **price validity window** (hryvnia exchange rate) | an estimate goes stale faster than availability does. Addressed in `FR-COST-03` |
+| `GAP-05` | **interior doors swinging inward** | they consume usable floor area; covered by the openings model (`swing`, `hinge`) |
+| `GAP-07` | **refunds for the service** | trust plus consumer law. `OQ-VRP-07` |
+| `GAP-12` | **UA/RU language** | a sensitive question for this market. `OQ-VRP-08` |
+| `GAP-08` | **payments and legal entity** | blocks taking money at all. `OQ-VRP-06` |
+| `GAP-10` | **local competitors unchecked** | `OQ-VRP-02` |
+| `GAP-14` | **units: mm vs cm** | mixing them is not permitted. Addressed in `BC-UNITS-01` |
+| `GAP-15` | **fate of `golden-ratio`** | `OQ-VRP-09` |
 
 ---
 
-## 21. Приоритеты функций
+## 21. Feature priorities
 
 ### Must
-ручной обмер + скан/фото как параллельные входы; интервальный рушій и
-propagating confidence; каталог 300–600 SKU (1–2 ритейлера, UA);
-детерминированный layout solver (коллизии, проходы, открывание дверей, окна);
-**2D-план в масштабе**; FitProof-отчёт со статусами; Delivery Path Check
-с учётом `assembly`; полная стоимость в гривне; shopping list + ссылки;
-Safe Swap по одной оси; поведение при конфликте; follow-up на покупку;
-бесплатная «друга думка».
+manual measurement plus scan/photo as parallel inputs; the interval engine with
+propagating confidence; a catalog of 300–600 SKUs (1–2 retailers, UA); a
+deterministic layout solver (collisions, walkways, door swings, windows); the
+**to-scale 2D plan**; the FitProof report with statuses; Delivery Path Check
+honouring `assembly`; total cost in hryvnia; shopping list plus links; Safe Swap
+along one axis; conflict behaviour; purchase follow-up; the free second opinion.
 
 ### Should
-3D-просмотр (только просмотр); Constraint Memory; Availability Recovery;
-второй ритейлер; атмосферный рендер.
+3D view (view only); Constraint Memory; Availability Recovery; a second
+retailer; the atmospheric render.
 
 ### Later
-фотореалистичный рендер из сцены; AR; мульти-комната; платная человеческая
-проверка; white-label / API; retailer-side виджет.
+photorealistic rendering from the scene; AR; multi-room; paid human review;
+white-label / API; the retailer-side widget.
 
 ### Do not build
-генерация видео; собственная генерация 3D-моделей товаров; экстерьеры и сады;
-25 стилей; соцфункции; image-generation как основа пайплайна; «AI-чат-дизайнер»;
-кастомные кухни; scraping; неофициальные API.
+video generation; our own 3D model generation for products; exteriors and
+gardens; 25 styles; social features; image generation as the basis of the
+pipeline; an "AI chat designer"; custom kitchens; scraping; unofficial APIs.
 
-**`BC-VRP-SCOPE-01`. 3D не входит в Must.** Уверенность передаётся планом
-с размерными линиями лучше, чем 3D-сценой. 3D тянет лицензии на модели, бандл
-и WebGL-fallback. Продукт, который не конкурирует картинкой, не строит картинку
-первой.
+**`BC-VRP-SCOPE-01`. 3D is not in Must.** Confidence is conveyed better by a plan
+with dimension lines than by a 3D scene. 3D drags in model licensing, bundle size
+and a WebGL fallback. A product that does not compete on the picture must not
+build the picture first.
 
 ---
 
-## 22. Что считается успехом этого документа
+## 22. What counts as success for this document
 
-Документ описывает продукт, у которого:
-- факты считает детерминированный код, субъективное — AI, и удаление AI
-  не ломает корректность;
-- обещание («поместится») подкреплено механизмом (интервалы), а не
-  формулировкой;
-- граница монетизации совпадает с границей издержек и с границей данных;
-- главный риск (`RISK-WTP`) назван, не спрятан, и имеет дешёвый тест (§17.3).
+It describes a product where:
+- facts are computed by deterministic code and subjective judgement by AI, and
+  removing the AI does not break correctness;
+- the promise ("it will fit") is backed by a mechanism (intervals), not by
+  wording;
+- the monetisation boundary coincides with the cost boundary and the data
+  boundary;
+- the principal risk (`RISK-WTP`) is named rather than hidden, and has a cheap
+  test (§17.3).
 
-Следующий шаг — план реализации (skill `writing-plans`) **после** решения
-по `OQ-VRP-02`, `OQ-VRP-03` и `OQ-VRP-11`.
+The next step is an implementation plan (skill `writing-plans`) — **after**
+`OQ-VRP-02`, `OQ-VRP-03` and `OQ-VRP-11` are resolved.
