@@ -1,7 +1,8 @@
 # Verified Room Plan — product design spec
 
 > **Status:** design spec; not approved for implementation.
-> **Date:** 2026-09-15 (revised 2026-09-16 — ergonomics added as a first-class axis)
+> **Date:** 2026-09-15 (revised 2026-09-16 — ergonomics as a first-class axis;
+> deliverable format and computational-honesty boundary)
 > **Origin:** brainstorming session (skill `brainstorming`)
 > **Relationship to `golden-ratio`:** this document describes a **separate
 > product** that grows organically out of the `lib/calculations.ts` engine.
@@ -200,6 +201,45 @@ marketing works. They are used here as market evidence only. Our own
 infographics and rule values must be produced independently and sourced
 independently ([§7.7](#77-source-discipline--non-negotiable)); their layouts,
 imagery and wording must not be reproduced.
+
+### 1.6 Reference: the project board format
+
+Source material: a Ukrainian house-project presentation board («СУЧАСНИЙ
+БУДИНОК»), supplied as a format reference. It combines, on one sheet: a
+dimensioned elevation, exterior renders, a floor plan with a **numbered room
+schedule and an area table**, interior renders per room, and a footer strip of
+headline specs (area, bedrooms, bathrooms, terrace, energy class).
+
+**What is worth taking — the format, not the content.**
+
+1. **The deliverable is a board, not a screen.** One sheet that can be printed,
+   sent to a fitter, or shown to a partner. This directly attacks `RISK-MOMENT`
+   ([§20](#20-risks)): furnishing is twenty decisions over three months involving
+   other people, and an artifact that survives outside the app is how a decision
+   travels between them. Specified in [§8.6](#86-the-deliverable-one-board-not-a-screen).
+2. **The numbered room schedule with areas** is an expected, conventional element
+   and is trivially derivable from geometry we already hold. It was missing from
+   this spec entirely.
+3. **The dimensioned elevation** confirms the format decision in
+   [§8](#8-the-visual-system-plan-elevation-3d): a vertical view with a dimension
+   chain is what this market reads as a serious document.
+
+**What must not be taken.**
+
+- **It is a house; we do rooms in flats.** Exterior renders, terrace, site, roof
+  and façade are irrelevant to our beachhead ([§3.2](#32-beachhead)). Copying the
+  board's content rather than its layout would drag scope toward house design —
+  the failure mode this project has repeatedly had to resist.
+- **It is an architect's deliverable.** Ours is self-service and must not imply
+  architectural completeness — no structure, no engineering, no permits, no
+  drawing-set conventions. See `BC-VIZ-03` ([§8.6](#86-the-deliverable-one-board-not-a-screen)).
+- **The energy-efficiency badge is out of scope**, on principle rather than by
+  preference. See [§7.8](#78-what-we-refuse-to-compute).
+
+*Note on the source: it was read from a low-resolution image and several plan
+labels were not legible. Only its layout intent is taken as reference; none of
+its figures or wording enters our product. `LC-05` applies — a third party's
+board is a work, to be analysed and never reproduced.*
 
 ---
 
@@ -684,6 +724,44 @@ standards (ДБН / ДСТУ / ISO / EN where applicable); peer-reviewed ergonom
 literature; and industry handbooks with named authorship. See
 [`OQ-VRP-12`](#21-open-questions).
 
+### 7.8 What we refuse to compute
+
+**`BC-SCOPE-NOCALC-01`.** No badge, score, class or headline figure may be
+displayed unless **every input is held at a stated confidence** and **the rule
+converting those inputs into the figure is sourced** (`BC-ERG-05`). A number we
+cannot derive honestly is not shown at all — not shown as an estimate, not shown
+greyed out, not shown "indicative".
+
+This is the same principle as [§7.7](#77-source-discipline--non-negotiable),
+applied to the output side rather than the input side, and it exists because the
+product's entire pitch is that it replaces opinion with numbers. A single
+decorative metric on the deliverable undermines every honest one beside it.
+
+**Excluded by this rule — energy efficiency / energy class.**
+
+Decided 2026-09-16. An apartment's energy performance depends on the building
+envelope, glazing specification, ventilation, the building-level heating system,
+thermal bridging, the heating behaviour of neighbouring flats, and orientation. None of
+that is observable from a room scan or a tape measure, none of it appears in a
+furniture catalog, and none of it can be confirmed by the user with the
+instruments we ask them to use. An energy badge would therefore be a number with
+no sourced inputs — precisely what `BC-ERG-05` forbids.
+
+It is excluded as a **computation**, not as a topic: qualitative, sourced
+guidance that costs nothing to state ("this glazing orientation will make the
+room warm in the afternoon") remains acceptable where it carries its source and
+makes no numeric claim.
+
+**Also excluded under the same rule**, pre-emptively, because each is a
+recurring temptation in this category: acoustic comfort scores, indoor air
+quality indices, illuminance (lux) figures without photometric data, any
+composite "wellness", "comfort" or "quality" score, and any single-number rating
+of a room as a whole.
+
+**What the deliverable shows instead** — every item computed from inputs we
+actually hold: room area, minimum clear walkway, ergonomic anchors met out of
+those applicable, total cost, delivery feasibility, and verification state.
+
 ---
 
 ## 8. The visual system: plan, elevation, 3D
@@ -748,6 +826,42 @@ the silhouette, the dimension line, the number, the verdict, and the source.
 This is the growth loop. The reference material proves the format travels; the
 difference is that ours is generated for one person's room and body, carries a
 citation, and links back to a calculator that can redo it for the viewer.
+
+### 8.6 The deliverable: one board, not a screen
+
+**`FR-VIZ-05`.** The paid result exports as a **single sheet** — print- and
+share-ready — carrying, in one layout: the to-scale plan, the ergonomic
+elevation with the user's silhouette, the room schedule, the itemised purchase
+list with SKUs, the total cost breakdown, the verdict summary, and the
+generation date with the price-validity window (`FR-COST-03`).
+
+Rationale: the decision does not happen inside the app. It happens when the plan
+is shown to a partner, sent to a fitter, or carried into a shop. An artifact that
+leaves the app is how the product participates in that conversation, and it is
+what makes a one-time payment feel like a delivered result rather than rented
+access ([§5](#5-the-freepaid-boundary)).
+
+**`FR-VIZ-06`.** The board carries a **numbered room schedule**: index, room
+name, area, and the ceiling height used — each number derived from held
+geometry, each carrying its verification status.
+
+**`FR-VIZ-07`.** The headline strip carries only figures permitted by
+`BC-SCOPE-NOCALC-01` ([§7.8](#78-what-we-refuse-to-compute)): area, minimum clear
+walkway, anchors met, total cost, delivery feasibility, verification state.
+
+**`BC-VIZ-03`. The board must not impersonate an architectural drawing set.**
+No title block, no sheet numbering, no revision stamps, no signature field, and
+no claim of drawing scale beyond "to scale, dimensions as verified". It is a
+purchase plan, and its own header says so. This is the visual counterpart of
+`BC-LEGAL-01`: the document must not imply an authority or a completeness the
+product does not have — no structure, no engineering, no compliance, no permits.
+
+**`BC-VIZ-04`.** The free tier exports a reduced board: plan, elevation,
+ergonomic verdicts and room schedule, with the purchase list and total cost
+withheld. It carries the atmospheric render under `FR-FREE-07` rules — no
+dimensions on that render — while the technical views keep their dimensions per
+`BC-VIZ-02`. A free board is a marketing surface, and it should be as
+professional as the paid one minus the goods.
 
 ---
 
@@ -1383,6 +1497,8 @@ Ranking by unit economics: **1 > 2 > 3 > 4 > 5 > the current positioning.**
 | `OQ-VRP-15` | anthropometric basis for anchors: which population data underlies "optimal" heights, and how to handle users outside its range |
 | `OQ-VRP-16` | privacy and legal treatment of stored body measurements under Ukrainian personal-data law (`BC-ERG-02`, `RISK-PII`) |
 | `OQ-VRP-17` | is LESNIK.PRO-style studio partnership a viable distribution channel, and on what terms |
+| `OQ-VRP-18` | board page format and print target (A4 portrait vs A3), and whether a printed sheet is genuinely used by this audience or only shared on a phone |
+| `OQ-VRP-19` | does withholding the purchase list on the free board (`BC-VIZ-04`) leave it valuable enough to share, or does it read as a crippled teaser |
 
 ---
 
@@ -1407,6 +1523,9 @@ Gaps found while consolidating this spec, ordered by danger. Gaps marked
 | `GAP-13` | **one-handed mobile measurement UX** | measuring is done with a tape measure in the other hand; a desktop form does not work here. Addressed in `NFR-MOBILE-01` |
 | `GAP-09` | **price validity window** (hryvnia exchange rate) | an estimate goes stale faster than availability does. Addressed in `FR-COST-03` |
 | `GAP-21` | **floor finish thickness** **(2026-09-16)** | countertop and appliance heights are measured from finished floor, not screed; mid-renovation users have neither yet. Addressed in [§9.4](#94-input-model--required-fields) |
+| `GAP-22` | **the deliverable format was unspecified** **(2026-09-16)** | the result existed only as app screens, so it could not travel to the partner, the fitter or the shop — the places where the decision is actually made (`RISK-MOMENT`). Addressed in [§8.6](#86-the-deliverable-one-board-not-a-screen) |
+| `GAP-23` | **no rule for what may be displayed as a figure** **(2026-09-16)** | without one, decorative metrics (energy class, comfort scores) drift onto the deliverable and discredit the honest numbers beside them. Addressed in `BC-SCOPE-NOCALC-01` |
+| `GAP-24` | **no room schedule** **(2026-09-16)** | a conventional, expected element, trivially derivable from geometry already held. Addressed in `FR-VIZ-06` |
 | `GAP-05` | **interior doors swinging inward** | they consume usable floor area; covered by the openings model (`swing`, `hinge`) |
 | `GAP-07` | **refunds for the service** | trust plus consumer law. [`OQ-VRP-07`](#21-open-questions) |
 | `GAP-12` | **UA/RU language** | a sensitive question for this market. [`OQ-VRP-08`](#21-open-questions) |
@@ -1429,7 +1548,7 @@ to-scale 2D plan; the FitProof report with statuses; auditable verdicts showing
 number, threshold and source; Delivery Path Check honouring `assembly`; total
 cost in hryvnia; shopping list plus links; Safe Swap along one axis that respects
 satisfied anchors; conflict behaviour; purchase follow-up; the free second
-opinion.
+opinion; the exportable deliverable board with the room schedule.
 
 ### Should
 3D view (view only); shareable anchor cards; Constraint Memory; Availability
@@ -1444,7 +1563,9 @@ the primary-user rule.
 video generation; our own 3D model generation for products; exteriors and
 gardens; 25 styles; social features; image generation as the basis of the
 pipeline; an "AI chat designer"; custom kitchens; scraping; unofficial APIs;
-**any anchor value without a citation**.
+**any anchor value without a citation**; **energy-efficiency classes or any
+other figure barred by `BC-SCOPE-NOCALC-01`** ([§7.8](#78-what-we-refuse-to-compute));
+exterior, façade, roof, terrace or site design.
 
 **`BC-VRP-SCOPE-01`. 3D is not in Must.** Confidence is conveyed better by a plan
 and an elevation with dimension lines than by a 3D scene. 3D drags in model
