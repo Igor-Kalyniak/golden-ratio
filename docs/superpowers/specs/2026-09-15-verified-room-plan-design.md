@@ -21,7 +21,8 @@
 
 | § | Section |
 |---|---|
-| 0 | [TL;DR](#0-tldr) |
+| 0 | [The pitch](#0-the-pitch) |
+| 0a | [The thesis, in engineering terms](#0a-the-thesis-in-engineering-terms) |
 | 1 | [Problem, hypothesis and the voice of the customer](#1-problem-hypothesis-and-the-voice-of-the-customer) |
 | 2 | [Continuity from `golden-ratio`](#2-continuity-from-golden-ratio) |
 | 3 | [Market and segment](#3-market-and-segment) |
@@ -46,16 +47,134 @@
 | 22 | [Identified gaps](#22-identified-gaps-completeness-review) |
 | 23 | [Feature priorities](#23-feature-priorities) |
 | 24 | [What counts as success](#24-what-counts-as-success-for-this-document) |
+| 25 | [Interview answers and the numbers to know cold](#25-interview-answers-and-the-numbers-to-know-cold) |
 
 ---
 
-## 0. TL;DR
+## 0. The pitch
 
-The product turns two questions that are normally answered by opinion into two
-questions answered by computation:
+*Written to be read aloud. A YC interview runs 10–15 minutes and answers land in
+30–60 seconds, so every claim below is short, specific, and either a number or a
+plainly stated absence of one.*
 
-1. **Will it fit?** — collisions, clearances, door swings, delivery path.
-2. **Will it be comfortable?** — ergonomics measured against the user's own body.
+### The one-liner
+
+> **We tell you whether the furniture you are about to buy will fit your room,
+> suit your body, and get through your door — before you pay for it.**
+
+No jargon version, for someone outside the category: *you enter your room's
+dimensions and your height; we tell you what to buy and what will go wrong if
+you buy the wrong thing.*
+
+### Who hurts if we stop existing tomorrow
+
+Three real people, all in Ukraine, all this month:
+
+- the person whose kitchen countertop is about to be cut to 85 cm, because
+  that is the number in the standard table — and who is 1.85 m tall. That is
+  not a return. That is a new countertop;
+- the person who ordered a made-to-order wardrobe with a 2–6 week lead time and
+  no right of return, and will discover on delivery day that it does not fit the
+  lift;
+- the person with ₴25,000 and an empty room, who does not know that the total
+  will land at ₴34,000 once delivery, assembly and minimum order values are
+  added, and will run out of money halfway.
+
+Nobody is currently answering any of those three questions with a number.
+
+### What we have built
+
+- A **deterministic geometry engine** — 598 lines of pure functions, 107 passing
+  unit tests, live in production. It already computes clearances against
+  absolute human thresholds and renders rooms to scale in 2D and 3D.
+- A **shipped, bilingual (UA/EN) product** built on it, with an end-to-end
+  Playwright suite running against the live deployment.
+- A specification, this document, that has survived being argued with: it names
+  its own fifteen-plus gaps and its own fatal risks rather than hiding them.
+
+### What we have NOT built
+
+Stated first, because a pitch that buries this fails the first follow-up
+question:
+
+- **zero users. Zero revenue. Nothing launched to a customer.**
+- no catalog, no payments, no iOS app;
+- the ergonomic reference values are not yet traced to citable standards
+  ([`OQ-VRP-12`](#21-open-questions)).
+
+About 40% of each YC batch is idea-stage, so the absence of revenue is not
+itself disqualifying. **Moving slowly is.** Which is why the plan below is not
+the plan this spec originally contained.
+
+### The correction we are making to our own plan
+
+The full product in this document is **5–8 months from a first paying user**.
+That is the wrong shape for a company with no users, and we are saying so
+ourselves rather than waiting to be told.
+
+The free ergonomic layer ([§7](#7-ergonomics--axis-two-will-it-be-comfortable))
+needs **no catalog, no payments, no iOS and no backend**. It is weeks of work,
+not months. It is personal, shareable, and it answers a question people already
+search for. It ships first, it gets users, and every number in
+[§18](#18-metrics) starts coming in months before the paid layer exists.
+
+**Next 8 weeks:** ship the free ergonomic checker; source the anchor values
+properly; get it in front of the audience that Ukrainian renovation studios have
+already proven exists for this content ([§1.5](#15-external-evidence-for-the-free-tier-ergonomic-content));
+measure `M-ERG-02` (do people give us their height?) and `M-SHARE-01` (does it
+travel?). Then decide whether the paid layer is worth building.
+
+### Why now
+
+- Every AI interior tool now ends at the same sentence — *"always confirm
+  dimensions with a tape measure before buying"* — which means the whole
+  category has publicly conceded the exact gap we fill.
+- Phone LiDAR scanning became ordinary, so approximate room geometry is now free
+  to obtain; what remains scarce is knowing **which** measurement actually
+  matters, which is a computation, not a sensor.
+- Ukraine has no localised competitor at the data layer, and a wartime
+  displacement economy in which furnishing a room on a fixed budget, against a
+  deadline, with irreversible purchases, is a mass condition rather than a niche.
+
+### Why us
+
+- We did not start from a market and look for a product. We built the geometry
+  engine first, as a working tool, and discovered that its clearance logic was
+  already the business.
+- Ukraine is home, not a target market picked off a map: the language, the
+  retailers, the delivery constraints and the failure stories are first-hand.
+- The seven customer quotes in [§1.4](#14-voice-of-the-customer-the-cost-of-та-нормально-буде)
+  came from a practising contractor, not a survey panel.
+
+### The business
+
+- **₴299–599 once per verified room** (~€7–13). Not a subscription: furnishing is
+  an event. The incumbent charges $29–59 per month for an episodic task, and its
+  own most favourable review contains instructions for cancelling.
+- Affiliate revenue on a ₴20–40k basket as a second line.
+- Retailer-side licensing ([§20.3](#203-the-counter-argument-why-this-fails-even-with-a-good-product))
+  as the path where the unit economics are strongest — returns cost retailers far
+  more than they cost us.
+
+### The biggest risk, named before we are asked
+
+**Nobody has paid us anything, and the belief that people will pay for
+verification rather than for pictures is unproven.** The pilot tests it directly
+and cheaply: half the users get an attractive render with approximate products,
+half get a plain verified plan with exact products and a total cost
+([§19.3](#193-mandatory-ab-inside-the-pilot)). If the render group converts
+equally, we are wrong, and we will know across 20 users rather than across two
+years.
+
+### The ask
+
+Funding and the batch to compress the next 12 months into 3: ship the free
+layer, source the anchor library, sign the first retail catalog, and run the
+paid pilot to a go/no-go ([§19](#19-go--no-go-after-the-first-pilot)).
+
+---
+
+## 0a. The thesis, in engineering terms
 
 The continuity thesis, in one line:
 
@@ -63,6 +182,12 @@ The continuity thesis, in one line:
 > (`FURNITURE_DEPTHS`) and absolute human thresholds (`WALKWAY_THRESHOLDS`).
 > The business is verifying the same things against the real dimensions of a
 > specific SKU and the real body of a specific user.**
+
+The product turns two questions that are normally answered by opinion into two
+questions answered by computation:
+
+1. **Will it fit?** — collisions, clearances, door swings, delivery path.
+2. **Will it be comfortable?** — ergonomics measured against the user's own body.
 
 Positioning, in one line (Ukraine):
 
@@ -82,7 +207,6 @@ Against the main software competitor, in its own words:
 > We are that check.**
 > Ukrainian: «Вони кажуть: "перевірте рулеткою". Ми — це та перевірка.»
 
----
 
 ## 1. Problem, hypothesis and the voice of the customer
 
@@ -1594,3 +1718,119 @@ The next step is an implementation plan (skill `writing-plans`) — **after**
 [§7](#7-ergonomics--axis-two-will-it-be-comfortable)),
 [`OQ-VRP-02`](#21-open-questions), [`OQ-VRP-03`](#21-open-questions) and
 [`OQ-VRP-11`](#21-open-questions) are resolved.
+
+---
+
+## 25. Interview answers and the numbers to know cold
+
+*Drafts, not scripts. Each answer is built to land in 30–60 seconds. Where the
+honest answer is "we don't know yet", it says so — a confident invention is the
+one failure mode that cannot be recovered from in the room.*
+
+### 25.1 The questions, answered
+
+**What are you making?**
+Software that checks whether the furniture you're about to buy will fit your
+room, suit your body, and get through your door — before you pay. You give us
+the room's dimensions and your height; we give you what to buy, what it costs in
+total, and what will go wrong if you buy the wrong thing.
+
+**Why did you pick this idea?**
+We built the geometry engine first, as a tool for proportional room planning.
+It computes clearances against absolute human thresholds. At some point it
+became obvious that this logic *was* the business — every AI interior tool on
+the market ends with "go measure it yourself", and we already had the thing that
+measures.
+
+**What do you understand that others don't?**
+Two things. First, everyone is competing on the picture, and the picture is a
+commodity — even the most favourable review of the market leader ranks its
+shopping list above its renders. Second, nobody asks how tall the user is. Fit
+needs a catalog; ergonomics needs a body. The second input is the one nobody
+collects, it's free to obtain, and it produces the failure that gets set in
+concrete rather than returned.
+
+**Who are your users?**
+People furnishing a room on a fixed budget where the purchase is irreversible.
+In Ukraine that's a mass condition, not a niche: a large share of furniture is
+made to order, 2–6 week lead times, no practical right of return.
+
+**How do you know they want it?**
+Honestly: we don't yet, and that's the thing we're fixing first. What we have is
+indirect — Ukrainian renovation studios run their entire marketing on ergonomic
+infographics, which tells us the content attracts exactly this audience; and the
+most favourable published review of our largest competitor says its best feature
+was being told what *not* to buy. That's a signal, not proof. The free layer
+ships first specifically to turn it into proof.
+
+**What have you built?**
+A deterministic engine: 598 lines of pure functions, 107 passing tests, live in
+production, bilingual, with end-to-end tests against the live deployment. No
+catalog, no payments, no users.
+
+**What's your growth rate?**
+Zero. Nothing is launched. The free ergonomic checker is weeks away, and from
+that point we have `M-ERG-02` (do people give us their height), `M-SHARE-01`
+(does the result travel) and `M-CONV-01` (does anyone pay).
+
+**How will you make money?**
+₴299–599 once per verified room. Affiliate on a ₴20–40k basket second.
+Retailer-side licensing is where the economics are strongest, because a returned
+sofa costs the retailer a large fraction of the order and the reverse logistics
+cost more than the item.
+
+**Why won't a big retailer just build this?**
+For the fit half, they might — they hold the catalog and returns hurt them more
+than they hurt us. That's a named risk, not a surprise. The ergonomic half is
+harder to copy because it needs the user's body rather than the catalog, and it
+crosses retailers, which a single retailer has no reason to do.
+
+**What's the biggest thing that could kill you?**
+That people want inspiration, not verification. We test it in the pilot with a
+split: renders and approximate products for one half, a verified plan with exact
+products and total cost for the other. If the render half converts equally, the
+thesis is dead and we'll know it across 20 users.
+
+**Why now?**
+Phone LiDAR made approximate room geometry free. What's scarce now is knowing
+which measurement matters — that's a computation. And the entire AI-interior
+category has publicly conceded the gap by telling users to go get a tape measure.
+
+**What's your unfair advantage?**
+Ukraine is home, not a market picked off a map, and the engine already exists
+and is tested.
+
+### 25.2 Numbers to know cold
+
+Memorise these; a partner will ask for at least three of them.
+
+| Number | Value | Status |
+|---|---|---|
+| Users | 0 | nothing launched |
+| Revenue | 0 | — |
+| Price point | ₴299–599 once (~€7–13) | hypothesis, [§3.1](#31-market-1-ukraine) |
+| Basket size assumed | ₴20–40k | hypothesis, [`OQ-VRP-10`](#21-open-questions) |
+| Affiliate take assumed | low single-digit % of basket | hypothesis |
+| CAC | unknown for UA | **must fix** — [`OQ-VRP-10`](#21-open-questions) |
+| EU CAC that killed the EU plan | €40–75 against a €39 price | the reason the market is Ukraine |
+| Engine | 598 LOC, 107 tests, in production | verified |
+| Catalog target for v1 | 300–600 SKUs, 1–2 retailers | [§13.2](#132-scope-of-version-one) |
+| Manual normalisation cost | 80–250 person-hours | estimate |
+| Time to first paying user, full build | 5–8 months | the number we are correcting |
+| Time to free layer shipped | weeks | the plan |
+| Repurchase frequency | once per 5–7 years | `RISK-FREQ` — the hardest number we own |
+
+**`BC-PITCH-01`.** Every figure presented externally carries its status —
+measured, hypothesis, or unknown. The same discipline the product applies to
+ergonomic anchors (`BC-ERG-05`) applies to our own metrics. A founder who
+presents a hypothesis as a measurement has the same defect as a product that
+presents an opinion as a number, and it is noticed just as fast.
+
+### 25.3 Things not to say
+
+- Any market-size figure we have not computed from a source.
+- The 58% / 71% furniture-return statistics — still untraced
+  ([`OQ-VRP-05`](#21-open-questions)).
+- "No competitors." There are several, one is well funded, and IKEA Kreativ does
+  part of this natively.
+- Any softening of "zero users". It is the first thing to say, not the last.
